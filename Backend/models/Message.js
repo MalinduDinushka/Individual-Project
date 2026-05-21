@@ -6,6 +6,21 @@ const messageSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  booking: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Booking',
+    index: true
+  },
+  tourRequest: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'TourRequest',
+    index: true
+  },
+  chatType: {
+    type: String,
+    enum: ['booking', 'request'],
+    default: 'booking'
+  },
   sender: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

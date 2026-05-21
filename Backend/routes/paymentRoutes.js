@@ -1,10 +1,19 @@
 const express = require('express');
 const router = express.Router();
+const { body } = require('express-validator');
 const { protect } = require('../middleware/auth');
+const { createPayment, getPaymentStatus } = require('../controllers/paymentController');
 
-// Placeholder controller
-router.post('/', protect, (req, res) => {
-  res.json({ message: 'Payment routes - To be implemented' });
-});
+router.post(
+  '/',
+  protect,
+  [
+    body('bookingId').isMongoId().withMessage('Valid bookingId is required'),
+    body('paymentMethod').optional().isString()
+  ],
+  createPayment
+);
+
+router.get('/:id', protect, getPaymentStatus);
 
 module.exports = router;

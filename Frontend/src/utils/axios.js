@@ -26,8 +26,17 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('tourmate-auth')
-      window.location.href = '/login'
+      // Don't auto-logout for public read-only endpoints (e.g., service listing)
+      const reqUrl = error.config?.url || ''
+      const isPublicService = reqUrl.includes('/services')
+
+      if (!isPublicService) {
+        localStorage.removeItem('tourmate-auth')
+        window.location.href = '/login'
+      } else {
+        // For public service fetches, let the caller handle the error (avoid forced logout)
+        console.warn('Received 401 for public service endpoint, skipping auto-logout')
+      }
     }
     return Promise.reject(error)
   }

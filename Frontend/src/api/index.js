@@ -29,6 +29,10 @@ export const serviceAPI = {
   deleteService: (id) => apiClient.delete(`/services/${id}`)
 }
 
+export const userAPI = {
+  getProviderProfile: (id) => apiClient.get(`/users/providers/${id}`)
+}
+
 export const bookingAPI = {
   createBooking: (data) => apiClient.post('/bookings', data),
   getMyBookings: () => apiClient.get('/bookings/my-bookings'),
@@ -39,6 +43,14 @@ export const bookingAPI = {
 export const paymentAPI = {
   createPayment: (data) => apiClient.post('/payments', data),
   getPaymentStatus: (id) => apiClient.get(`/payments/${id}`)
+}
+
+export const messageAPI = {
+  getConversations: () => apiClient.get('/messages/conversations'),
+  getBookingMessages: (bookingId) => apiClient.get(`/messages/bookings/${bookingId}`),
+  sendBookingMessage: (bookingId, data) => apiClient.post(`/messages/bookings/${bookingId}`, data),
+  getRequestMessages: (requestId, providerId) => apiClient.get(`/messages/requests/${requestId}/providers/${providerId}`),
+  sendRequestMessage: (requestId, providerId, data) => apiClient.post(`/messages/requests/${requestId}/providers/${providerId}`, data)
 }
 
 export const feedbackAPI = {

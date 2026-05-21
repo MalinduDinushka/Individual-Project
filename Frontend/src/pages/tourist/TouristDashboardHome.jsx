@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { FaPlus, FaStar, FaCalendar, FaMapMarkerAlt } from 'react-icons/fa'
 import { useAuthStore } from '../../store/authStore'
 import { tourAPI, serviceAPI } from '../../api'
@@ -9,6 +10,7 @@ const TouristDashboardHome = () => {
   const [activeTrip, setActiveTrip] = useState(null)
   const [recommendedServices, setRecommendedServices] = useState([])
   const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetchDashboardData()
@@ -65,6 +67,14 @@ const TouristDashboardHome = () => {
     }
   }
 
+  const openServiceDetails = (serviceId) => {
+    navigate(`/service/${serviceId}`)
+  }
+
+  const openTourRequestForm = () => {
+    navigate('/tourist/requests/new')
+  }
+
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
@@ -117,7 +127,7 @@ const TouristDashboardHome = () => {
           <p className="text-gray-600 mb-6">
             Share your dream itinerary and receive custom offers from verified providers
           </p>
-          <button className="btn btn-primary">
+          <button onClick={openTourRequestForm} className="btn btn-primary">
             Create Tour Request
           </button>
         </div>
@@ -132,7 +142,18 @@ const TouristDashboardHome = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {recommendedServices.map(service => (
-            <div key={service.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition">
+            <div
+              key={service.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => openServiceDetails(service.id)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  openServiceDetails(service.id)
+                }
+              }}
+              className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition cursor-pointer"
+            >
               <div className="relative h-48">
                 <img
                   src={service.image}
@@ -161,7 +182,7 @@ const TouristDashboardHome = () => {
                     <span className="text-2xl font-bold text-primary">${service.price}</span>
                     <span className="text-gray-500 text-sm">/{service.unit}</span>
                   </div>
-                  <button className="btn btn-primary text-sm px-4 py-2">
+                  <button type="button" onClick={() => openServiceDetails(service.id)} className="btn btn-primary text-sm px-4 py-2 inline-block text-center">
                     View Details
                   </button>
                 </div>

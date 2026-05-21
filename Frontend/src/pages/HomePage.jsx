@@ -71,10 +71,10 @@ const HomePage = () => {
               </select>
             </div>
 
-            <button className="w-full btn btn-primary flex items-center justify-center space-x-2">
+              <Link to="/services" className="w-full btn btn-primary flex items-center justify-center space-x-2">
               <FaSearch />
               <span>Explore Services</span>
-            </button>
+              </Link>
           </div>
 
           {/* Stats */}

@@ -1,14 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
+const { body } = require('express-validator');
+const { getAllServices, getServiceById, createService } = require('../controllers/serviceController');
 
-// Placeholder controller
-router.get('/', (req, res) => {
-  res.json({ message: 'Service routes - To be implemented' });
-});
+router.get('/', getAllServices);
+router.get('/:id', getServiceById);
 
-router.post('/', protect, authorize('provider'), (req, res) => {
-  res.json({ message: 'Create service - To be implemented' });
-});
+router.post(
+  '/',
+  protect,
+  authorize('provider'),
+  [
+    body('name').notEmpty().withMessage('Name is required'),
+    body('type').notEmpty().withMessage('Type is required'),
+    body('pricing.amount').isNumeric().withMessage('Price is required')
+  ],
+  createService
+);
 
 module.exports = router;

@@ -7,14 +7,24 @@ const bookingSchema = new mongoose.Schema({
     required: true
   },
   service: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Service',
+    type: String,
     required: true
+  },
+  serviceSnapshot: {
+    name: String,
+    type: String,
+    description: String,
+    pricing: {
+      amount: Number,
+      currency: String,
+      unit: String
+    },
+    image: String
   },
   provider: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    // provider may be null for demo/sample services; handled in controller
   },
   tourRequest: {
     type: mongoose.Schema.Types.ObjectId,

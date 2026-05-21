@@ -1,7 +1,14 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const connectDB = require('./config/db');
+const User = require('./models/User');
+const Booking = require('./models/Booking');
+const TourRequest = require('./models/TourRequest');
+const Message = require('./models/Message');
+const { setIo } = require('./socket');
+const { canChatOnBooking, canChatOnRequest, getConversationId, getRequestConversationId, isBookingParticipant, getChatRecipientId, getRequestChatRecipientId } = require('./utils/chat');
 
 // Load environment variables
 dotenv.config();
@@ -69,16 +76,141 @@ const io = require('socket.io')(server, {
   }
 });
 
+setIo(io);
+
+io.use(async (socket, next) => {
+  try {
+    const token = socket.handshake.auth?.token || (socket.handshake.headers.authorization?.startsWith('Bearer ') ? socket.handshake.headers.authorization.split(' ')[1] : null);
+
+    if (!token) {
+      return next(new Error('Authentication required'));
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select('-password');
+
+    if (!user || !user.isActive) {
+      return next(new Error('Authentication required'));
+    }
+
+    socket.user = user;
+    next();
+  } catch (error) {
+    next(new Error('Authentication required'));
+  }
+});
+
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
-  socket.on('join-room', (roomId) => {
-    socket.join(roomId);
-    console.log(`User ${socket.id} joined room ${roomId}`);
+  socket.on('join-booking-room', async ({ bookingId }) => {
+    try {
+      const booking = await Booking.findById(bookingId);
+
+      if (!booking || !isBookingParticipant(booking, socket.user) || !canChatOnBooking(booking)) {
+        return socket.emit('booking-error', { message: 'Not authorized to join this conversation' });
+      }
+
+      const roomId = getConversationId(booking._id);
+      socket.join(roomId);
+      socket.emit('booking-room-joined', { bookingId: booking._id, roomId, recipientId: getChatRecipientId(booking, socket.user) });
+    } catch (error) {
+      socket.emit('booking-error', { message: 'Failed to join conversation' });
+    }
   });
 
-  socket.on('send-message', (data) => {
-    io.to(data.roomId).emit('receive-message', data);
+  socket.on('join-request-room', async ({ requestId, providerId }) => {
+    try {
+      const tourRequest = await TourRequest.findById(requestId);
+
+      if (!tourRequest || !canChatOnRequest(tourRequest, socket.user, providerId)) {
+        return socket.emit('booking-error', { message: 'Not authorized to join this conversation' });
+      }
+
+      const roomId = getRequestConversationId(tourRequest._id, providerId);
+      socket.join(roomId);
+      socket.emit('request-room-joined', { requestId: tourRequest._id, providerId, roomId, recipientId: getRequestChatRecipientId(tourRequest, socket.user, providerId) });
+    } catch (error) {
+      socket.emit('booking-error', { message: 'Failed to join conversation' });
+    }
+  });
+
+  socket.on('send-booking-message', async ({ bookingId, message }) => {
+    try {
+      const booking = await Booking.findById(bookingId)
+        .populate('tourist', 'name email avatar role')
+        .populate('provider', 'name email avatar role');
+
+      if (!booking || !isBookingParticipant(booking, socket.user) || !canChatOnBooking(booking)) {
+        return socket.emit('booking-error', { message: 'Not authorized to send this message' });
+      }
+
+      const receiver = getChatRecipientId(booking, socket.user);
+      if (!receiver) {
+        return socket.emit('booking-error', { message: 'No chat recipient found' });
+      }
+
+      const conversationId = getConversationId(booking._id);
+      const createdMessage = await Message.create({
+        booking: booking._id,
+        conversationId,
+        sender: socket.user._id,
+        receiver,
+        message: String(message || '').trim(),
+        messageType: 'text'
+      });
+
+      await createdMessage.populate('sender', 'name email avatar role');
+      await createdMessage.populate('receiver', 'name email avatar role');
+
+      io.to(conversationId).emit('booking-message:new', {
+        conversationId,
+        bookingId: booking._id,
+        message: createdMessage
+      });
+    } catch (error) {
+      socket.emit('booking-error', { message: 'Failed to send message' });
+    }
+  });
+
+  socket.on('send-request-message', async ({ requestId, providerId, message }) => {
+    try {
+      const tourRequest = await TourRequest.findById(requestId)
+        .populate('tourist', 'name email avatar role')
+        .populate('bids.provider', 'name email avatar role businessInfo');
+
+      if (!tourRequest || !canChatOnRequest(tourRequest, socket.user, providerId)) {
+        return socket.emit('booking-error', { message: 'Not authorized to send this message' });
+      }
+
+      const receiver = getRequestChatRecipientId(tourRequest, socket.user, providerId);
+      if (!receiver) {
+        return socket.emit('booking-error', { message: 'No chat recipient found' });
+      }
+
+      const conversationId = getRequestConversationId(tourRequest._id, providerId);
+      const createdMessage = await Message.create({
+        tourRequest: tourRequest._id,
+        conversationId,
+        chatType: 'request',
+        sender: socket.user._id,
+        receiver,
+        message: String(message || '').trim(),
+        messageType: 'text'
+      });
+
+      await createdMessage.populate('sender', 'name email avatar role');
+      await createdMessage.populate('receiver', 'name email avatar role');
+
+      io.to(conversationId).emit('request-message:new', {
+        conversationId,
+        requestId: tourRequest._id,
+        providerId,
+        message: createdMessage
+      });
+    } catch (error) {
+      socket.emit('booking-error', { message: 'Failed to send message' });
+    }
   });
 
   socket.on('disconnect', () => {

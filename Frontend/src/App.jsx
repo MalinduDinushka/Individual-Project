@@ -11,6 +11,8 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import TouristDashboard from './pages/tourist/TouristDashboard'
 import ProviderDashboard from './pages/provider/ProviderDashboard'
 import AdminDashboard from './pages/admin/AdminDashboard'
+import ServiceDetails from './pages/ServiceDetails'
+import ServicesPage from './pages/ServicesPage'
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -43,6 +45,8 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/service/:id" element={<ServiceDetails />} />
 
         {/* Tourist Routes */}
         <Route

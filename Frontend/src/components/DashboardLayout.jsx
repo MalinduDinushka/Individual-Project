@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { FaMapMarkerAlt, FaBell, FaPhoneAlt, FaSignOutAlt } from 'react-icons/fa'
+import { FaMapMarkerAlt, FaBell, FaPhoneAlt, FaSignOutAlt, FaCalendarAlt } from 'react-icons/fa'
 import { MdDashboard, MdExplore, MdMessage, MdFavorite, MdSettings, MdWork, MdInbox, MdAttachMoney, MdPeople, MdVerifiedUser, MdWarning, MdBarChart } from 'react-icons/md'
 import { useAuthStore } from '../store/authStore'
 
@@ -15,7 +15,8 @@ const iconMap = {
   users: MdPeople,
   verified: MdVerifiedUser,
   warning: MdWarning,
-  chart: MdBarChart
+  chart: MdBarChart,
+  calendar: FaCalendarAlt
 }
 
 const DashboardLayout = ({ children, navItems, userRole }) => {

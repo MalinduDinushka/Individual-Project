@@ -5,10 +5,12 @@ import ProviderDashboardHome from './ProviderDashboardHome'
 import ProviderBookings from './ProviderBookings'
 import MessagesPage from '../MessagesPage'
 import ProviderRequestsPage from './ProviderRequestsPage'
+import ProfilePage from '../ProfilePage'
 
 const ProviderDashboard = () => {
   const navItems = [
     { path: '', label: 'Dashboard', icon: 'home' },
+    { path: 'profile', label: 'Profile', icon: 'users' },
     { path: 'services', label: 'My Services', icon: 'briefcase' },
     { path: 'requests', label: 'Requests', icon: 'inbox', badge: 2 },
     { path: 'messages', label: 'Messages', icon: 'message' },
@@ -21,6 +23,7 @@ const ProviderDashboard = () => {
     <DashboardLayout navItems={navItems} userRole="provider">
       <Routes>
         <Route path="/" element={<ProviderDashboardHome />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/services" element={<div>My Services - Coming Soon</div>} />
         <Route path="/requests" element={<ProviderRequestsPage />} />
         <Route path="/messages" element={<MessagesPage />} />

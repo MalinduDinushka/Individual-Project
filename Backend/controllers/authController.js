@@ -2,6 +2,26 @@ const User = require('../models/User');
 const { validationResult } = require('express-validator');
 const generateToken = require('../utils/generateToken');
 const crypto = require('crypto');
+const cloudinary = require('cloudinary').v2;
+const fs = require('fs');
+
+// Only enable Cloudinary if credentials look valid (not placeholder values)
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME || ''
+const cloudKey = process.env.CLOUDINARY_API_KEY || ''
+const cloudSecret = process.env.CLOUDINARY_API_SECRET || ''
+const useCloudinary = Boolean(
+  cloudName && cloudKey && cloudSecret &&
+    !cloudName.includes('your') && !cloudKey.includes('your') && !cloudSecret.includes('your') &&
+    !cloudName.includes('demo')
+)
+
+if (useCloudinary) {
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: cloudKey,
+    api_secret: cloudSecret
+  });
+}
 
 // @desc    Register new user
 // @route   POST /api/auth/register
@@ -379,3 +399,47 @@ exports.updateProfile = async (req, res) => {
     });
   }
 };
+
+// @desc    Upload avatar image
+// @route   POST /api/auth/avatar
+// @access  Private
+exports.uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+
+    // If Cloudinary is configured, upload there; otherwise serve from local uploads
+    let avatarUrl = null;
+
+    if (useCloudinary) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'tourmate/avatars',
+        use_filename: true,
+        unique_filename: false
+      });
+      avatarUrl = result.secure_url;
+      // remove local file
+      fs.unlink(req.file.path, () => {})
+    } else {
+      // fallback: expose local uploads path (ensure static hosting configured)
+      avatarUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    }
+
+    if (req.user && req.user._id) {
+      const user = await User.findByIdAndUpdate(
+        req.user._id,
+        { avatar: avatarUrl },
+        { new: true, runValidators: true }
+      ).select('-password');
+
+      res.json({ success: true, message: 'Avatar uploaded', data: { user } });
+    } else {
+      // If no authenticated user (public test route), just return the avatar URL
+      res.json({ success: true, message: 'Avatar uploaded', data: { avatar: avatarUrl } });
+    }
+  } catch (error) {
+    console.error('Upload avatar error:', error);
+    res.status(500).json({ success: false, message: 'Failed to upload avatar', error: error.message });
+  }
+}

@@ -15,6 +15,20 @@ const tourRequestSchema = new mongoose.Schema({
     type: String,
     required: true
   }],
+  districts: [{
+    type: String,
+    trim: true
+  }],
+  locationPlan: [{
+    district: {
+      type: String,
+      trim: true
+    },
+    locations: [{
+      type: String,
+      trim: true
+    }]
+  }],
   startDate: {
     type: Date,
     required: [true, 'Start date is required']

@@ -10,7 +10,10 @@ const {
   getMe,
   updateProfile
 } = require('../controllers/authController');
+const multer = require('multer')
+const upload = multer({ dest: 'uploads/' })
 const { protect } = require('../middleware/auth');
+const { uploadAvatar } = require('../controllers/authController');
 
 // Public routes
 router.post(
@@ -50,5 +53,10 @@ router.put(
 // Protected routes
 router.get('/me', protect, getMe);
 router.put('/update-profile', protect, updateProfile);
+// Upload avatar (multipart/form-data) - field name: avatar
+router.post('/avatar', protect, upload.single('avatar'), uploadAvatar);
+
+// Public test upload route (no auth) to help debug upload issues
+router.post('/avatar-public', upload.single('avatar'), uploadAvatar);
 
 module.exports = router;

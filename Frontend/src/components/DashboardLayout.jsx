@@ -115,11 +115,13 @@ const DashboardLayout = ({ children, navItems, userRole }) => {
 
               {/* User Profile */}
               <div className="flex items-center space-x-3 border-l pl-4">
-                <img
-                  src={user?.avatar || 'https://ui-avatars.com/api/?name=' + user?.name}
-                  alt={user?.name}
-                  className="w-10 h-10 rounded-full"
-                />
+                <Link to={`/${userRole}/profile`}>
+                  <img
+                    src={user?.avatar || 'https://ui-avatars.com/api/?name=' + user?.name}
+                    alt={user?.name}
+                    className="w-10 h-10 rounded-full"
+                  />
+                </Link>
                 <div className="hidden md:block">
                   <div className="font-medium text-gray-800">{user?.name?.split(' ')[0] || 'JD'}</div>
                   <div className="text-xs text-gray-500 capitalize">{userRole}</div>

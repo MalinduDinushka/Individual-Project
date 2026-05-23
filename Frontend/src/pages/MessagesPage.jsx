@@ -95,6 +95,17 @@ const MessagesPage = () => {
     threadBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [thread?.messages])
 
+  // Expose debug objects for easier inspection in browser console
+  useEffect(() => {
+    try {
+      window.__APP_DEBUG__ = window.__APP_DEBUG__ || {}
+      window.__APP_DEBUG__.messages = thread?.messages || []
+      window.__APP_DEBUG__.user = user || null
+    } catch (e) {
+      // ignore
+    }
+  }, [thread, user])
+
   const fetchConversations = async (showLoading = true) => {
     try {
       if (showLoading) setLoadingList(true)
@@ -163,17 +174,26 @@ const MessagesPage = () => {
     try {
       setSending(true)
 
+      let res
       if (selectedConversation.conversationKind === 'request') {
         const providerId = selectedConversation.provider?._id || selectedConversation.provider?.id
-        await messageAPI.sendRequestMessage(selectedConversation.request.id, providerId, { message })
+        res = await messageAPI.sendRequestMessage(selectedConversation.request.id, providerId, { message })
       } else {
-        await messageAPI.sendBookingMessage(selectedConversation.booking.id, { message })
+        res = await messageAPI.sendBookingMessage(selectedConversation.booking.id, { message })
       }
 
       setMessage('')
-      // Refresh current thread so the sent message appears immediately
       fetchConversations(false)
-      fetchThread(selectedConversation)
+
+      // If API returned the created message, append it optimistically to thread
+      const created = res?.data?.data?.message || res?.data?.data
+      if (created) {
+        setThread((cur) => ({ ...(cur || {}), messages: [...(cur?.messages || []), created] }))
+        setTimeout(() => threadBottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
+      } else {
+        // fallback: reload thread
+        fetchThread(selectedConversation)
+      }
     } catch (error) {
       console.error('Send message error:', error)
       toast.error(error.response?.data?.message || 'Failed to send message')
@@ -184,22 +204,35 @@ const MessagesPage = () => {
 
   const counterpartName = (conversation) => {
     if (!conversation) return 'Chat'
+
+    // Request-based conversation: participants are tourist (request.tourist) and provider (conversation.provider)
     if (conversation.conversationKind === 'request') {
+      if (user?.role === 'provider') {
+        return conversation?.tourist?.name || conversation?.tourist?.email || 'Tourist'
+      }
+      // tourist view
       return conversation.provider?.businessInfo?.businessName || conversation.provider?.name || 'Provider'
     }
-    if (user?.role === 'tourist') return conversation?.booking?.provider?.name || 'Provider'
-    return conversation?.booking?.tourist?.name || 'Tourist'
+
+    // Booking-based conversation: participants are booking.tourist and booking.provider
+    if (user?.role === 'tourist') {
+      return conversation?.booking?.provider?.businessInfo?.businessName || conversation?.booking?.provider?.name || 'Provider'
+    }
+
+    // provider or admin view
+    return conversation?.booking?.tourist?.name || conversation?.booking?.tourist?.email || 'Tourist'
   }
 
   const headerTitle = () => {
     if (!selectedConversation) return 'Chat'
-    if (selectedConversation.conversationKind === 'request') return selectedConversation.request?.title || 'Tour Request Chat'
-    return selectedConversation.booking?.serviceName || 'Booking Chat'
+    return counterpartName(selectedConversation)
   }
 
   const headerSubtitle = () => {
     if (!selectedConversation) return ''
-    return `Chatting with ${counterpartName(selectedConversation)}`
+    return selectedConversation.conversationKind === 'request'
+      ? selectedConversation.request?.title || 'Tour Request Chat'
+      : selectedConversation.booking?.serviceName || 'Booking Chat'
   }
 
   return (
@@ -227,11 +260,13 @@ const MessagesPage = () => {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="font-semibold text-gray-900 truncate">
+                        {counterpartName(conversation)}
+                      </div>
+                      <div className="text-sm text-gray-600 truncate">
                         {conversation.conversationKind === 'request'
                           ? conversation.request?.title
                           : conversation.booking?.serviceName}
                       </div>
-                      <div className="text-sm text-gray-600 truncate">{counterpartName(conversation)}</div>
                       <div className="text-xs text-gray-500 mt-1 truncate">
                         {conversation.latestMessage?.message || 'Start the chat'}
                       </div>

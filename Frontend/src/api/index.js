@@ -7,7 +7,30 @@ export const authAPI = {
   forgotPassword: (data) => apiClient.post('/auth/forgot-password', data),
   resetPassword: (token, data) => apiClient.put(`/auth/reset-password/${token}`, data),
   getMe: () => apiClient.get('/auth/me'),
-  updateProfile: (data) => apiClient.put('/auth/update-profile', data)
+  updateProfile: (data) => apiClient.put('/auth/update-profile', data),
+  uploadAvatar: (file) => {
+    const form = new FormData()
+    form.append('avatar', file)
+
+    // Use fetch to ensure multipart boundary is set correctly and include auth token
+    const auth = JSON.parse(localStorage.getItem('tourmate-auth'))
+    const token = auth?.state?.token
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+    return fetch(base + '/auth/avatar', {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form
+    }).then(async (res) => {
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        const err = new Error(json?.message || 'Upload failed')
+        err.response = { data: json }
+        throw err
+      }
+      // Normalize to axios-like response shape used elsewhere
+      return { data: json }
+    })
+  }
 }
 
 export const tourAPI = {

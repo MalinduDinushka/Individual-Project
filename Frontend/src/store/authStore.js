@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { disconnectSocket } from '../utils/socket'
 
 export const useAuthStore = create((set) => ({
   user: null,
@@ -12,6 +13,7 @@ export const useAuthStore = create((set) => ({
 
   logout: () => {
     localStorage.removeItem('tourmate-auth')
+    disconnectSocket()
     set({ user: null, token: null, isAuthenticated: false })
   },
 

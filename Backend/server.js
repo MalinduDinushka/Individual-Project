@@ -9,6 +9,7 @@ const Booking = require('./models/Booking');
 const TourRequest = require('./models/TourRequest');
 const Message = require('./models/Message');
 const { setIo } = require('./socket');
+const { createNotification } = require('./utils/notificationService');
 const { canChatOnBooking, canChatOnRequest, getConversationId, getRequestConversationId, isBookingParticipant, getChatRecipientId, getRequestChatRecipientId } = require('./utils/chat');
 
 // Load environment variables
@@ -39,6 +40,7 @@ app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/feedback', require('./routes/feedbackRoutes'));
 app.use('/api/messages', require('./routes/messageRoutes'));
 app.use('/api/sos', require('./routes/sosRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 
 // Health check
@@ -97,6 +99,7 @@ io.use(async (socket, next) => {
     }
 
     socket.user = user;
+    socket.join(String(user._id));
     next();
   } catch (error) {
     next(new Error('Authentication required'));
@@ -171,6 +174,18 @@ io.on('connection', (socket) => {
         bookingId: booking._id,
         message: createdMessage
       });
+
+      if (receiver && receiver.toString() !== socket.user._id.toString()) {
+        await createNotification({
+          recipient: receiver,
+          sender: socket.user._id,
+          type: 'system',
+          title: 'New message received',
+          message: `You received a new message regarding booking ${booking._id}.`,
+          actionUrl: '/messages',
+          metadata: { bookingId: booking._id, conversationId }
+        });
+      }
     } catch (error) {
       socket.emit('booking-error', { message: 'Failed to send message' });
     }
@@ -211,6 +226,18 @@ io.on('connection', (socket) => {
         providerId,
         message: createdMessage
       });
+
+      if (receiver && receiver.toString() !== socket.user._id.toString()) {
+        await createNotification({
+          recipient: receiver,
+          sender: socket.user._id,
+          type: 'system',
+          title: 'New message received',
+          message: `You received a new message regarding tour request "${tourRequest.title}".`,
+          actionUrl: '/messages',
+          metadata: { requestId: tourRequest._id, providerId, conversationId }
+        });
+      }
     } catch (error) {
       socket.emit('booking-error', { message: 'Failed to send message' });
     }

@@ -25,32 +25,35 @@ const ForgotPasswordPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
+    <div className="page-shell flex items-center justify-center px-4 py-10">
+      <div className="max-w-lg w-full relative z-10">
         {/* Logo */}
         <div className="flex items-center justify-center mb-8">
-          <div className="bg-primary p-3 rounded-full">
+          <div className="bg-gradient-to-br from-primary to-primary-dark p-3 rounded-2xl shadow-lg shadow-primary/20">
             <FaMapMarkerAlt className="text-white text-2xl" />
           </div>
-          <h1 className="text-3xl font-bold text-primary ml-3">TourMate</h1>
+          <div className="ml-3">
+            <h1 className="text-3xl font-extrabold text-slate-900">TourMate</h1>
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Account recovery</p>
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="premium-panel p-8 md:p-10">
           {!emailSent ? (
             <>
               <div className="text-center mb-8">
-                <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="bg-primary/10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <FaEnvelope className="text-primary text-2xl" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Forgot Password?</h2>
-                <p className="text-gray-600">
+                <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Forgot Password?</h2>
+                <p className="text-slate-500">
                   No worries! Enter your email and we'll send you a reset link.
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Email Address
                   </label>
                   <input
@@ -73,25 +76,25 @@ const ForgotPasswordPage = () => {
               </form>
 
               <div className="text-center mt-6">
-                <Link to="/login" className="text-sm text-primary hover:underline">
+                <Link to="/login" className="text-sm font-semibold text-primary hover:text-primary-dark">
                   ← Back to Login
                 </Link>
               </div>
             </>
           ) : (
             <div className="text-center">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-emerald-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <FaEnvelope className="text-green-600 text-2xl" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Check Your Email</h2>
-              <p className="text-gray-600 mb-6">
+              <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Check Your Email</h2>
+              <p className="text-slate-500 mb-6">
                 We've sent a password reset link to <strong>{email}</strong>
               </p>
-              <p className="text-sm text-gray-500 mb-8">
+              <p className="text-sm text-slate-500 mb-8">
                 Didn't receive the email? Check your spam folder or{' '}
                 <button
                   onClick={() => setEmailSent(false)}
-                  className="text-primary hover:underline"
+                  className="text-primary font-semibold hover:text-primary-dark"
                 >
                   try again
                 </button>

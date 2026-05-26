@@ -244,34 +244,37 @@ const RegisterPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="page-shell py-10 px-4">
+      <div className="max-w-6xl mx-auto relative z-10">
         {/* Logo */}
         <div className="flex items-center justify-center mb-8">
-          <div className="bg-primary p-3 rounded-full">
+          <div className="bg-gradient-to-br from-primary to-primary-dark p-3 rounded-2xl shadow-lg shadow-primary/20">
             <FaMapMarkerAlt className="text-white text-2xl" />
           </div>
-          <h1 className="text-3xl font-bold text-primary ml-3">TourMate</h1>
+          <div className="ml-3 text-center">
+            <h1 className="text-3xl font-extrabold text-slate-900">TourMate</h1>
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Create your premium account</p>
+          </div>
         </div>
 
         {/* Role Tabs */}
-        <div className="flex bg-white rounded-lg p-1 mb-8 shadow-sm max-w-md mx-auto">
+        <div className="premium-panel-soft p-1.5 mb-8 max-w-lg mx-auto">
           <button
             onClick={() => setActiveTab('tourist')}
-            className={`flex-1 py-3 px-4 rounded-lg font-medium transition ${
+            className={`flex-1 py-3.5 px-4 rounded-2xl font-semibold transition ${
               activeTab === 'tourist'
-                ? 'bg-primary text-white'
-                : 'text-gray-600 hover:text-primary'
+                ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg shadow-primary/15'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             I am a Tourist
           </button>
           <button
             onClick={() => setActiveTab('provider')}
-            className={`flex-1 py-3 px-4 rounded-lg font-medium transition ${
+            className={`flex-1 py-3.5 px-4 rounded-2xl font-semibold transition ${
               activeTab === 'provider'
-                ? 'bg-primary text-white'
-                : 'text-gray-600 hover:text-primary'
+                ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg shadow-primary/15'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             I am a Service Provider
@@ -279,14 +282,15 @@ const RegisterPage = () => {
         </div>
 
         {/* Registration Form */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">Create Your Account</h2>
-          <p className="text-gray-600 mb-8">Start your journey with TourMate</p>
+        <div className="premium-panel p-8 md:p-10 lg:p-12">
+          <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2">Create Your Account</h2>
+          <p className="text-slate-500 mb-8">Start your journey with a streamlined premium experience.</p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Full Name *
                 </label>
                 <input
@@ -301,7 +305,7 @@ const RegisterPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Email *
                 </label>
                 <input
@@ -316,7 +320,7 @@ const RegisterPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Password *
                 </label>
                 <input
@@ -331,7 +335,7 @@ const RegisterPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Confirm Password *
                 </label>
                 <input
@@ -346,7 +350,7 @@ const RegisterPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Phone Number
                 </label>
                 <input
@@ -360,7 +364,7 @@ const RegisterPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Languages</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Languages</label>
                 <input
                   type="text"
                   name="languages"
@@ -374,7 +378,7 @@ const RegisterPage = () => {
 
               {activeTab === 'provider' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Gender *
                   </label>
                   <select
@@ -391,14 +395,14 @@ const RegisterPage = () => {
                     <option value="other">Other</option>
                     <option value="prefer-not-to-say">Prefer not to say</option>
                   </select>
-                  <p className="mt-1 text-xs text-gray-500">Useful for guests who prefer a male or female guide or photographer.</p>
+                  <p className="mt-1 text-xs text-slate-500">Useful for guests who prefer a male or female guide or photographer.</p>
                 </div>
               )}
 
               {/* Tourist nationality selection */}
               {activeTab === 'tourist' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Nationality *
                   </label>
                   <select
@@ -417,7 +421,7 @@ const RegisterPage = () => {
               {/* NIC for local tourists and all providers */}
               {((activeTab === 'tourist' && formData.nationality === 'local') || activeTab === 'provider') && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     NIC Number *
                   </label>
                   <input
@@ -435,7 +439,7 @@ const RegisterPage = () => {
               {/* Passport for foreign tourists */}
               {activeTab === 'tourist' && formData.nationality === 'foreign' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Passport Number *
                   </label>
                   <input
@@ -454,7 +458,7 @@ const RegisterPage = () => {
               {activeTab === 'provider' && (
                 <>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
                       Business Name *
                     </label>
                     <input
@@ -469,7 +473,7 @@ const RegisterPage = () => {
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
                       Business Location
                     </label>
                     <input
@@ -479,23 +483,23 @@ const RegisterPage = () => {
                       placeholder="Paste a Google Maps link or type the address/place name"
                       className="input"
                     />
-                    <p className="mt-2 text-xs text-gray-500">
+                    <p className="mt-2 text-xs text-slate-500">
                       For restaurants and guest houses, add your exact Google Maps location so tourists can find you easily.
                     </p>
                   </div>
 
                   {formData.businessInfo.location && (
-                    <div className="md:col-span-2 rounded-2xl border overflow-hidden bg-gray-50">
-                      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b bg-white">
+                    <div className="md:col-span-2 rounded-3xl border border-slate-200 overflow-hidden bg-slate-50 shadow-sm">
+                      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-200 bg-white/80">
                         <div>
-                          <p className="font-medium text-gray-800">Map preview</p>
-                          <p className="text-xs text-gray-500">Preview based on the location you entered</p>
+                          <p className="font-semibold text-slate-800">Map preview</p>
+                          <p className="text-xs text-slate-500">Preview based on the location you entered</p>
                         </div>
                         <a
                           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(formData.businessInfo.location)}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-sm font-medium text-primary hover:underline"
+                          className="text-sm font-semibold text-primary hover:text-primary-dark"
                         >
                           Open in Google Maps
                         </a>
@@ -511,10 +515,10 @@ const RegisterPage = () => {
                   )}
 
                   <div className="md:col-span-2 space-y-3">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-semibold text-slate-700">
                       Service Types *
                     </label>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-slate-500">
                       Select every service your business offers. You can choose more than one, for example a guide who also takes photos.
                     </p>
 
@@ -526,7 +530,7 @@ const RegisterPage = () => {
                             key={service.value}
                             type="button"
                             onClick={() => handleBusinessToggle(service.value)}
-                            className={`rounded-full border px-4 py-2 text-sm font-medium transition ${selected ? 'bg-primary text-white border-primary' : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-primary hover:text-primary'}`}
+                              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${selected ? 'bg-gradient-to-r from-primary to-primary-dark text-white border-primary shadow-lg shadow-primary/15' : 'bg-white text-slate-700 border-slate-200 hover:border-primary hover:text-primary'}`}
                           >
                             {service.label}
                           </button>
@@ -535,19 +539,19 @@ const RegisterPage = () => {
                     </div>
 
                     {formData.businessInfo.serviceTypes.length === 0 && (
-                      <p className="text-sm text-red-600">Choose at least one service type.</p>
+                      <p className="text-sm text-rose-600">Choose at least one service type.</p>
                     )}
                   </div>
 
                   {formData.businessInfo.serviceTypes.includes('guide') && (
-                    <div className="md:col-span-2 rounded-2xl border bg-gray-50 p-4 space-y-4">
+                    <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-slate-50/80 p-5 space-y-4 shadow-sm">
                       <div>
-                        <h3 className="font-semibold text-gray-800">Guide details</h3>
-                        <p className="text-sm text-gray-500">Add the guide-specific skills and language support you offer.</p>
+                        <h3 className="font-semibold text-slate-800">Guide details</h3>
+                        <p className="text-sm text-slate-500">Add the guide-specific skills and language support you offer.</p>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <label className="space-y-2">
-                          <span className="text-sm font-medium text-gray-700">Languages</span>
+                          <span className="text-sm font-semibold text-slate-700">Languages</span>
                           <input
                             type="text"
                             value={formData.businessInfo.serviceDetails.guide.languages}
@@ -557,7 +561,7 @@ const RegisterPage = () => {
                           />
                         </label>
                         <label className="space-y-2">
-                          <span className="text-sm font-medium text-gray-700">Specialties</span>
+                          <span className="text-sm font-semibold text-slate-700">Specialties</span>
                           <input
                             type="text"
                             value={formData.businessInfo.serviceDetails.guide.specialties}
@@ -580,14 +584,14 @@ const RegisterPage = () => {
                   )}
 
                   {formData.businessInfo.serviceTypes.includes('vehicle') && (
-                    <div className="md:col-span-2 rounded-2xl border bg-gray-50 p-4 space-y-4">
+                    <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-slate-50/80 p-5 space-y-4 shadow-sm">
                       <div>
-                        <h3 className="font-semibold text-gray-800">Vehicle service details</h3>
-                        <p className="text-sm text-gray-500">Tell travelers what kind of vehicle service you provide.</p>
+                        <h3 className="font-semibold text-slate-800">Vehicle service details</h3>
+                        <p className="text-sm text-slate-500">Tell travelers what kind of vehicle service you provide.</p>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <label className="space-y-2">
-                          <span className="text-sm font-medium text-gray-700">Vehicle types</span>
+                          <span className="text-sm font-semibold text-slate-700">Vehicle types</span>
                           <input
                             type="text"
                             value={formData.businessInfo.serviceDetails.vehicle.vehicleTypes}
@@ -597,7 +601,7 @@ const RegisterPage = () => {
                           />
                         </label>
                         <label className="space-y-2">
-                          <span className="text-sm font-medium text-gray-700">Passenger capacity</span>
+                          <span className="text-sm font-semibold text-slate-700">Passenger capacity</span>
                           <input
                             type="number"
                             min="1"
@@ -621,14 +625,14 @@ const RegisterPage = () => {
                   )}
 
                   {formData.businessInfo.serviceTypes.includes('hotel') && (
-                    <div className="md:col-span-2 rounded-2xl border bg-gray-50 p-4 space-y-4">
+                    <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-slate-50/80 p-5 space-y-4 shadow-sm">
                       <div>
-                        <h3 className="font-semibold text-gray-800">Hotel / guest house details</h3>
-                        <p className="text-sm text-gray-500">Help travelers understand your stay capacity.</p>
+                        <h3 className="font-semibold text-slate-800">Hotel / guest house details</h3>
+                        <p className="text-sm text-slate-500">Help travelers understand your stay capacity.</p>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <label className="space-y-2">
-                          <span className="text-sm font-medium text-gray-700">Number of rooms</span>
+                          <span className="text-sm font-semibold text-slate-700">Number of rooms</span>
                           <input
                             type="number"
                             min="0"
@@ -638,7 +642,7 @@ const RegisterPage = () => {
                           />
                         </label>
                         <label className="space-y-2">
-                          <span className="text-sm font-medium text-gray-700">Room types</span>
+                          <span className="text-sm font-semibold text-slate-700">Room types</span>
                           <input
                             type="text"
                             value={formData.businessInfo.serviceDetails.hotel.roomTypes}
@@ -652,14 +656,14 @@ const RegisterPage = () => {
                   )}
 
                   {formData.businessInfo.serviceTypes.includes('restaurant') && (
-                    <div className="md:col-span-2 rounded-2xl border bg-gray-50 p-4 space-y-4">
+                    <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-slate-50/80 p-5 space-y-4 shadow-sm">
                       <div>
-                        <h3 className="font-semibold text-gray-800">Restaurant details</h3>
-                        <p className="text-sm text-gray-500">Add cuisine styles and dietary support.</p>
+                        <h3 className="font-semibold text-slate-800">Restaurant details</h3>
+                        <p className="text-sm text-slate-500">Add cuisine styles and dietary support.</p>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <label className="space-y-2">
-                          <span className="text-sm font-medium text-gray-700">Cuisine styles</span>
+                          <span className="text-sm font-semibold text-slate-700">Cuisine styles</span>
                           <input
                             type="text"
                             value={formData.businessInfo.serviceDetails.restaurant.cuisines}
@@ -669,7 +673,7 @@ const RegisterPage = () => {
                           />
                         </label>
                         <label className="space-y-2">
-                          <span className="text-sm font-medium text-gray-700">Dietary options</span>
+                          <span className="text-sm font-semibold text-slate-700">Dietary options</span>
                           <input
                             type="text"
                             value={formData.businessInfo.serviceDetails.restaurant.dietaryOptions}
@@ -683,14 +687,14 @@ const RegisterPage = () => {
                   )}
 
                   {formData.businessInfo.serviceTypes.includes('photographer') && (
-                    <div className="md:col-span-2 rounded-2xl border bg-gray-50 p-4 space-y-4">
+                    <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-slate-50/80 p-5 space-y-4 shadow-sm">
                       <div>
-                        <h3 className="font-semibold text-gray-800">Photography details</h3>
-                        <p className="text-sm text-gray-500">Tell travelers what kind of photo coverage you offer.</p>
+                        <h3 className="font-semibold text-slate-800">Photography details</h3>
+                        <p className="text-sm text-slate-500">Tell travelers what kind of photo coverage you offer.</p>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <label className="space-y-2">
-                          <span className="text-sm font-medium text-gray-700">Coverage</span>
+                          <span className="text-sm font-semibold text-slate-700">Coverage</span>
                           <input
                             type="text"
                             value={formData.businessInfo.serviceDetails.photographer.coverage}
@@ -700,7 +704,7 @@ const RegisterPage = () => {
                           />
                         </label>
                         <label className="space-y-2">
-                          <span className="text-sm font-medium text-gray-700">Equipment</span>
+                          <span className="text-sm font-semibold text-slate-700">Equipment</span>
                           <input
                             type="text"
                             value={formData.businessInfo.serviceDetails.photographer.equipment}
@@ -714,14 +718,14 @@ const RegisterPage = () => {
                   )}
 
                   {formData.businessInfo.serviceTypes.includes('equipment') && (
-                    <div className="md:col-span-2 rounded-2xl border bg-gray-50 p-4 space-y-4">
+                    <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-slate-50/80 p-5 space-y-4 shadow-sm">
                       <div>
-                        <h3 className="font-semibold text-gray-800">Equipment rental details</h3>
-                        <p className="text-sm text-gray-500">List the gear you can supply and how you handle delivery.</p>
+                        <h3 className="font-semibold text-slate-800">Equipment rental details</h3>
+                        <p className="text-sm text-slate-500">List the gear you can supply and how you handle delivery.</p>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <label className="space-y-2">
-                          <span className="text-sm font-medium text-gray-700">Items</span>
+                          <span className="text-sm font-semibold text-slate-700">Items</span>
                           <input
                             type="text"
                             value={formData.businessInfo.serviceDetails.equipment.items}
@@ -731,7 +735,7 @@ const RegisterPage = () => {
                           />
                         </label>
                         <label className="space-y-2">
-                          <span className="text-sm font-medium text-gray-700">Delivery</span>
+                          <span className="text-sm font-semibold text-slate-700">Delivery</span>
                           <input
                             type="text"
                             value={formData.businessInfo.serviceDetails.equipment.delivery}
@@ -745,13 +749,13 @@ const RegisterPage = () => {
                   )}
 
                   {formData.businessInfo.serviceTypes.includes('other') && (
-                    <div className="md:col-span-2 rounded-2xl border bg-gray-50 p-4 space-y-4">
+                    <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-slate-50/80 p-5 space-y-4 shadow-sm">
                       <div>
-                        <h3 className="font-semibold text-gray-800">Other service details</h3>
-                        <p className="text-sm text-gray-500">Describe any extra tourism service you provide.</p>
+                        <h3 className="font-semibold text-slate-800">Other service details</h3>
+                        <p className="text-sm text-slate-500">Describe any extra tourism service you provide.</p>
                       </div>
                       <label className="space-y-2 block">
-                        <span className="text-sm font-medium text-gray-700">Notes</span>
+                        <span className="text-sm font-semibold text-slate-700">Notes</span>
                         <textarea
                           value={formData.businessInfo.serviceDetails.other.notes}
                           onChange={(e) => handleServiceDetailChange('other', 'notes', e.target.value)}
@@ -764,7 +768,7 @@ const RegisterPage = () => {
                   )}
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
                       Business Description
                     </label>
                     <textarea
@@ -796,21 +800,22 @@ const RegisterPage = () => {
           </form>
 
           <div className="my-6 flex items-center">
-            <div className="flex-1 border-t border-gray-300"></div>
-            <span className="px-4 text-sm text-gray-500">Or continue with</span>
-            <div className="flex-1 border-t border-gray-300"></div>
+            <div className="flex-1 border-t border-slate-200"></div>
+            <span className="px-4 text-sm text-slate-500 font-medium">Or continue with</span>
+            <div className="flex-1 border-t border-slate-200"></div>
           </div>
 
           <div className="w-full">
             <GoogleSignIn />
           </div>
 
-          <p className="text-center text-sm text-gray-600 mt-6">
+          <p className="text-center text-sm text-slate-600 mt-6">
             Already have an account?{' '}
-            <Link to="/login" className="text-primary font-medium hover:underline">
+            <Link to="/login" className="text-primary font-semibold hover:text-primary-dark">
               Sign In
             </Link>
           </p>
+          </div>
         </div>
       </div>
     </div>

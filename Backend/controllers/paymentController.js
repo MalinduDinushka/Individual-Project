@@ -4,6 +4,7 @@ const Payment = require('../models/Payment');
 const Booking = require('../models/Booking');
 const TourRequest = require('../models/TourRequest');
 const User = require('../models/User');
+const { createNotifications, createNotification } = require('../utils/notificationService')
 
 const ADVANCE_PAYMENT_PERCENTAGE = Number(process.env.TOUR_ADVANCE_PAYMENT_PERCENTAGE || 20);
 const DEFAULT_PAYMENT_GATEWAY = String(process.env.DEFAULT_PAYMENT_GATEWAY || 'payhere').toLowerCase();
@@ -410,6 +411,15 @@ exports.payhereNotify = async (req, res) => {
           booking.paymentId = payment._id;
           booking.status = 'confirmed';
           await booking.save();
+
+          await createNotifications([payment.tourist, payment.provider].filter(Boolean), {
+            sender: payment.provider,
+            type: 'payment-completed',
+            title: 'Payment completed',
+            message: `Payment for booking ${booking._id} has been completed successfully.`,
+            actionUrl: '/tourist/trips',
+            metadata: { bookingId: booking._id, paymentId: payment._id }
+          })
         }
       }
 
@@ -424,12 +434,31 @@ exports.payhereNotify = async (req, res) => {
           };
           tourRequest.status = 'in-progress';
           await tourRequest.save();
+
+          await createNotifications([payment.tourist, payment.provider].filter(Boolean), {
+            sender: payment.provider,
+            type: 'payment-completed',
+            title: 'Advance payment completed',
+            message: `Advance payment for "${tourRequest.title}" has been completed successfully.`,
+            actionUrl: '/tourist/requests',
+            metadata: { tourRequestId: tourRequest._id, paymentId: payment._id }
+          })
         }
       }
     } else if (String(payload.status_code) === '0') {
       payment.status = 'pending';
     } else {
       payment.status = 'failed';
+
+      await createNotification({
+        recipient: payment.tourist,
+        sender: payment.provider,
+        type: 'payment-failed',
+        title: 'Payment failed',
+        message: 'Your payment could not be completed. Please try again or use a different method.',
+        actionUrl: payment.booking ? '/tourist/trips' : '/tourist/requests',
+        metadata: { paymentId: payment._id }
+      })
     }
 
     await payment.save();

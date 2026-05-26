@@ -1,4 +1,5 @@
 const TourRequest = require('../models/TourRequest');
+const { createNotification, createNotifications } = require('../utils/notificationService')
 
 const ADVANCE_PAYMENT_PERCENTAGE = Number(process.env.TOUR_ADVANCE_PAYMENT_PERCENTAGE || 20);
 
@@ -216,6 +217,16 @@ exports.submitBid = async (req, res) => {
     tourRequest.bids.push(bid);
     await tourRequest.save();
 
+    await createNotification({
+      recipient: tourRequest.tourist,
+      sender: req.user._id,
+      type: 'bid-submitted',
+      title: 'New bid received',
+      message: `${req.user.name || 'A provider'} submitted a bid for your tour request "${tourRequest.title}".`,
+      actionUrl: '/tourist/requests',
+      metadata: { tourRequestId: tourRequest._id, bidProviderId: req.user._id }
+    })
+
     res.status(201).json({
       success: true,
       message: 'Bid submitted successfully',
@@ -287,6 +298,31 @@ exports.acceptBid = async (req, res) => {
 
     await tourRequest.save();
 
+    await createNotification({
+      recipient: bid.provider,
+      sender: req.user._id,
+      type: 'bid-accepted',
+      title: 'Your bid was accepted',
+      message: `Your bid for "${tourRequest.title}" was accepted. Advance payment is now available.`,
+      actionUrl: '/provider',
+      metadata: { tourRequestId: tourRequest._id, bidId: bid._id }
+    })
+
+    const rejectedRecipients = tourRequest.bids
+      .filter((b) => b._id.toString() !== req.params.bidId && b.provider)
+      .map((b) => b.provider)
+
+    if (rejectedRecipients.length > 0) {
+      await createNotifications(rejectedRecipients, {
+        sender: req.user._id,
+        type: 'bid-rejected',
+        title: 'Bid not selected',
+        message: `A different bid was selected for "${tourRequest.title}".`,
+        actionUrl: '/provider',
+        metadata: { tourRequestId: tourRequest._id }
+      })
+    }
+
     res.json({
       success: true,
       message: 'Bid accepted successfully',
@@ -341,6 +377,16 @@ exports.rejectBid = async (req, res) => {
     bid.status = 'rejected';
 
     await tourRequest.save();
+
+    await createNotification({
+      recipient: bid.provider,
+      sender: req.user._id,
+      type: 'bid-rejected',
+      title: 'Bid rejected',
+      message: `Your bid for "${tourRequest.title}" was rejected by the traveler.`,
+      actionUrl: '/provider',
+      metadata: { tourRequestId: tourRequest._id, bidId: bid._id }
+    })
 
     res.json({
       success: true,

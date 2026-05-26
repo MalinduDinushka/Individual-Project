@@ -90,6 +90,13 @@ export const sosAPI = {
   updateSOSAlert: (id, data) => apiClient.put(`/sos/${id}`, data)
 }
 
+export const notificationAPI = {
+  getNotifications: () => apiClient.get('/notifications'),
+  markAsRead: (id) => apiClient.patch(`/notifications/${id}/read`),
+  markAllAsRead: () => apiClient.patch('/notifications/read-all'),
+  deleteNotification: (id) => apiClient.delete(`/notifications/${id}`)
+}
+
 export const adminAPI = {
   getDashboardStats: () => apiClient.get('/admin/dashboard'),
   getAllUsers: () => apiClient.get('/admin/users'),

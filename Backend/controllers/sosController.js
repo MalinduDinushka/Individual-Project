@@ -1,6 +1,8 @@
 const { validationResult } = require('express-validator')
 const SOSAlert = require('../models/SOSAlert')
+const User = require('../models/User')
 const { getIo } = require('../socket')
+const { createNotifications } = require('../utils/notificationService')
 
 // Create SOS alert (tourist)
 exports.createSOSAlert = async (req, res) => {
@@ -25,6 +27,18 @@ exports.createSOSAlert = async (req, res) => {
       status: 'active',
       priority: 'high'
     })
+
+    const admins = await User.find({ role: 'admin', isActive: true }).select('_id')
+    if (admins.length > 0) {
+      await createNotifications(admins.map((admin) => admin._id), {
+        sender: req.user._id,
+        type: 'sos-created',
+        title: 'New SOS alert',
+        message: `${req.user.name || 'A traveler'} raised an SOS alert (${emergencyType}).`,
+        actionUrl: '/admin/sos',
+        metadata: { sosId: sos._id, emergencyType }
+      })
+    }
 
     // Emit to connected clients (admins/providers) that an SOS was created
     try {

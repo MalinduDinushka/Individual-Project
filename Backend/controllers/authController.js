@@ -36,7 +36,7 @@ exports.register = async (req, res) => {
       });
     }
 
-    const { name, email, password, role, phone, gender, nic, passport, nationality, businessInfo } = req.body;
+    const { name, email, password, role, phone, gender, nic, passport, nationality, businessInfo, languages, photos } = req.body;
 
     // Check if user already exists
     const userExists = await User.findOne({ email });
@@ -85,6 +85,19 @@ exports.register = async (req, res) => {
       userData.businessInfo.serviceType = businessInfo.serviceType || selectedServiceTypes[0] || 'other';
       if (businessInfo.serviceDetails) {
         userData.businessInfo.serviceDetails = businessInfo.serviceDetails;
+      }
+    }
+
+    // Add languages and photos (optional)
+    if (languages) {
+      userData.languages = Array.isArray(languages) ? languages : String(languages).split(',').map(s => s.trim()).filter(Boolean)
+    }
+
+    if (photos) {
+      // Expect array of {url,label,type} or comma-separated urls
+      if (Array.isArray(photos)) userData.photos = photos
+      else if (typeof photos === 'string') {
+        userData.photos = photos.split(',').map(u => ({ url: u.trim() })).filter(p => p.url)
       }
     }
 
@@ -205,33 +218,57 @@ exports.login = async (req, res) => {
 // @desc    Google OAuth authentication
 // @route   POST /api/auth/google-auth
 // @access  Public
+const { OAuth2Client } = require('google-auth-library')
+
 exports.googleAuth = async (req, res) => {
   try {
-    const { googleId, email, name, avatar } = req.body;
+    // Accept either an idToken (credential) or legacy googleId/email payload
+    const { idToken, googleId, email, name, avatar } = req.body
 
-    // Find or create user
-    let user = await User.findOne({ $or: [{ googleId }, { email }] });
+    let payload = null
 
-    if (user) {
-      // Update Google ID if not set
-      if (!user.googleId) {
-        user.googleId = googleId;
-        await user.save();
+    if (idToken) {
+      const clientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID
+      if (!clientId) {
+        return res.status(400).json({ success: false, message: 'Google client ID not configured on server' })
       }
-    } else {
-      // Create new user
-      user = await User.create({
-        name,
-        email,
-        googleId,
-        avatar: avatar || undefined,
-        isVerified: true,
-        role: 'tourist'
-      });
+      const client = new OAuth2Client(clientId)
+      const ticket = await client.verifyIdToken({ idToken, audience: clientId })
+      payload = ticket.getPayload()
     }
 
-    // Generate token
-    const token = generateToken(user._id);
+    // Fallback to provided fields
+    const finalGoogleId = (payload && payload.sub) || googleId
+    const finalEmail = (payload && payload.email) || email
+    const finalName = (payload && payload.name) || name
+    const finalAvatar = (payload && payload.picture) || avatar
+
+    if (!finalEmail) {
+      return res.status(400).json({ success: false, message: 'Email is required from Google' })
+    }
+
+    // Find or create user
+    let user = await User.findOne({ $or: [{ googleId: finalGoogleId }, { email: finalEmail }] })
+
+    if (user) {
+      // Update Google ID if provided and not set
+      if (finalGoogleId && !user.googleId) {
+        user.googleId = finalGoogleId
+        await user.save()
+      }
+    } else {
+      // Create new user with role tourist by default
+      user = await User.create({
+        name: finalName || 'Google User',
+        email: finalEmail,
+        googleId: finalGoogleId,
+        avatar: finalAvatar || undefined,
+        isVerified: true,
+        role: 'tourist'
+      })
+    }
+
+    const token = generateToken(user._id)
 
     res.json({
       success: true,
@@ -246,16 +283,12 @@ exports.googleAuth = async (req, res) => {
         },
         token
       }
-    });
+    })
   } catch (error) {
-    console.error('Google auth error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Google authentication failed',
-      error: error.message
-    });
+    console.error('Google auth error:', error)
+    res.status(500).json({ success: false, message: 'Google authentication failed', error: error.message })
   }
-};
+}
 
 // @desc    Forgot password
 // @route   POST /api/auth/forgot-password
@@ -379,6 +412,15 @@ exports.updateProfile = async (req, res) => {
     // Update role-specific fields
     if (req.user.role === 'tourist' && req.body.preferences) {
       fieldsToUpdate.preferences = req.body.preferences;
+    }
+
+    // allow updating languages and photos
+    if (req.body.languages) {
+      fieldsToUpdate.languages = Array.isArray(req.body.languages) ? req.body.languages : String(req.body.languages).split(',').map(s => s.trim()).filter(Boolean)
+    }
+
+    if (req.body.photos) {
+      fieldsToUpdate.photos = Array.isArray(req.body.photos) ? req.body.photos : String(req.body.photos).split(',').map(u => ({ url: u.trim() })).filter(p => p.url)
     }
 
     if (req.user.role === 'provider' && req.body.businessInfo) {

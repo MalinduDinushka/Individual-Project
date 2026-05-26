@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
 import { FaMapMarkerAlt, FaGoogle } from 'react-icons/fa'
+import GoogleSignIn from '../components/GoogleSignIn'
 import { authAPI } from '../api'
 import { useAuthStore } from '../store/authStore'
 
@@ -76,6 +77,8 @@ const RegisterPage = () => {
     }
   })
   const [loading, setLoading] = useState(false)
+  const [uploadingPhotos, setUploadingPhotos] = useState(false)
+  const [photoFiles, setPhotoFiles] = useState([])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -95,6 +98,37 @@ const RegisterPage = () => {
         [name]: value
       })
     }
+  }
+
+  const handlePhotoSelect = (e) => {
+    const files = Array.from(e.target.files || [])
+    setPhotoFiles(files)
+  }
+
+  const uploadPhotos = async () => {
+    if (photoFiles.length === 0) return []
+    setUploadingPhotos(true)
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+    const uploaded = []
+    try {
+      for (const file of photoFiles) {
+        const form = new FormData()
+        form.append('avatar', file)
+        const res = await fetch(base + '/auth/avatar-public', {
+          method: 'POST',
+          body: form
+        })
+        const json = await res.json().catch(() => ({}))
+        if (res.ok && json.data && json.data.avatar) {
+          uploaded.push({ url: json.data.avatar, label: file.name, type: 'other' })
+        }
+      }
+    } catch (err) {
+      console.error('Photo upload error', err)
+    } finally {
+      setUploadingPhotos(false)
+    }
+    return uploaded
   }
 
   const handleBusinessToggle = (serviceType) => {
@@ -152,6 +186,17 @@ const RegisterPage = () => {
         password: formData.password,
         phone: formData.phone,
         role: activeTab
+      }
+
+      // Add languages (comma-separated string -> array)
+      if (formData.languages) {
+        payload.languages = String(formData.languages).split(',').map(s => s.trim()).filter(Boolean)
+      }
+
+      // Upload photos first if any selected
+      if (photoFiles.length > 0) {
+        const uploaded = await uploadPhotos()
+        if (uploaded.length > 0) payload.photos = uploaded
       }
 
       // Add tourist-specific fields
@@ -312,6 +357,19 @@ const RegisterPage = () => {
                   placeholder="+94 77 123 4567"
                   className="input"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Languages</label>
+                <input
+                  type="text"
+                  name="languages"
+                  value={formData.languages || ''}
+                  onChange={handleChange}
+                  placeholder="English, Sinhala, Tamil"
+                  className="input"
+                />
+                <p className="text-xs text-gray-500 mt-1">List languages you can speak, separated by commas.</p>
               </div>
 
               {activeTab === 'provider' && (
@@ -720,6 +778,12 @@ const RegisterPage = () => {
                   </div>
                 </>
               )}
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Photos (optional)</label>
+                <input type="file" multiple accept="image/*" onChange={handlePhotoSelect} className="w-full" />
+                <p className="text-xs text-gray-500 mt-1">Upload photos relevant to your account (vehicle, property, portfolio). They'll be uploaded during registration.</p>
+              </div>
             </div>
 
             <button
@@ -737,10 +801,9 @@ const RegisterPage = () => {
             <div className="flex-1 border-t border-gray-300"></div>
           </div>
 
-          <button className="w-full flex items-center justify-center space-x-2 border-2 border-gray-300 rounded-lg py-3 hover:bg-gray-50 transition">
-            <FaGoogle className="text-red-500" />
-            <span className="font-medium">Sign up with Google</span>
-          </button>
+          <div className="w-full">
+            <GoogleSignIn />
+          </div>
 
           <p className="text-center text-sm text-gray-600 mt-6">
             Already have an account?{' '}

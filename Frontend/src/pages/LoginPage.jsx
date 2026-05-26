@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
 import { FaMapMarkerAlt, FaGoogle } from 'react-icons/fa'
+import GoogleSignIn from '../components/GoogleSignIn'
 import { authAPI } from '../api'
 import { useAuthStore } from '../store/authStore'
 
@@ -168,10 +169,7 @@ const LoginPage = () => {
               <div className="flex-1 border-t border-gray-300"></div>
             </div>
 
-            <button className="w-full flex items-center justify-center space-x-2 border-2 border-gray-300 rounded-lg py-3 hover:bg-gray-50 transition">
-              <FaGoogle className="text-red-500" />
-              <span className="font-medium">Login with Google</span>
-            </button>
+            <div className="w-full"><GoogleSignIn /></div>
 
             <p className="text-center text-sm text-gray-600 mt-6">
               Don't have an account?{' '}

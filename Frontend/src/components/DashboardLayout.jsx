@@ -2,6 +2,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { FaMapMarkerAlt, FaBell, FaPhoneAlt, FaSignOutAlt, FaCalendarAlt } from 'react-icons/fa'
 import { MdDashboard, MdExplore, MdMessage, MdFavorite, MdSettings, MdWork, MdInbox, MdAttachMoney, MdPeople, MdVerifiedUser, MdWarning, MdBarChart } from 'react-icons/md'
 import { useAuthStore } from '../store/authStore'
+import { useState } from 'react'
+import SOSModal from './SOSModal'
 
 const iconMap = {
   home: MdDashboard,
@@ -28,6 +30,8 @@ const DashboardLayout = ({ children, navItems, userRole }) => {
     logout()
     navigate('/login')
   }
+
+  const [showSOS, setShowSOS] = useState(false)
 
   const roleColors = {
     tourist: 'primary',
@@ -99,9 +103,10 @@ const DashboardLayout = ({ children, navItems, userRole }) => {
             <div className="flex-1"></div>
 
             <div className="flex items-center space-x-4">
+              <SOSModal open={showSOS} onClose={() => setShowSOS(false)} />
               {/* SOS Button (Tourist only) */}
               {userRole === 'tourist' && (
-                <button className="flex items-center space-x-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">
+                <button onClick={() => setShowSOS(true)} className="flex items-center space-x-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">
                   <FaPhoneAlt />
                   <span className="font-medium">SOS</span>
                 </button>

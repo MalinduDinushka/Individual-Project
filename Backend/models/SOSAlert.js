@@ -8,12 +8,10 @@ const sosAlertSchema = new mongoose.Schema({
   },
   location: {
     latitude: {
-      type: Number,
-      required: true
+      type: Number
     },
     longitude: {
-      type: Number,
-      required: true
+      type: Number
     },
     address: String
   },

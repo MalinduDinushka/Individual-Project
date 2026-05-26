@@ -75,6 +75,14 @@ const userSchema = new mongoose.Schema({
     default: true
   },
   // Tourist-specific fields
+  // Languages user can speak (shared by tourists and providers)
+  languages: [String],
+  // Generic photos gallery (useful for providers to upload vehicle/property photos, or tourists to add profile photos)
+  photos: [{
+    label: String,
+    url: String,
+    type: String // e.g., 'vehicle', 'property', 'profile', 'other'
+  }],
   preferences: {
     destinations: [String],
     interests: [String],

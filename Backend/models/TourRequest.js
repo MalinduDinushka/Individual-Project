@@ -42,6 +42,23 @@ const tourRequestSchema = new mongoose.Schema({
     required: [true, 'Number of travelers is required'],
     min: 1
   },
+  visitorBreakdown: {
+    male: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    female: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    kids: {
+      type: Number,
+      default: 0,
+      min: 0
+    }
+  },
   budget: {
     min: {
       type: Number,
@@ -60,12 +77,13 @@ const tourRequestSchema = new mongoose.Schema({
     accommodation: String,
     transportation: String,
     activities: [String],
+    servicesNeeded: [String],
     dietary: String,
     specialRequirements: String
   },
   status: {
     type: String,
-    enum: ['open', 'in-progress', 'completed', 'cancelled'],
+    enum: ['open', 'awaiting-payment', 'in-progress', 'completed', 'cancelled'],
     default: 'open'
   },
   bids: [{
@@ -89,6 +107,25 @@ const tourRequestSchema = new mongoose.Schema({
   selectedBid: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
+  },
+  advancePayment: {
+    status: {
+      type: String,
+      enum: ['not-required', 'pending', 'paid', 'failed'],
+      default: 'not-required'
+    },
+    amount: {
+      type: Number,
+      default: 0
+    },
+    currency: {
+      type: String,
+      default: 'USD'
+    },
+    paymentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Payment'
+    }
   }
 }, {
   timestamps: true

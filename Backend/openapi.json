@@ -1,0 +1,1855 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "TourMate Backend API",
+    "description": "OpenAPI 3.0 specification for the TourMate backend routes and controllers.",
+    "version": "1.0.0",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "name": "TourMate Team"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000/api",
+      "description": "Local development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Authentication and profile endpoints"
+    },
+    {
+      "name": "Users",
+      "description": "User and provider profile endpoints"
+    },
+    {
+      "name": "Tours",
+      "description": "Tour request and bid endpoints"
+    },
+    {
+      "name": "Bookings",
+      "description": "Booking management endpoints"
+    },
+    {
+      "name": "Payments",
+      "description": "Payment and PayHere checkout endpoints"
+    },
+    {
+      "name": "Messages",
+      "description": "Booking and tour request chat endpoints"
+    },
+    {
+      "name": "Feedback",
+      "description": "Feedback endpoints"
+    },
+    {
+      "name": "Services",
+      "description": "Service listing and provider service endpoints"
+    },
+    {
+      "name": "SOS",
+      "description": "Emergency SOS endpoints"
+    },
+    {
+      "name": "Admin",
+      "description": "Administrative endpoints"
+    },
+    {
+      "name": "System",
+      "description": "Health and utility endpoints"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "API is running",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "$ref": "#/components/responses/CreatedAuth" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Log in an existing user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessAuth" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/auth/google-auth": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Authenticate using Google OAuth",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/GoogleAuthRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessAuth" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Request a password reset email",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ForgotPasswordRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessMessage" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/auth/reset-password/{resetToken}": {
+      "put": {
+        "tags": ["Auth"],
+        "summary": "Reset a password with a token",
+        "parameters": [
+          {
+            "name": "resetToken",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ResetPasswordRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessMessage" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Get the authenticated user",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessUser" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/auth/update-profile": {
+      "put": {
+        "tags": ["Auth"],
+        "summary": "Update the authenticated user profile",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateProfileRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessUser" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/auth/avatar": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Upload an authenticated user avatar",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": { "$ref": "#/components/schemas/AvatarUploadRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessMessage" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/auth/avatar-public": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Upload an avatar without authentication for debugging",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": { "$ref": "#/components/schemas/AvatarUploadRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessMessage" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/users/providers/{id}": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get a provider profile",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "objectId" }
+          }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessProviderProfile" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/tours": {
+      "get": {
+        "tags": ["Tours"],
+        "summary": "Get tour requests for providers or tourists depending on role",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessTourRequestList" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      },
+      "post": {
+        "tags": ["Tours"],
+        "summary": "Create a tour request",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TourRequestCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "$ref": "#/components/responses/SuccessTourRequest" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/tours/my-requests": {
+      "get": {
+        "tags": ["Tours"],
+        "summary": "Get the authenticated tourist's requests",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessTourRequestList" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/tours/{id}": {
+      "get": {
+        "tags": ["Tours"],
+        "summary": "Get a tour request by id",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "objectId" }
+          }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessTourRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      },
+      "put": {
+        "tags": ["Tours"],
+        "summary": "Update a tour request",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "objectId" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TourRequestUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessTourRequest" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      },
+      "delete": {
+        "tags": ["Tours"],
+        "summary": "Delete a tour request",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "objectId" }
+          }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessMessage" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/tours/{id}/bid": {
+      "post": {
+        "tags": ["Tours"],
+        "summary": "Submit a bid for a tour request",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "objectId" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BidCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "$ref": "#/components/responses/SuccessTourRequest" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/tours/{id}/accept-bid/{bidId}": {
+      "post": {
+        "tags": ["Tours"],
+        "summary": "Accept a provider bid",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "objectId" } },
+          { "name": "bidId", "in": "path", "required": true, "schema": { "type": "string", "format": "objectId" } }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessTourRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/tours/{id}/reject-bid/{bidId}": {
+      "post": {
+        "tags": ["Tours"],
+        "summary": "Reject a provider bid",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "objectId" } },
+          { "name": "bidId", "in": "path", "required": true, "schema": { "type": "string", "format": "objectId" } }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessTourRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/bookings": {
+      "post": {
+        "tags": ["Bookings"],
+        "summary": "Create a booking",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BookingCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "$ref": "#/components/responses/SuccessBooking" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/bookings/my-bookings": {
+      "get": {
+        "tags": ["Bookings"],
+        "summary": "Get the authenticated user's bookings",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessBookingList" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/bookings/{id}": {
+      "get": {
+        "tags": ["Bookings"],
+        "summary": "Get booking by id",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "objectId" } }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessBooking" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/bookings/{id}/cancel": {
+      "put": {
+        "tags": ["Bookings"],
+        "summary": "Cancel a booking",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "objectId" } }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CancelBookingRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessBooking" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/payments/payhere/config": {
+      "get": {
+        "tags": ["Payments"],
+        "summary": "Check whether PayHere is configured",
+        "responses": {
+          "200": {
+            "description": "PayHere configuration status",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PayHereConfigStatus" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments": {
+      "post": {
+        "tags": ["Payments"],
+        "summary": "Create a booking payment checkout",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PaymentCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "$ref": "#/components/responses/SuccessPaymentCheckout" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/payments/payhere/checkout-data": {
+      "post": {
+        "tags": ["Payments"],
+        "summary": "Generate PayHere checkout data for booking or tour-request advance payment",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PayHereCheckoutDataRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "$ref": "#/components/responses/SuccessPayHereCheckout" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/payments/payhere/notify": {
+      "post": {
+        "tags": ["Payments"],
+        "summary": "PayHere server-to-server payment notification webhook",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": { "$ref": "#/components/schemas/PayHereNotifyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook processed successfully",
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "example": "OK" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid signature",
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "example": "Invalid signature" }
+              }
+            }
+          },
+          "404": {
+            "description": "Payment not found",
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "example": "Payment not found" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "example": "Server error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/{id}": {
+      "get": {
+        "tags": ["Payments"],
+        "summary": "Get payment status by id",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "objectId" } }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessPayment" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/messages/conversations": {
+      "get": {
+        "tags": ["Messages"],
+        "summary": "Get all conversations for the authenticated user",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessConversationList" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/messages/bookings/{bookingId}": {
+      "get": {
+        "tags": ["Messages"],
+        "summary": "Get messages for a booking conversation",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "bookingId", "in": "path", "required": true, "schema": { "type": "string", "format": "objectId" } }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessMessageList" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      },
+      "post": {
+        "tags": ["Messages"],
+        "summary": "Send a message in a booking conversation",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "bookingId", "in": "path", "required": true, "schema": { "type": "string", "format": "objectId" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MessageCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "$ref": "#/components/responses/SuccessMessageItem" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/messages/requests/{requestId}/providers/{providerId}": {
+      "get": {
+        "tags": ["Messages"],
+        "summary": "Get messages for a tour request/provider conversation",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "requestId", "in": "path", "required": true, "schema": { "type": "string", "format": "objectId" } },
+          { "name": "providerId", "in": "path", "required": true, "schema": { "type": "string", "format": "objectId" } }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessMessageList" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      },
+      "post": {
+        "tags": ["Messages"],
+        "summary": "Send a message in a tour request/provider conversation",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "requestId", "in": "path", "required": true, "schema": { "type": "string", "format": "objectId" } },
+          { "name": "providerId", "in": "path", "required": true, "schema": { "type": "string", "format": "objectId" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MessageCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "$ref": "#/components/responses/SuccessMessageItem" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/feedback": {
+      "post": {
+        "tags": ["Feedback"],
+        "summary": "Create feedback",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "example": { "booking": "66b6c6f1f8a8a2b9f8b11111", "rating": 5, "comment": "Great service" }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessMessage" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/feedback/service/{serviceId}": {
+      "get": {
+        "tags": ["Feedback"],
+        "summary": "Get feedback for a service",
+        "parameters": [
+          { "name": "serviceId", "in": "path", "required": true, "schema": { "type": "string", "format": "objectId" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service feedback list",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "additionalProperties": true }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/services": {
+      "get": {
+        "tags": ["Services"],
+        "summary": "Get all services",
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessServiceList" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      },
+      "post": {
+        "tags": ["Services"],
+        "summary": "Create a service",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ServiceCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "$ref": "#/components/responses/SuccessService" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/services/{id}": {
+      "get": {
+        "tags": ["Services"],
+        "summary": "Get a service by id",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "objectId" } }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessService" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/sos": {
+      "post": {
+        "tags": ["SOS"],
+        "summary": "Create an SOS alert",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SOSAlertCreate" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessMessage" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      },
+      "get": {
+        "tags": ["SOS"],
+        "summary": "Get SOS alerts",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessSOSAlertList" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/admin/dashboard": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get admin dashboard stats",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Dashboard stats",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "additionalProperties": true }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List all users",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of users",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "additionalProperties": true }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/admin/verifications": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List provider verification items",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Verification list",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "additionalProperties": true }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/admin/verify-provider/{id}": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Verify or reject a provider",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "objectId" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "additionalProperties": true }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/SuccessMessage" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "responses": {
+      "SuccessMessage": {
+        "description": "Success response with message",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/MessageResponse" }
+          }
+        }
+      },
+      "CreatedAuth": {
+        "description": "Authentication created",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/AuthResponse" }
+          }
+        }
+      },
+      "SuccessAuth": {
+        "description": "Authentication successful",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/AuthResponse" }
+          }
+        }
+      },
+      "SuccessUser": {
+        "description": "User response",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/UserResponse" }
+          }
+        }
+      },
+      "SuccessProviderProfile": {
+        "description": "Provider profile response",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ProviderProfileResponse" }
+          }
+        }
+      },
+      "SuccessTourRequest": {
+        "description": "Tour request response",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/TourRequestResponse" }
+          }
+        }
+      },
+      "SuccessTourRequestList": {
+        "description": "Tour request list response",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/TourRequestListResponse" }
+          }
+        }
+      },
+      "SuccessBooking": {
+        "description": "Booking response",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/BookingResponse" }
+          }
+        }
+      },
+      "SuccessBookingList": {
+        "description": "Booking list response",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/BookingListResponse" }
+          }
+        }
+      },
+      "SuccessPayment": {
+        "description": "Payment response",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/PaymentResponse" }
+          }
+        }
+      },
+      "SuccessPaymentCheckout": {
+        "description": "Booking payment checkout response",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/PaymentCheckoutResponse" }
+          }
+        }
+      },
+      "SuccessPayHereCheckout": {
+        "description": "PayHere checkout response",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/PayHereCheckoutResponse" }
+          }
+        }
+      },
+      "SuccessConversationList": {
+        "description": "Conversation list response",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ConversationListResponse" }
+          }
+        }
+      },
+      "SuccessMessageList": {
+        "description": "Message list response",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/MessageListResponse" }
+          }
+        }
+      },
+      "SuccessMessageItem": {
+        "description": "Single message response",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/MessageResponse" }
+          }
+        }
+      },
+      "SuccessService": {
+        "description": "Service response",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ServiceResponse" }
+          }
+        }
+      },
+      "SuccessServiceList": {
+        "description": "Service list response",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ServiceListResponse" }
+          }
+        }
+      },
+      "SuccessSOSAlertList": {
+        "description": "SOS alert list response",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/SOSAlertListResponse" }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "Bad request",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not found",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      "ServerError": {
+        "description": "Server error",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "OK" },
+          "message": { "type": "string", "example": "TourMate API is running" }
+        },
+        "required": ["status", "message"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "message": { "type": "string", "example": "Validation failed" },
+          "error": { "type": ["string", "object", "null"], "nullable": true },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "MessageResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "message": { "type": "string" },
+          "data": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "message": { "type": "string" },
+          "token": { "type": "string" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "user": { "$ref": "#/components/schemas/User" }
+            }
+          }
+        }
+      },
+      "UserResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "properties": {
+              "user": { "$ref": "#/components/schemas/User" }
+            }
+          }
+        }
+      },
+      "ProviderProfileResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "properties": {
+              "provider": { "$ref": "#/components/schemas/User" }
+            }
+          }
+        }
+      },
+      "TourRequestResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "message": { "type": "string" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "tourRequest": { "$ref": "#/components/schemas/TourRequest" }
+            }
+          }
+        }
+      },
+      "TourRequestListResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "properties": {
+              "tourRequests": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/TourRequest" }
+              },
+              "count": { "type": "integer", "example": 1 }
+            }
+          }
+        }
+      },
+      "BookingResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "properties": {
+              "booking": { "$ref": "#/components/schemas/Booking" }
+            }
+          }
+        }
+      },
+      "BookingListResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "properties": {
+              "bookings": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/Booking" }
+              }
+            }
+          }
+        }
+      },
+      "PaymentResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "properties": {
+              "payment": { "$ref": "#/components/schemas/Payment" }
+            }
+          }
+        }
+      },
+      "PaymentCheckoutResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "message": { "type": "string", "example": "PayHere checkout created" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "payment": { "$ref": "#/components/schemas/Payment" },
+              "checkout": { "$ref": "#/components/schemas/PayHereCheckoutData" },
+              "gateway": { "type": "string", "example": "payhere" }
+            }
+          }
+        }
+      },
+      "PayHereCheckoutResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "properties": {
+              "checkout": { "$ref": "#/components/schemas/PayHereCheckoutData" },
+              "payment": { "$ref": "#/components/schemas/Payment" },
+              "tourRequestId": { "type": "string" }
+            }
+          }
+        }
+      },
+      "ConversationListResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "MessageListResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "properties": {
+              "messages": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/Message" }
+              }
+            }
+          }
+        }
+      },
+      "ServiceResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "properties": {
+              "service": { "$ref": "#/components/schemas/Service" }
+            }
+          }
+        }
+      },
+      "ServiceListResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "properties": {
+              "services": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/Service" }
+              },
+              "count": { "type": "integer", "example": 1 }
+            }
+          }
+        }
+      },
+      "SOSAlertListResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "PayHereConfigStatus": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": {
+            "type": "object",
+            "properties": {
+              "configured": { "type": "boolean", "example": false },
+              "gateway": { "type": "string", "example": "payhere" },
+              "returnUrl": { "type": "string" },
+              "cancelUrl": { "type": "string" }
+            }
+          }
+        }
+      },
+      "PayHereCheckoutData": {
+        "type": "object",
+        "properties": {
+          "merchant_id": { "type": "string" },
+          "return_url": { "type": "string" },
+          "cancel_url": { "type": "string" },
+          "notify_url": { "type": "string" },
+          "order_id": { "type": "string" },
+          "items": { "type": "string" },
+          "amount": { "type": "string" },
+          "currency": { "type": "string", "example": "LKR" },
+          "hash": { "type": "string" },
+          "first_name": { "type": "string" },
+          "last_name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "phone": { "type": "string" },
+          "address": { "type": "string" },
+          "city": { "type": "string" },
+          "country": { "type": "string" },
+          "sandboxUrl": { "type": "string", "example": "https://sandbox.payhere.lk/pay/checkout" }
+        },
+        "required": ["merchant_id", "return_url", "cancel_url", "notify_url", "order_id", "items", "amount", "currency", "hash"]
+      },
+      "PayHereNotifyRequest": {
+        "type": "object",
+        "properties": {
+          "merchant_id": { "type": "string" },
+          "order_id": { "type": "string" },
+          "payhere_amount": { "type": "string" },
+          "payhere_currency": { "type": "string" },
+          "status_code": { "type": "string" },
+          "md5sig": { "type": "string" }
+        },
+        "additionalProperties": true
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["name", "email", "password", "role"],
+        "properties": {
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string", "minLength": 6 },
+          "role": { "type": "string", "enum": ["tourist", "provider"] },
+          "phone": { "type": "string" },
+          "gender": { "type": "string" },
+          "nationality": { "type": "string", "enum": ["local", "foreign"] },
+          "nic": { "type": "string" },
+          "passport": { "type": "string" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string" }
+        }
+      },
+      "GoogleAuthRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Google authentication payload"
+      },
+      "ForgotPasswordRequest": {
+        "type": "object",
+        "required": ["email"],
+        "properties": {
+          "email": { "type": "string", "format": "email" }
+        }
+      },
+      "ResetPasswordRequest": {
+        "type": "object",
+        "required": ["password"],
+        "properties": {
+          "password": { "type": "string", "minLength": 6 }
+        }
+      },
+      "UpdateProfileRequest": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Partial profile update payload"
+      },
+      "AvatarUploadRequest": {
+        "type": "object",
+        "properties": {
+          "avatar": {
+            "type": "string",
+            "format": "binary"
+          }
+        },
+        "required": ["avatar"]
+      },
+      "TourRequestCreate": {
+        "type": "object",
+        "required": ["title", "destinations", "startDate", "endDate", "travelers", "budget"],
+        "properties": {
+          "title": { "type": "string" },
+          "destinations": { "type": "array", "items": { "type": "string" } },
+          "districts": { "type": "array", "items": { "type": "string" } },
+          "locationPlan": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "district": { "type": "string" },
+                "locations": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          },
+          "startDate": { "type": "string", "format": "date" },
+          "endDate": { "type": "string", "format": "date" },
+          "travelers": { "type": "integer", "minimum": 1 },
+          "visitorBreakdown": {
+            "type": "object",
+            "properties": {
+              "male": { "type": "integer", "minimum": 0 },
+              "female": { "type": "integer", "minimum": 0 },
+              "kids": { "type": "integer", "minimum": 0 }
+            }
+          },
+          "budget": {
+            "type": "object",
+            "required": ["min", "max"],
+            "properties": {
+              "min": { "type": "number" },
+              "max": { "type": "number" },
+              "currency": { "type": "string", "example": "USD" }
+            }
+          },
+          "preferences": {
+            "type": "object",
+            "properties": {
+              "accommodation": { "type": "string" },
+              "transportation": { "type": "string" },
+              "activities": { "type": "array", "items": { "type": "string" } },
+              "servicesNeeded": { "type": "array", "items": { "type": "string" } },
+              "dietary": { "type": "string" },
+              "specialRequirements": { "type": "string" }
+            }
+          }
+        }
+      },
+      "TourRequestUpdate": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Partial update of a tour request"
+      },
+      "BidCreate": {
+        "type": "object",
+        "required": ["message", "proposedPrice", "itinerary"],
+        "properties": {
+          "message": { "type": "string" },
+          "proposedPrice": { "type": "number" },
+          "itinerary": { "type": "string" }
+        }
+      },
+      "BookingCreate": {
+        "type": "object",
+        "required": ["service", "bookingDate", "numberOfPeople"],
+        "properties": {
+          "service": { "type": "string" },
+          "tourRequest": { "type": "string", "format": "objectId" },
+          "bookingDate": {
+            "type": "object",
+            "required": ["startDate", "endDate"],
+            "properties": {
+              "startDate": { "type": "string", "format": "date" },
+              "endDate": { "type": "string", "format": "date" }
+            }
+          },
+          "numberOfPeople": { "type": "integer", "minimum": 1 },
+          "specialRequests": { "type": "string" }
+        }
+      },
+      "CancelBookingRequest": {
+        "type": "object",
+        "properties": {
+          "cancellationReason": { "type": "string" }
+        }
+      },
+      "PaymentCreate": {
+        "type": "object",
+        "required": ["bookingId"],
+        "properties": {
+          "bookingId": { "type": "string", "format": "objectId" },
+          "paymentMethod": { "type": "string", "enum": ["stripe", "payhere", "card", "bank-transfer"] },
+          "paymentDetails": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "PayHereCheckoutDataRequest": {
+        "type": "object",
+        "required": ["paymentType"],
+        "properties": {
+          "paymentType": { "type": "string", "enum": ["booking", "tour-request-advance"] },
+          "bookingId": { "type": "string", "format": "objectId" },
+          "tourRequestId": { "type": "string", "format": "objectId" },
+          "bidId": { "type": "string", "format": "objectId" },
+          "items": { "type": "string" },
+          "amount": { "type": "number" },
+          "currency": { "type": "string", "example": "LKR" },
+          "customer": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "MessageCreate": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": { "type": "string" }
+        }
+      },
+      "ServiceCreate": {
+        "type": "object",
+        "required": ["name", "type", "description", "pricing"],
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string", "enum": ["villa", "hotel", "vehicle", "guide", "restaurant", "safari", "photographer", "equipment", "other"] },
+          "description": { "type": "string" },
+          "location": {
+            "type": "object",
+            "properties": {
+              "address": { "type": "string" },
+              "city": { "type": "string" },
+              "province": { "type": "string" },
+              "coordinates": {
+                "type": "object",
+                "properties": {
+                  "latitude": { "type": "number" },
+                  "longitude": { "type": "number" }
+                }
+              }
+            }
+          },
+          "pricing": {
+            "type": "object",
+            "required": ["amount"],
+            "properties": {
+              "amount": { "type": "number" },
+              "currency": { "type": "string", "example": "USD" },
+              "unit": { "type": "string", "enum": ["night", "day", "hour", "trip", "person", "item"] }
+            }
+          }
+        }
+      },
+      "SOSAlertCreate": {
+        "type": "object",
+        "required": ["location", "emergencyType", "description", "contactNumber"],
+        "properties": {
+          "location": {
+            "type": "object",
+            "required": ["latitude", "longitude"],
+            "properties": {
+              "latitude": { "type": "number" },
+              "longitude": { "type": "number" },
+              "address": { "type": "string" }
+            }
+          },
+          "emergencyType": { "type": "string", "enum": ["medical", "accident", "theft", "lost", "other"] },
+          "description": { "type": "string" },
+          "contactNumber": { "type": "string" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "format": "objectId" },
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "role": { "type": "string", "enum": ["tourist", "provider", "admin"] },
+          "phone": { "type": "string" },
+          "gender": { "type": "string" },
+          "nationality": { "type": "string", "enum": ["local", "foreign"] },
+          "nic": { "type": "string" },
+          "passport": { "type": "string" },
+          "avatar": { "type": "string", "format": "uri" },
+          "isVerified": { "type": "boolean" },
+          "isActive": { "type": "boolean" },
+          "businessInfo": { "type": "object", "additionalProperties": true },
+          "preferences": { "type": "object", "additionalProperties": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Booking": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "format": "objectId" },
+          "tourist": { "$ref": "#/components/schemas/User" },
+          "service": { "type": "string" },
+          "serviceSnapshot": { "type": "object", "additionalProperties": true },
+          "provider": { "$ref": "#/components/schemas/User" },
+          "tourRequest": { "type": "string", "format": "objectId" },
+          "bookingDate": {
+            "type": "object",
+            "properties": {
+              "startDate": { "type": "string", "format": "date-time" },
+              "endDate": { "type": "string", "format": "date-time" }
+            }
+          },
+          "numberOfPeople": { "type": "integer" },
+          "pricing": { "type": "object", "additionalProperties": true },
+          "status": { "type": "string" },
+          "paymentStatus": { "type": "string" },
+          "paymentId": { "type": "string", "format": "objectId" },
+          "specialRequests": { "type": "string" },
+          "cancellationReason": { "type": "string" },
+          "cancelledBy": { "type": "string", "format": "objectId" },
+          "cancelledAt": { "type": "string", "format": "date-time" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "TourRequest": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "format": "objectId" },
+          "tourist": { "$ref": "#/components/schemas/User" },
+          "title": { "type": "string" },
+          "destinations": { "type": "array", "items": { "type": "string" } },
+          "districts": { "type": "array", "items": { "type": "string" } },
+          "locationPlan": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+          "startDate": { "type": "string", "format": "date-time" },
+          "endDate": { "type": "string", "format": "date-time" },
+          "travelers": { "type": "integer" },
+          "visitorBreakdown": { "type": "object", "additionalProperties": true },
+          "budget": { "type": "object", "additionalProperties": true },
+          "preferences": { "type": "object", "additionalProperties": true },
+          "status": { "type": "string", "enum": ["open", "awaiting-payment", "in-progress", "completed", "cancelled"] },
+          "bids": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "provider": { "$ref": "#/components/schemas/User" },
+                "message": { "type": "string" },
+                "proposedPrice": { "type": "number" },
+                "itinerary": { "type": "string" },
+                "submittedAt": { "type": "string", "format": "date-time" },
+                "status": { "type": "string", "enum": ["pending", "accepted", "rejected"] }
+              }
+            }
+          },
+          "selectedBid": { "type": "string", "format": "objectId" },
+          "advancePayment": {
+            "type": "object",
+            "properties": {
+              "status": { "type": "string", "enum": ["not-required", "pending", "paid", "failed"] },
+              "amount": { "type": "number" },
+              "currency": { "type": "string" },
+              "paymentId": { "type": "string", "format": "objectId" }
+            }
+          },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Service": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "format": "objectId" },
+          "provider": { "$ref": "#/components/schemas/User" },
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "description": { "type": "string" },
+          "location": { "type": "object", "additionalProperties": true },
+          "pricing": { "type": "object", "additionalProperties": true },
+          "capacity": { "type": "integer" },
+          "images": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+          "amenities": { "type": "array", "items": { "type": "string" } },
+          "availability": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+          "rating": { "type": "number" },
+          "reviewCount": { "type": "integer" },
+          "isActive": { "type": "boolean" },
+          "isVerified": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Payment": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "format": "objectId" },
+          "booking": { "type": "string", "format": "objectId" },
+          "tourRequest": { "type": "string", "format": "objectId" },
+          "tourist": { "$ref": "#/components/schemas/User" },
+          "provider": { "$ref": "#/components/schemas/User" },
+          "amount": { "type": "number" },
+          "currency": { "type": "string" },
+          "gateway": { "type": "string" },
+          "gatewayOrderId": { "type": "string" },
+          "gatewayStatusCode": { "type": "string" },
+          "gatewaySignature": { "type": "string" },
+          "paymentMethod": { "type": "string", "enum": ["stripe", "payhere", "card", "bank-transfer"] },
+          "purpose": { "type": "string", "enum": ["booking", "tour-request-advance"] },
+          "transactionId": { "type": "string" },
+          "status": { "type": "string", "enum": ["pending", "processing", "completed", "failed", "refunded"] },
+          "paymentDetails": { "type": "object", "additionalProperties": true },
+          "refund": { "type": "object", "additionalProperties": true },
+          "metadata": { "type": ["object", "null"], "additionalProperties": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "format": "objectId" },
+          "conversationId": { "type": "string" },
+          "booking": { "type": "string", "format": "objectId" },
+          "tourRequest": { "type": "string", "format": "objectId" },
+          "chatType": { "type": "string", "enum": ["booking", "request"] },
+          "sender": { "$ref": "#/components/schemas/User" },
+          "receiver": { "$ref": "#/components/schemas/User" },
+          "message": { "type": "string" },
+          "messageType": { "type": "string", "enum": ["text", "image", "file"] },
+          "attachment": { "type": "object", "additionalProperties": true },
+          "isRead": { "type": "boolean" },
+          "readAt": { "type": "string", "format": "date-time" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Feedback": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "format": "objectId" },
+          "booking": { "type": "string", "format": "objectId" },
+          "tourist": { "$ref": "#/components/schemas/User" },
+          "service": { "$ref": "#/components/schemas/Service" },
+          "provider": { "$ref": "#/components/schemas/User" },
+          "rating": { "type": "integer" },
+          "comment": { "type": "string" },
+          "categories": { "type": "object", "additionalProperties": true },
+          "images": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+          "isVerified": { "type": "boolean" },
+          "response": { "type": "object", "additionalProperties": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SOSAlert": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "format": "objectId" },
+          "tourist": { "$ref": "#/components/schemas/User" },
+          "location": { "type": "object", "additionalProperties": true },
+          "emergencyType": { "type": "string" },
+          "description": { "type": "string" },
+          "contactNumber": { "type": "string" },
+          "status": { "type": "string" },
+          "priority": { "type": "string" },
+          "assignedTo": { "$ref": "#/components/schemas/User" },
+          "notes": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+          "resolvedAt": { "type": "string", "format": "date-time" },
+          "resolvedBy": { "$ref": "#/components/schemas/User" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

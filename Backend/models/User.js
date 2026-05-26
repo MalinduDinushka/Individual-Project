@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  gender: {
+    type: String,
+    enum: ['male', 'female', 'non-binary', 'other', 'prefer-not-to-say']
+  },
   nationality: {
     type: String,
     enum: ['local', 'foreign'],
@@ -87,6 +91,11 @@ const userSchema = new mongoose.Schema({
       type: String,
       enum: ['hotel', 'vehicle', 'guide', 'restaurant', 'photographer', 'equipment', 'other']
     },
+    serviceTypes: [{
+      type: String,
+      enum: ['hotel', 'vehicle', 'guide', 'restaurant', 'photographer', 'equipment', 'other']
+    }],
+    serviceDetails: mongoose.Schema.Types.Mixed,
     location: String,
     documents: [{
       name: String,

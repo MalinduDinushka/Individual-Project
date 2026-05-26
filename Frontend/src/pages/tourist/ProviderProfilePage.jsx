@@ -4,6 +4,12 @@ import { FaStar, FaCheckCircle, FaCommentDots, FaPhoneAlt, FaMapMarkerAlt } from
 import { messageAPI, userAPI } from '../../api'
 import { toast } from 'react-hot-toast'
 
+const buildGoogleMapsEmbedUrl = (location) => {
+  const query = String(location || '').trim()
+  if (!query) return ''
+  return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`
+}
+
 const ProviderProfilePage = () => {
   const { providerId } = useParams()
   const [searchParams] = useSearchParams()
@@ -67,7 +73,13 @@ const ProviderProfilePage = () => {
                 <span>•</span>
                 <span>{provider.businessInfo?.reviewCount ?? 0} reviews</span>
                 <span>•</span>
-                <span className="capitalize">{provider.businessInfo?.serviceType || 'service provider'}</span>
+                <span className="capitalize">{provider.gender || 'gender not specified'}</span>
+                <span>•</span>
+                <span className="capitalize">
+                  {(provider.businessInfo?.serviceTypes?.length ? provider.businessInfo.serviceTypes : [provider.businessInfo?.serviceType])
+                    .filter(Boolean)
+                    .join(', ') || 'service provider'}
+                </span>
               </div>
             </div>
           </div>
@@ -90,8 +102,51 @@ const ProviderProfilePage = () => {
           <h2 className="text-xl font-semibold text-gray-900">Contact & Business</h2>
           <div className="text-sm text-gray-700"><strong>Email:</strong> {provider.email}</div>
           <div className="text-sm text-gray-700"><strong>Phone:</strong> {provider.phone || 'Not provided'}</div>
-          <div className="text-sm text-gray-700"><strong>Location:</strong> {provider.businessInfo?.location || 'Not provided'}</div>
-          <div className="text-sm text-gray-700"><strong>Service type:</strong> {provider.businessInfo?.serviceType || 'Not provided'}</div>
+          <div className="text-sm text-gray-700"><strong>Gender:</strong> {provider.gender || 'Not provided'}</div>
+          <div className="text-sm text-gray-700">
+            <strong>Location:</strong>{' '}
+            {provider.businessInfo?.location || 'Not provided'}
+          </div>
+          {provider.businessInfo?.location && (
+            <div className="rounded-xl border overflow-hidden bg-gray-50">
+              <div className="flex items-center justify-between gap-3 px-4 py-3 border-b bg-white">
+                <div>
+                  <p className="font-medium text-gray-800">Map preview</p>
+                  <p className="text-xs text-gray-500">Open or preview this business location</p>
+                </div>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(provider.businessInfo.location)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  Open in Google Maps
+                </a>
+              </div>
+              <iframe
+                title="Provider location preview"
+                src={buildGoogleMapsEmbedUrl(provider.businessInfo.location)}
+                className="h-64 w-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          )}
+          <div className="text-sm text-gray-700">
+            <strong>Service types:</strong>{' '}
+            {(provider.businessInfo?.serviceTypes?.length ? provider.businessInfo.serviceTypes : [provider.businessInfo?.serviceType])
+              .filter(Boolean)
+              .join(', ') || 'Not provided'}
+          </div>
+          {provider.businessInfo?.serviceDetails && (
+            <div className="text-sm text-gray-700">
+              <strong>Service details:</strong>{' '}
+              {Object.entries(provider.businessInfo.serviceDetails)
+                .filter(([, details]) => details && Object.values(details).some(Boolean))
+                .map(([service, details]) => `${service}: ${Object.entries(details).filter(([, value]) => Boolean(value)).map(([field, value]) => `${field}=${value}`).join('; ')}`)
+                .join(' | ') || 'Not provided'}
+            </div>
+          )}
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border p-6 space-y-3">

@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FaCalendarAlt, FaMapMarkerAlt, FaRupeeSign, FaStar } from 'react-icons/fa'
 import { tourAPI } from '../../api'
+import PayHereCheckoutButton from '../../components/payments/PayHereCheckoutButton'
 import { toast } from 'react-hot-toast'
 
 const TourRequestsPage = () => {
   const navigate = useNavigate()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
-
+  const [busyAction, setBusyAction] = useState('')
   useEffect(() => {
     fetchRequests()
   }, [])
@@ -36,6 +37,42 @@ const TourRequestsPage = () => {
     navigate(`/tourist/provider/${providerId}?request=${requestId}`)
   }
 
+  const handleRejectBid = async (requestId, bidId) => {
+    try {
+      setBusyAction(`reject:${bidId}`)
+      await tourAPI.rejectBid(requestId, bidId)
+      toast.success('Bid rejected')
+      fetchRequests()
+    } catch (error) {
+      console.error('Reject bid error:', error)
+      toast.error(error.response?.data?.message || 'Failed to reject bid')
+    } finally {
+      setBusyAction('')
+    }
+  }
+
+  const handleApproveBid = async (request, bidId) => {
+    try {
+      setBusyAction(`approve:${bidId}`)
+      await tourAPI.acceptBid(request._id, bidId)
+      toast.success('Bid approved. Advance payment is now available.')
+      fetchRequests()
+    } catch (error) {
+      console.error('Approve bid error:', error)
+      toast.error(error.response?.data?.message || 'Failed to approve bid')
+    } finally {
+      setBusyAction('')
+    }
+  }
+
+  const getStatusStyles = (status) => {
+    if (status === 'awaiting-payment') return 'bg-amber-100 text-amber-700'
+    if (status === 'in-progress') return 'bg-emerald-100 text-emerald-700'
+    if (status === 'completed') return 'bg-blue-100 text-blue-700'
+    if (status === 'cancelled') return 'bg-red-100 text-red-700'
+    return 'bg-primary/10 text-primary'
+  }
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between">
@@ -60,7 +97,7 @@ const TourRequestsPage = () => {
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <h2 className="text-xl font-semibold text-gray-900">{request.title}</h2>
-                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary capitalize">{request.status}</span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getStatusStyles(request.status)}`}>{request.status.replace('-', ' ')}</span>
                   </div>
 
                   <div className="text-sm text-gray-600 flex flex-wrap gap-4">
@@ -90,9 +127,42 @@ const TourRequestsPage = () => {
 
                     {request.bids?.length ? (
                       <div className="space-y-3">
+                        {request.status === 'awaiting-payment' && request.advancePayment?.status === 'pending' && (
+                          <div className="bg-amber-50 border-2 border-amber-300 shadow-sm rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                            <div>
+                              <div className="font-semibold text-amber-900">Advance payment required</div>
+                              <div className="text-sm text-amber-800">
+                                Pay {request.advancePayment.amount} {request.advancePayment.currency} to confirm the approved bid.
+                              </div>
+                              <div className="text-xs text-amber-700 mt-1">
+                                If the button is disabled, PayHere credentials are not configured yet.
+                              </div>
+                            </div>
+                            {(() => {
+                              const acceptedBid = request.bids.find((bid) => bid.status === 'accepted')
+                              return acceptedBid ? (
+                                <PayHereCheckoutButton
+                                  paymentType="tour-request-advance"
+                                  tourRequestId={request._id}
+                                  bidId={acceptedBid._id}
+                                  amount={request.advancePayment.amount || acceptedBid.proposedPrice}
+                                  items={`Advance payment for ${request.title}`}
+                                  className="btn btn-primary"
+                                  onCreated={() => toast.success('Redirecting to PayHere sandbox...')}
+                                  onError={(error) => toast.error(error.response?.data?.message || 'Failed to start PayHere checkout')}
+                                >
+                                  Pay with PayHere
+                                </PayHereCheckoutButton>
+                              ) : null
+                            })()}
+                          </div>
+                        )}
+
                         {request.bids.map((bid) => {
                           const provider = bid.provider
                           const providerId = provider?._id || provider?.id
+                          const isAccepted = bid.status === 'accepted'
+                          const isRejected = bid.status === 'rejected'
                           return (
                             <div key={bid._id} className="bg-gray-50 rounded-xl p-4 border">
                               <div className="flex items-start justify-between gap-4">
@@ -111,6 +181,11 @@ const TourRequestsPage = () => {
                                     <span>•</span>
                                     <span>{bid.proposedPrice} {request.budget?.currency}</span>
                                   </div>
+                                  <div className="flex gap-2 pt-1">
+                                    <span className={`text-xs px-2 py-1 rounded-full ${isAccepted ? 'bg-emerald-100 text-emerald-700' : isRejected ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-700'}`}>
+                                      {bid.status}
+                                    </span>
+                                  </div>
                                 </div>
                                 <div className="text-right shrink-0">
                                   <button
@@ -120,13 +195,15 @@ const TourRequestsPage = () => {
                                   >
                                     View Profile
                                   </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => openChat(request._id, providerId)}
-                                    className="btn btn-primary btn-sm"
-                                  >
-                                    Chat
-                                  </button>
+                                  {isAccepted || request.status === 'in-progress' || request.status === 'completed' ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => openChat(request._id, providerId)}
+                                      className="btn btn-primary btn-sm"
+                                    >
+                                      Chat
+                                    </button>
+                                  ) : null}
                                 </div>
                               </div>
                               <div className="mt-3 text-sm text-gray-700">
@@ -135,6 +212,26 @@ const TourRequestsPage = () => {
                               <div className="mt-2 text-sm text-gray-700">
                                 <strong>Message:</strong> {bid.message}
                               </div>
+                              {bid.status === 'pending' && (
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleApproveBid(request, bid._id)}
+                                    disabled={busyAction === `approve:${bid._id}`}
+                                    className="btn btn-primary btn-sm"
+                                  >
+                                    {busyAction === `approve:${bid._id}` ? 'Approving...' : 'Approve'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRejectBid(request._id, bid._id)}
+                                    disabled={busyAction === `reject:${bid._id}`}
+                                    className="btn btn-secondary btn-sm"
+                                  >
+                                    {busyAction === `reject:${bid._id}` ? 'Rejecting...' : 'Reject'}
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           )
                         })}

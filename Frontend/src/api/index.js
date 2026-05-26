@@ -41,7 +41,8 @@ export const tourAPI = {
   updateTourRequest: (id, data) => apiClient.put(`/tours/${id}`, data),
   deleteTourRequest: (id) => apiClient.delete(`/tours/${id}`),
   submitBid: (id, data) => apiClient.post(`/tours/${id}/bid`, data),
-  acceptBid: (tourId, bidId) => apiClient.post(`/tours/${tourId}/accept-bid/${bidId}`)
+  acceptBid: (tourId, bidId) => apiClient.post(`/tours/${tourId}/accept-bid/${bidId}`),
+  rejectBid: (tourId, bidId) => apiClient.post(`/tours/${tourId}/reject-bid/${bidId}`)
 }
 
 export const serviceAPI = {
@@ -65,6 +66,8 @@ export const bookingAPI = {
 
 export const paymentAPI = {
   createPayment: (data) => apiClient.post('/payments', data),
+  getPayHereConfigStatus: () => apiClient.get('/payments/payhere/config'),
+  createPayHereCheckoutData: (data) => apiClient.post('/payments/payhere/checkout-data', data),
   getPaymentStatus: (id) => apiClient.get(`/payments/${id}`)
 }
 

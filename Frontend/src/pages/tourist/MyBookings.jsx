@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { bookingAPI, paymentAPI } from '../../api'
+import { bookingAPI } from '../../api'
+import PayHereCheckoutButton from '../../components/payments/PayHereCheckoutButton'
 import { toast } from 'react-hot-toast'
 
 const MyBookings = () => {
@@ -22,21 +23,6 @@ const MyBookings = () => {
       toast.error('Failed to load bookings')
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handlePay = async (bookingId) => {
-    try {
-      toast.loading('Processing payment...')
-      const res = await paymentAPI.createPayment({ bookingId, paymentMethod: 'card' })
-      toast.dismiss()
-      toast.success('Payment successful')
-      // Refresh bookings
-      fetchBookings()
-    } catch (err) {
-      toast.dismiss()
-      console.error('Payment error:', err)
-      toast.error('Payment failed')
     }
   }
 
@@ -64,7 +50,17 @@ const MyBookings = () => {
                   <button onClick={() => navigate(`/tourist/messages?booking=${b._id}`)} className="btn btn-secondary mt-2 mr-2">Chat</button>
                 )}
                 {b.paymentStatus === 'pending' && (
-                  <button onClick={() => handlePay(b._id)} className="btn btn-primary mt-2">Pay Now</button>
+                  <PayHereCheckoutButton
+                    paymentType="booking"
+                    bookingId={b._id}
+                    items={b.serviceSnapshot?.name || b.service?.name || 'TourMate booking'}
+                    amount={b.pricing?.totalAmount}
+                    className="btn btn-primary mt-2"
+                    onCreated={() => toast.success('Redirecting to PayHere sandbox...')}
+                    onError={(error) => toast.error(error.response?.data?.message || 'Failed to start PayHere checkout')}
+                  >
+                    Pay Now
+                  </PayHereCheckoutButton>
                 )}
               </div>
             </div>

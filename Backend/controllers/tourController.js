@@ -1,5 +1,9 @@
 const TourRequest = require('../models/TourRequest');
 
+const ADVANCE_PAYMENT_PERCENTAGE = Number(process.env.TOUR_ADVANCE_PAYMENT_PERCENTAGE || 20);
+
+const getAdvanceAmount = (amount) => Math.max(1, Math.round(Number(amount || 0) * ADVANCE_PAYMENT_PERCENTAGE / 100));
+
 // @desc    Create tour request
 // @route   POST /api/tours
 // @access  Private (Tourist)
@@ -44,6 +48,7 @@ exports.getTourRequests = async (req, res) => {
     const tourRequests = await TourRequest.find(query)
       .populate('tourist', 'name email avatar')
       .populate('bids.provider', 'name businessInfo.businessName businessInfo.rating')
+      .populate('selectedBid', 'name email businessInfo')
       .sort('-createdAt');
 
     res.json({
@@ -66,7 +71,8 @@ exports.getTourRequestById = async (req, res) => {
   try {
     const tourRequest = await TourRequest.findById(req.params.id)
       .populate('tourist', 'name email phone avatar')
-      .populate('bids.provider', 'name email businessInfo');
+      .populate('bids.provider', 'name email businessInfo')
+      .populate('selectedBid', 'name email businessInfo');
 
     if (!tourRequest) {
       return res.status(404).json({
@@ -246,6 +252,13 @@ exports.acceptBid = async (req, res) => {
       });
     }
 
+    if (tourRequest.status !== 'open') {
+      return res.status(400).json({
+        success: false,
+        message: 'Only open requests can accept a bid'
+      });
+    }
+
     const bid = tourRequest.bids.id(req.params.bidId);
 
     if (!bid) {
@@ -258,7 +271,12 @@ exports.acceptBid = async (req, res) => {
     // Update bid status
     bid.status = 'accepted';
     tourRequest.selectedBid = bid.provider;
-    tourRequest.status = 'in-progress';
+    tourRequest.status = 'awaiting-payment';
+    tourRequest.advancePayment = {
+      status: 'pending',
+      amount: getAdvanceAmount(bid.proposedPrice),
+      currency: tourRequest.budget?.currency || 'USD'
+    };
 
     // Reject other bids
     tourRequest.bids.forEach(b => {
@@ -278,6 +296,61 @@ exports.acceptBid = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to accept bid',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Reject bid
+// @route   POST /api/tours/:id/reject-bid/:bidId
+// @access  Private (Tourist - owner only)
+exports.rejectBid = async (req, res) => {
+  try {
+    const tourRequest = await TourRequest.findById(req.params.id);
+
+    if (!tourRequest) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tour request not found'
+      });
+    }
+
+    if (tourRequest.tourist.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to reject bids for this tour request'
+      });
+    }
+
+    const bid = tourRequest.bids.id(req.params.bidId);
+
+    if (!bid) {
+      return res.status(404).json({
+        success: false,
+        message: 'Bid not found'
+      });
+    }
+
+    if (bid.status === 'accepted') {
+      return res.status(400).json({
+        success: false,
+        message: 'Accepted bids cannot be rejected'
+      });
+    }
+
+    bid.status = 'rejected';
+
+    await tourRequest.save();
+
+    res.json({
+      success: true,
+      message: 'Bid rejected successfully',
+      data: { tourRequest }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reject bid',
       error: error.message
     });
   }

@@ -36,7 +36,7 @@ exports.register = async (req, res) => {
       });
     }
 
-    const { name, email, password, role, phone, nic, passport, nationality, businessInfo } = req.body;
+    const { name, email, password, role, phone, gender, nic, passport, nationality, businessInfo } = req.body;
 
     // Check if user already exists
     const userExists = await User.findOne({ email });
@@ -53,7 +53,8 @@ exports.register = async (req, res) => {
       email,
       password,
       role,
-      phone
+      phone,
+      gender
     };
 
     // Add nationality for tourists
@@ -73,7 +74,18 @@ exports.register = async (req, res) => {
 
     // Add business info for providers
     if (role === 'provider' && businessInfo) {
+      const selectedServiceTypes = Array.isArray(businessInfo.serviceTypes)
+        ? businessInfo.serviceTypes.filter(Boolean)
+        : businessInfo.serviceType
+          ? [businessInfo.serviceType]
+          : [];
+
       userData.businessInfo = businessInfo;
+      userData.businessInfo.serviceTypes = selectedServiceTypes;
+      userData.businessInfo.serviceType = businessInfo.serviceType || selectedServiceTypes[0] || 'other';
+      if (businessInfo.serviceDetails) {
+        userData.businessInfo.serviceDetails = businessInfo.serviceDetails;
+      }
     }
 
     const user = await User.create(userData);
@@ -370,10 +382,23 @@ exports.updateProfile = async (req, res) => {
     }
 
     if (req.user.role === 'provider' && req.body.businessInfo) {
+      const nextServiceTypes = Array.isArray(req.body.businessInfo.serviceTypes)
+        ? req.body.businessInfo.serviceTypes.filter(Boolean)
+        : req.body.businessInfo.serviceType
+          ? [req.body.businessInfo.serviceType]
+          : [];
+
       fieldsToUpdate.businessInfo = {
         ...req.user.businessInfo,
-        ...req.body.businessInfo
+        ...req.body.businessInfo,
+        serviceTypes: nextServiceTypes,
+        serviceType: req.body.businessInfo.serviceType || nextServiceTypes[0] || req.user.businessInfo?.serviceType || 'other',
+        serviceDetails: req.body.businessInfo.serviceDetails || req.user.businessInfo?.serviceDetails || {}
       };
+    }
+
+    if (req.user.role === 'provider' && req.body.gender) {
+      fieldsToUpdate.gender = req.body.gender;
     }
 
     const user = await User.findByIdAndUpdate(

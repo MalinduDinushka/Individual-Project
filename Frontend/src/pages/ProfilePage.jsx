@@ -3,9 +3,15 @@ import toast from 'react-hot-toast'
 import { authAPI } from '../api'
 import { useAuthStore } from '../store/authStore'
 
+const buildGoogleMapsEmbedUrl = (location) => {
+  const query = String(location || '').trim()
+  if (!query) return ''
+  return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`
+}
+
 const ProfilePage = () => {
   const { user, updateUser } = useAuthStore()
-  const [form, setForm] = useState({ name: '', phone: '', businessInfo: {} })
+  const [form, setForm] = useState({ name: '', phone: '', gender: '', businessInfo: {} })
   const [avatarFile, setAvatarFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
   const [uploading, setUploading] = useState(false)
@@ -15,6 +21,7 @@ const ProfilePage = () => {
       setForm({
         name: user.name || '',
         phone: user.phone || '',
+        gender: user.gender || '',
         businessInfo: user.businessInfo || {}
       })
     }
@@ -112,6 +119,20 @@ const ProfilePage = () => {
         </div>
 
         {user?.role === 'provider' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Gender</label>
+            <select name="gender" value={form.gender || ''} onChange={handleChange} className="input w-full">
+              <option value="">Select gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="non-binary">Non-binary</option>
+              <option value="other">Other</option>
+              <option value="prefer-not-to-say">Prefer not to say</option>
+            </select>
+          </div>
+        )}
+
+        {user?.role === 'provider' && (
           <>
             <h3 className="font-medium">Business Info</h3>
             <div>
@@ -126,6 +147,32 @@ const ProfilePage = () => {
               <label className="block text-sm font-medium text-gray-700">Location</label>
               <input name="businessInfo.location" value={form.businessInfo.location || ''} onChange={handleChange} className="input w-full" />
             </div>
+
+            {form.businessInfo.location && (
+              <div className="rounded-xl border overflow-hidden bg-gray-50">
+                <div className="flex items-center justify-between gap-3 px-4 py-3 border-b bg-white">
+                  <div>
+                    <p className="font-medium text-gray-800">Map preview</p>
+                    <p className="text-xs text-gray-500">Preview from your saved business location</p>
+                  </div>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(form.businessInfo.location)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm font-medium text-primary hover:underline"
+                  >
+                    Open in Google Maps
+                  </a>
+                </div>
+                <iframe
+                  title="Business location preview"
+                  src={buildGoogleMapsEmbedUrl(form.businessInfo.location)}
+                  className="h-64 w-full"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+            )}
           </>
         )}
 

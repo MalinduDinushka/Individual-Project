@@ -8,7 +8,8 @@ const {
   updateTourRequest,
   deleteTourRequest,
   submitBid,
-  acceptBid
+  acceptBid,
+  rejectBid
 } = require('../controllers/tourController');
 
 // Tourist routes
@@ -18,6 +19,7 @@ router.get('/:id', protect, getTourRequestById);
 router.put('/:id', protect, authorize('tourist'), updateTourRequest);
 router.delete('/:id', protect, authorize('tourist'), deleteTourRequest);
 router.post('/:id/accept-bid/:bidId', protect, authorize('tourist'), acceptBid);
+router.post('/:id/reject-bid/:bidId', protect, authorize('tourist'), rejectBid);
 
 // Provider routes
 router.get('/', protect, authorize('provider'), getTourRequests);

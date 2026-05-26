@@ -3,6 +3,17 @@ import { FaCalendarAlt, FaMapMarkerAlt, FaRupeeSign, FaUsers } from 'react-icons
 import { tourAPI } from '../../api'
 import { toast } from 'react-hot-toast'
 
+const serviceLabels = {
+  guide: 'Guide',
+  vehicle: 'Vehicle',
+  driver: 'Driver',
+  hotel: 'Hotel / Stay',
+  food: 'Food / Meals',
+  tickets: 'Entrance tickets',
+  pickup: 'Airport pickup',
+  photographer: 'Photographer'
+}
+
 const emptyBid = {
   message: '',
   proposedPrice: '',
@@ -134,8 +145,15 @@ const ProviderRequestsPage = () => {
               <div><strong>Destinations:</strong> {selectedRequest.destinations?.join(', ')}</div>
               <div><strong>Dates:</strong> {selectedRequest.startDate ? new Date(selectedRequest.startDate).toLocaleDateString() : '-'} → {selectedRequest.endDate ? new Date(selectedRequest.endDate).toLocaleDateString() : '-'}</div>
               <div><strong>Travelers:</strong> {selectedRequest.travelers}</div>
+              <div><strong>Visitor split:</strong> Male {selectedRequest.visitorBreakdown?.male ?? 0}, Female {selectedRequest.visitorBreakdown?.female ?? 0}, Kids {selectedRequest.visitorBreakdown?.kids ?? 0}</div>
               <div><strong>Accommodation:</strong> {selectedRequest.preferences?.accommodation || 'Any'}</div>
               <div><strong>Transport:</strong> {selectedRequest.preferences?.transportation || 'Any'}</div>
+              <div>
+                <strong>Services needed:</strong>{' '}
+                {(selectedRequest.preferences?.servicesNeeded || []).length > 0
+                  ? (selectedRequest.preferences.servicesNeeded || []).map((service) => serviceLabels[service] || service).join(', ')
+                  : 'Not specified'}
+              </div>
               <div><strong>Activities:</strong> {(selectedRequest.preferences?.activities || []).join(', ') || 'Not specified'}</div>
               <div><strong>Budget:</strong> {selectedRequest.budget?.min} - {selectedRequest.budget?.max} {selectedRequest.budget?.currency}</div>
               {selectedRequest.preferences?.specialRequirements && <div><strong>Notes:</strong> {selectedRequest.preferences.specialRequirements}</div>}

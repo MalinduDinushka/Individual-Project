@@ -5,6 +5,54 @@ import { FaMapMarkerAlt, FaGoogle } from 'react-icons/fa'
 import { authAPI } from '../api'
 import { useAuthStore } from '../store/authStore'
 
+const providerServiceOptions = [
+  { value: 'guide', label: 'Guide', hint: 'Tours, local knowledge, interpretation' },
+  { value: 'vehicle', label: 'Vehicle', hint: 'Transport, transfers, rentals' },
+  { value: 'hotel', label: 'Hotel / Guest house', hint: 'Rooms and stays' },
+  { value: 'restaurant', label: 'Restaurant', hint: 'Dining and meal service' },
+  { value: 'photographer', label: 'Photographer', hint: 'Photos and video' },
+  { value: 'equipment', label: 'Equipment rental', hint: 'Gear and tools' },
+  { value: 'other', label: 'Other', hint: 'Any other tourism service' }
+]
+
+const createDefaultServiceDetails = () => ({
+  guide: {
+    canTakePhotos: false,
+    languages: '',
+    specialties: ''
+  },
+  vehicle: {
+    vehicleTypes: '',
+    capacity: '',
+    driverIncluded: true
+  },
+  hotel: {
+    roomCount: '',
+    roomTypes: ''
+  },
+  restaurant: {
+    cuisines: '',
+    dietaryOptions: ''
+  },
+  photographer: {
+    coverage: '',
+    equipment: ''
+  },
+  equipment: {
+    items: '',
+    delivery: ''
+  },
+  other: {
+    notes: ''
+  }
+})
+
+const buildGoogleMapsEmbedUrl = (location) => {
+  const query = String(location || '').trim()
+  if (!query) return ''
+  return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`
+}
+
 const RegisterPage = () => {
   const navigate = useNavigate()
   const setAuth = useAuthStore(state => state.setAuth)
@@ -15,12 +63,15 @@ const RegisterPage = () => {
     password: '',
     confirmPassword: '',
     phone: '',
+    gender: '',
     nationality: 'local',
     nic: '',
     passport: '',
     businessInfo: {
       businessName: '',
       serviceType: '',
+      serviceTypes: [],
+      serviceDetails: createDefaultServiceDetails(),
       description: ''
     }
   })
@@ -44,6 +95,44 @@ const RegisterPage = () => {
         [name]: value
       })
     }
+  }
+
+  const handleBusinessToggle = (serviceType) => {
+    setFormData((current) => {
+      const selected = current.businessInfo.serviceTypes || []
+      const nextTypes = selected.includes(serviceType)
+        ? selected.filter((item) => item !== serviceType)
+        : [...selected, serviceType]
+
+      return {
+        ...current,
+        businessInfo: {
+          ...current.businessInfo,
+          serviceTypes: nextTypes,
+          serviceType: nextTypes[0] || '',
+          serviceDetails: {
+            ...current.businessInfo.serviceDetails,
+            [serviceType]: current.businessInfo.serviceDetails?.[serviceType] || createDefaultServiceDetails()[serviceType]
+          }
+        }
+      }
+    })
+  }
+
+  const handleServiceDetailChange = (serviceType, field, value) => {
+    setFormData((current) => ({
+      ...current,
+      businessInfo: {
+        ...current.businessInfo,
+        serviceDetails: {
+          ...current.businessInfo.serviceDetails,
+          [serviceType]: {
+            ...(current.businessInfo.serviceDetails?.[serviceType] || {}),
+            [field]: value
+          }
+        }
+      }
+    }))
   }
 
   const handleSubmit = async (e) => {
@@ -77,8 +166,20 @@ const RegisterPage = () => {
 
       // Add provider-specific fields
       if (activeTab === 'provider') {
+        if (formData.businessInfo.serviceTypes.length === 0) {
+          toast.error('Select at least one service type')
+          setLoading(false)
+          return
+        }
+
         payload.nic = formData.nic
-        payload.businessInfo = formData.businessInfo
+        payload.gender = formData.gender
+        payload.businessInfo = {
+          ...formData.businessInfo,
+          serviceType: formData.businessInfo.serviceType || formData.businessInfo.serviceTypes[0] || '',
+          serviceTypes: formData.businessInfo.serviceTypes,
+          serviceDetails: formData.businessInfo.serviceDetails
+        }
       }
 
       const response = await authAPI.register(payload)
@@ -213,6 +314,29 @@ const RegisterPage = () => {
                 />
               </div>
 
+              {activeTab === 'provider' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Gender *
+                  </label>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    className="input"
+                    required
+                  >
+                    <option value="">Select gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="non-binary">Non-binary</option>
+                    <option value="other">Other</option>
+                    <option value="prefer-not-to-say">Prefer not to say</option>
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">Useful for guests who prefer a male or female guide or photographer.</p>
+                </div>
+              )}
+
               {/* Tourist nationality selection */}
               {activeTab === 'tourist' && (
                 <div>
@@ -286,27 +410,300 @@ const RegisterPage = () => {
                     />
                   </div>
 
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Service Type *
+                      Business Location
                     </label>
-                    <select
-                      name="business.serviceType"
-                      value={formData.businessInfo.serviceType}
+                    <input
+                      name="business.location"
+                      value={formData.businessInfo.location || ''}
                       onChange={handleChange}
+                      placeholder="Paste a Google Maps link or type the address/place name"
                       className="input"
-                      required
-                    >
-                      <option value="">Select Service Type</option>
-                      <option value="hotel">Hotel/Guest House</option>
-                      <option value="vehicle">Vehicle Rental</option>
-                      <option value="guide">Tour Guide</option>
-                      <option value="restaurant">Restaurant</option>
-                      <option value="photographer">Photography</option>
-                      <option value="equipment">Equipment Rental</option>
-                      <option value="other">Other</option>
-                    </select>
+                    />
+                    <p className="mt-2 text-xs text-gray-500">
+                      For restaurants and guest houses, add your exact Google Maps location so tourists can find you easily.
+                    </p>
                   </div>
+
+                  {formData.businessInfo.location && (
+                    <div className="md:col-span-2 rounded-2xl border overflow-hidden bg-gray-50">
+                      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b bg-white">
+                        <div>
+                          <p className="font-medium text-gray-800">Map preview</p>
+                          <p className="text-xs text-gray-500">Preview based on the location you entered</p>
+                        </div>
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(formData.businessInfo.location)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-sm font-medium text-primary hover:underline"
+                        >
+                          Open in Google Maps
+                        </a>
+                      </div>
+                      <iframe
+                        title="Business location preview"
+                        src={buildGoogleMapsEmbedUrl(formData.businessInfo.location)}
+                        className="h-64 w-full"
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </div>
+                  )}
+
+                  <div className="md:col-span-2 space-y-3">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Service Types *
+                    </label>
+                    <p className="text-sm text-gray-500">
+                      Select every service your business offers. You can choose more than one, for example a guide who also takes photos.
+                    </p>
+
+                    <div className="flex flex-wrap gap-2">
+                      {providerServiceOptions.map((service) => {
+                        const selected = formData.businessInfo.serviceTypes.includes(service.value)
+                        return (
+                          <button
+                            key={service.value}
+                            type="button"
+                            onClick={() => handleBusinessToggle(service.value)}
+                            className={`rounded-full border px-4 py-2 text-sm font-medium transition ${selected ? 'bg-primary text-white border-primary' : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-primary hover:text-primary'}`}
+                          >
+                            {service.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+
+                    {formData.businessInfo.serviceTypes.length === 0 && (
+                      <p className="text-sm text-red-600">Choose at least one service type.</p>
+                    )}
+                  </div>
+
+                  {formData.businessInfo.serviceTypes.includes('guide') && (
+                    <div className="md:col-span-2 rounded-2xl border bg-gray-50 p-4 space-y-4">
+                      <div>
+                        <h3 className="font-semibold text-gray-800">Guide details</h3>
+                        <p className="text-sm text-gray-500">Add the guide-specific skills and language support you offer.</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label className="space-y-2">
+                          <span className="text-sm font-medium text-gray-700">Languages</span>
+                          <input
+                            type="text"
+                            value={formData.businessInfo.serviceDetails.guide.languages}
+                            onChange={(e) => handleServiceDetailChange('guide', 'languages', e.target.value)}
+                            placeholder="English, Sinhala, Tamil"
+                            className="input"
+                          />
+                        </label>
+                        <label className="space-y-2">
+                          <span className="text-sm font-medium text-gray-700">Specialties</span>
+                          <input
+                            type="text"
+                            value={formData.businessInfo.serviceDetails.guide.specialties}
+                            onChange={(e) => handleServiceDetailChange('guide', 'specialties', e.target.value)}
+                            placeholder="Culture, wildlife, city tours"
+                            className="input"
+                          />
+                        </label>
+                        <label className="flex items-center gap-3 md:col-span-2 rounded-xl bg-white border px-4 py-3 text-sm text-gray-700">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(formData.businessInfo.serviceDetails.guide.canTakePhotos)}
+                            onChange={(e) => handleServiceDetailChange('guide', 'canTakePhotos', e.target.checked)}
+                            className="checkbox checkbox-primary"
+                          />
+                          Can take photos for travelers
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.businessInfo.serviceTypes.includes('vehicle') && (
+                    <div className="md:col-span-2 rounded-2xl border bg-gray-50 p-4 space-y-4">
+                      <div>
+                        <h3 className="font-semibold text-gray-800">Vehicle service details</h3>
+                        <p className="text-sm text-gray-500">Tell travelers what kind of vehicle service you provide.</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label className="space-y-2">
+                          <span className="text-sm font-medium text-gray-700">Vehicle types</span>
+                          <input
+                            type="text"
+                            value={formData.businessInfo.serviceDetails.vehicle.vehicleTypes}
+                            onChange={(e) => handleServiceDetailChange('vehicle', 'vehicleTypes', e.target.value)}
+                            placeholder="Car, van, bus, tuk-tuk"
+                            className="input"
+                          />
+                        </label>
+                        <label className="space-y-2">
+                          <span className="text-sm font-medium text-gray-700">Passenger capacity</span>
+                          <input
+                            type="number"
+                            min="1"
+                            value={formData.businessInfo.serviceDetails.vehicle.capacity}
+                            onChange={(e) => handleServiceDetailChange('vehicle', 'capacity', e.target.value)}
+                            placeholder="6"
+                            className="input"
+                          />
+                        </label>
+                        <label className="flex items-center gap-3 md:col-span-2 rounded-xl bg-white border px-4 py-3 text-sm text-gray-700">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(formData.businessInfo.serviceDetails.vehicle.driverIncluded)}
+                            onChange={(e) => handleServiceDetailChange('vehicle', 'driverIncluded', e.target.checked)}
+                            className="checkbox checkbox-primary"
+                          />
+                          Driver included
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.businessInfo.serviceTypes.includes('hotel') && (
+                    <div className="md:col-span-2 rounded-2xl border bg-gray-50 p-4 space-y-4">
+                      <div>
+                        <h3 className="font-semibold text-gray-800">Hotel / guest house details</h3>
+                        <p className="text-sm text-gray-500">Help travelers understand your stay capacity.</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label className="space-y-2">
+                          <span className="text-sm font-medium text-gray-700">Number of rooms</span>
+                          <input
+                            type="number"
+                            min="0"
+                            value={formData.businessInfo.serviceDetails.hotel.roomCount}
+                            onChange={(e) => handleServiceDetailChange('hotel', 'roomCount', e.target.value)}
+                            className="input"
+                          />
+                        </label>
+                        <label className="space-y-2">
+                          <span className="text-sm font-medium text-gray-700">Room types</span>
+                          <input
+                            type="text"
+                            value={formData.businessInfo.serviceDetails.hotel.roomTypes}
+                            onChange={(e) => handleServiceDetailChange('hotel', 'roomTypes', e.target.value)}
+                            placeholder="Single, double, family"
+                            className="input"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.businessInfo.serviceTypes.includes('restaurant') && (
+                    <div className="md:col-span-2 rounded-2xl border bg-gray-50 p-4 space-y-4">
+                      <div>
+                        <h3 className="font-semibold text-gray-800">Restaurant details</h3>
+                        <p className="text-sm text-gray-500">Add cuisine styles and dietary support.</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label className="space-y-2">
+                          <span className="text-sm font-medium text-gray-700">Cuisine styles</span>
+                          <input
+                            type="text"
+                            value={formData.businessInfo.serviceDetails.restaurant.cuisines}
+                            onChange={(e) => handleServiceDetailChange('restaurant', 'cuisines', e.target.value)}
+                            placeholder="Sri Lankan, seafood, Chinese"
+                            className="input"
+                          />
+                        </label>
+                        <label className="space-y-2">
+                          <span className="text-sm font-medium text-gray-700">Dietary options</span>
+                          <input
+                            type="text"
+                            value={formData.businessInfo.serviceDetails.restaurant.dietaryOptions}
+                            onChange={(e) => handleServiceDetailChange('restaurant', 'dietaryOptions', e.target.value)}
+                            placeholder="Halal, vegetarian, vegan"
+                            className="input"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.businessInfo.serviceTypes.includes('photographer') && (
+                    <div className="md:col-span-2 rounded-2xl border bg-gray-50 p-4 space-y-4">
+                      <div>
+                        <h3 className="font-semibold text-gray-800">Photography details</h3>
+                        <p className="text-sm text-gray-500">Tell travelers what kind of photo coverage you offer.</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label className="space-y-2">
+                          <span className="text-sm font-medium text-gray-700">Coverage</span>
+                          <input
+                            type="text"
+                            value={formData.businessInfo.serviceDetails.photographer.coverage}
+                            onChange={(e) => handleServiceDetailChange('photographer', 'coverage', e.target.value)}
+                            placeholder="Events, portraits, travel"
+                            className="input"
+                          />
+                        </label>
+                        <label className="space-y-2">
+                          <span className="text-sm font-medium text-gray-700">Equipment</span>
+                          <input
+                            type="text"
+                            value={formData.businessInfo.serviceDetails.photographer.equipment}
+                            onChange={(e) => handleServiceDetailChange('photographer', 'equipment', e.target.value)}
+                            placeholder="DSLR, drone, lighting"
+                            className="input"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.businessInfo.serviceTypes.includes('equipment') && (
+                    <div className="md:col-span-2 rounded-2xl border bg-gray-50 p-4 space-y-4">
+                      <div>
+                        <h3 className="font-semibold text-gray-800">Equipment rental details</h3>
+                        <p className="text-sm text-gray-500">List the gear you can supply and how you handle delivery.</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label className="space-y-2">
+                          <span className="text-sm font-medium text-gray-700">Items</span>
+                          <input
+                            type="text"
+                            value={formData.businessInfo.serviceDetails.equipment.items}
+                            onChange={(e) => handleServiceDetailChange('equipment', 'items', e.target.value)}
+                            placeholder="Tents, cameras, bikes"
+                            className="input"
+                          />
+                        </label>
+                        <label className="space-y-2">
+                          <span className="text-sm font-medium text-gray-700">Delivery</span>
+                          <input
+                            type="text"
+                            value={formData.businessInfo.serviceDetails.equipment.delivery}
+                            onChange={(e) => handleServiceDetailChange('equipment', 'delivery', e.target.value)}
+                            placeholder="Pickup, delivery, pickup points"
+                            className="input"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.businessInfo.serviceTypes.includes('other') && (
+                    <div className="md:col-span-2 rounded-2xl border bg-gray-50 p-4 space-y-4">
+                      <div>
+                        <h3 className="font-semibold text-gray-800">Other service details</h3>
+                        <p className="text-sm text-gray-500">Describe any extra tourism service you provide.</p>
+                      </div>
+                      <label className="space-y-2 block">
+                        <span className="text-sm font-medium text-gray-700">Notes</span>
+                        <textarea
+                          value={formData.businessInfo.serviceDetails.other.notes}
+                          onChange={(e) => handleServiceDetailChange('other', 'notes', e.target.value)}
+                          placeholder="Describe your service, availability, coverage, and any special notes"
+                          rows="3"
+                          className="input"
+                        />
+                      </label>
+                    </div>
+                  )}
 
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">

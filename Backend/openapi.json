@@ -1164,7 +1164,7 @@
         "properties": {
           "success": { "type": "boolean", "example": false },
           "message": { "type": "string", "example": "Validation failed" },
-          "error": { "type": ["string", "object", "null"], "nullable": true },
+          "error": { "type": "object", "nullable": true, "additionalProperties": true },
           "errors": {
             "type": "array",
             "items": {
@@ -1789,7 +1789,7 @@
           "status": { "type": "string", "enum": ["pending", "processing", "completed", "failed", "refunded"] },
           "paymentDetails": { "type": "object", "additionalProperties": true },
           "refund": { "type": "object", "additionalProperties": true },
-          "metadata": { "type": ["object", "null"], "additionalProperties": true },
+          "metadata": { "type": "object", "nullable": true, "additionalProperties": true },
           "createdAt": { "type": "string", "format": "date-time" },
           "updatedAt": { "type": "string", "format": "date-time" }
         }

@@ -3,6 +3,7 @@ const Message = require('../models/Message');
 const Booking = require('../models/Booking');
 const TourRequest = require('../models/TourRequest');
 const { getIo } = require('../socket');
+const { createNotification } = require('../utils/notificationService');
 const {
   canChatOnBooking,
   canChatOnRequest,
@@ -19,6 +20,29 @@ const populateMessage = async (message) => {
   await message.populate('sender', 'name email avatar role');
   await message.populate('receiver', 'name email avatar role');
   return message;
+};
+
+const dedupeConversations = (items) => {
+  const byConversationId = new Map();
+
+  for (const item of items) {
+    if (!item?.conversationId) continue;
+
+    const existing = byConversationId.get(item.conversationId);
+    if (!existing) {
+      byConversationId.set(item.conversationId, item);
+      continue;
+    }
+
+    const existingTime = existing.latestMessage?.createdAt ? new Date(existing.latestMessage.createdAt).getTime() : 0;
+    const nextTime = item.latestMessage?.createdAt ? new Date(item.latestMessage.createdAt).getTime() : 0;
+
+    if (nextTime >= existingTime) {
+      byConversationId.set(item.conversationId, item);
+    }
+  }
+
+  return Array.from(byConversationId.values());
 };
 
 exports.getConversations = async (req, res) => {
@@ -104,7 +128,7 @@ exports.getConversations = async (req, res) => {
       })
     );
 
-    const conversations = [...bookingConversations, ...requestConversationsNested.flat()];
+    const conversations = dedupeConversations([...bookingConversations, ...requestConversationsNested.flat()]);
 
     conversations.sort((a, b) => {
       const aTime = a.latestMessage?.createdAt ? new Date(a.latestMessage.createdAt).getTime() : 0;
@@ -268,6 +292,22 @@ exports.sendBookingMessage = async (req, res) => {
       });
     }
 
+    if (receiver && receiver.toString() !== req.user._id.toString()) {
+      try {
+        await createNotification({
+          recipient: receiver,
+          sender: req.user._id,
+          type: 'system',
+          title: 'New message received',
+          message: `You received a new message regarding booking ${booking._id}.`,
+          actionUrl: '/messages',
+          metadata: { bookingId: booking._id, conversationId }
+        });
+      } catch (notificationError) {
+        console.error('Create booking message notification error:', notificationError);
+      }
+    }
+
     res.status(201).json({ success: true, message: 'Message sent', data: { message } });
   } catch (error) {
     console.error('Send booking message error:', error);
@@ -323,6 +363,22 @@ exports.sendRequestMessage = async (req, res) => {
         providerId,
         message
       });
+    }
+
+    if (receiver && receiver.toString() !== req.user._id.toString()) {
+      try {
+        await createNotification({
+          recipient: receiver,
+          sender: req.user._id,
+          type: 'system',
+          title: 'New message received',
+          message: `You received a new message regarding tour request "${tourRequest.title}".`,
+          actionUrl: '/messages',
+          metadata: { requestId: tourRequest._id, providerId, conversationId }
+        });
+      } catch (notificationError) {
+        console.error('Create request message notification error:', notificationError);
+      }
     }
 
     res.status(201).json({ success: true, message: 'Message sent', data: { message } });

@@ -258,10 +258,10 @@ const RegisterPage = () => {
         </div>
 
         {/* Role Tabs */}
-        <div className="premium-panel-soft p-1.5 mb-8 max-w-lg mx-auto">
+        <div className="premium-panel-soft flex items-center gap-1 p-1.5 mb-8 max-w-lg mx-auto">
           <button
             onClick={() => setActiveTab('tourist')}
-            className={`flex-1 py-3.5 px-4 rounded-2xl font-semibold transition ${
+            className={`flex-1 inline-flex items-center justify-center py-3.5 px-4 rounded-2xl font-semibold transition text-center ${
               activeTab === 'tourist'
                 ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg shadow-primary/15'
                 : 'text-slate-600 hover:text-slate-900'
@@ -271,7 +271,7 @@ const RegisterPage = () => {
           </button>
           <button
             onClick={() => setActiveTab('provider')}
-            className={`flex-1 py-3.5 px-4 rounded-2xl font-semibold transition ${
+            className={`flex-1 inline-flex items-center justify-center py-3.5 px-4 rounded-2xl font-semibold transition text-center ${
               activeTab === 'provider'
                 ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg shadow-primary/15'
                 : 'text-slate-600 hover:text-slate-900'

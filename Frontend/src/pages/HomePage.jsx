@@ -1,188 +1,364 @@
-import { FaStar, FaMapMarkerAlt, FaCalendar, FaSearch, FaArrowRight, FaShieldAlt, FaGlobeAsia, FaRegClock } from 'react-icons/fa'
-import { MdVerified } from 'react-icons/md'
-import { BiCustomize, BiSupport } from 'react-icons/bi'
-import { AiOutlineSafety } from 'react-icons/ai'
+import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { Link } from 'react-router-dom'
+import {
+  FaArrowRight,
+  FaCalendarAlt,
+  FaChartLine,
+  FaCheckCircle,
+  FaClock,
+  FaHeadset,
+  FaHotel,
+  FaMapMarkedAlt,
+  FaMotorcycle,
+  FaRoute,
+  FaSearch,
+  FaShieldAlt,
+  FaStar,
+  FaTaxi,
+  FaUsers
+} from 'react-icons/fa'
+import { MdVerified } from 'react-icons/md'
+import { BiCustomize } from 'react-icons/bi'
+import { AiOutlineSafety } from 'react-icons/ai'
 
-const statCards = [
-  { value: '500+', label: 'Verified providers' },
-  { value: '50K+', label: 'Happy travelers' },
-  { value: '4.9★', label: 'Average rating' }
+const stats = [
+  { value: '500+', label: 'verified providers' },
+  { value: '50K+', label: 'bookings completed' },
+  { value: '4.9/5', label: 'average traveler rating' },
+  { value: '24/7', label: 'support coverage' }
 ]
 
-const featureCards = [
+const trustPoints = ['Identity-verified providers', 'Completion-based feedback', 'Live booking and chat support']
+
+const featuredServices = [
   {
-    icon: MdVerified,
-    title: 'Verified Guides',
-    description: 'Every provider goes through quality checks so travelers can book with confidence and peace of mind.',
-    href: '/register',
-    accent: 'from-sky-500 to-cyan-500',
-    iconBg: 'from-sky-100 to-sky-50',
-    textAccent: 'group-hover:text-sky-600',
-    linkLabel: '100% Verified'
+    icon: FaRoute,
+    title: 'Tour guides',
+    description: 'Certified local guides with route planning, pickup coordination, and trip support.'
   },
   {
-    icon: BiCustomize,
-    title: 'Custom Tour Requests',
-    description: 'Post your ideal itinerary and receive curated bids from providers who fit your trip style and budget.',
-    href: '/register',
-    accent: 'from-rose-500 to-pink-500',
-    iconBg: 'from-rose-100 to-rose-50',
-    textAccent: 'group-hover:text-rose-500',
-    linkLabel: 'Personalized Assistance'
+    icon: FaTaxi,
+    title: 'Transport',
+    description: 'Airport transfers, day trips, and private vehicle bookings with transparent pricing.'
   },
   {
-    icon: BiSupport,
-    title: '24/7 SOS Support',
-    description: 'Emergency assistance and multilingual help are always available when the journey needs extra care.',
-    href: '/register',
-    accent: 'from-emerald-500 to-teal-500',
-    iconBg: 'from-emerald-100 to-emerald-50',
-    textAccent: 'group-hover:text-emerald-600',
-    linkLabel: 'Always Protected'
+    icon: FaHotel,
+    title: 'Stays',
+    description: 'Comfortable accommodation options with a clean booking flow and clear service details.'
+  },
+  {
+    icon: FaMotorcycle,
+    title: 'Safari & rides',
+    description: 'Flexible travel experiences for wildlife tours, adventure travel, and local mobility.'
   }
 ]
 
-const serviceCards = [
-  { icon: FaMapMarkerAlt, title: 'Tour Guides', description: 'Certified local experts who know every hidden gem', accent: 'from-cyan-500 to-blue-500' },
-  { icon: FaCalendar, title: 'Vehicles', description: 'Comfortable transport options for every budget', accent: 'from-emerald-500 to-green-500' },
-  { icon: FaStar, title: 'Accommodation', description: 'Curated stays from luxury to budget-friendly', accent: 'from-fuchsia-500 to-pink-500' },
-  { icon: AiOutlineSafety, title: 'Safari Tours', description: 'Wildlife adventures in national parks', accent: 'from-amber-500 to-orange-500' }
+const workflow = [
+  {
+    title: 'Search with intent',
+    description: 'Choose a district, service type, and date to narrow results to what matters.'
+  },
+  {
+    title: 'Compare and contact',
+    description: 'Check provider quality, ratings, and booking context before you commit.'
+  },
+  {
+    title: 'Complete and review',
+    description: 'After the trip, submit structured feedback and help the next traveler decide.'
+  }
 ]
 
-const testimonials = [
+const reviews = [
   {
-    initials: 'SJ',
     name: 'Sarah Johnson',
-    country: 'United Kingdom',
-    flag: '🇬🇧',
-    quote: 'TourMate made our Sri Lanka trip feel effortless. The guide quality, support, and booking flow were all exceptional.'
+    role: 'Traveler, UK',
+    quote: 'It finally feels like a real travel product, not just a booking form.'
   },
   {
-    initials: 'MC',
     name: 'Michael Chen',
-    country: 'Singapore',
-    flag: '🇸🇬',
-    quote: 'The custom tour request feature is the best part. We received thoughtful bids and picked the perfect itinerary.'
+    role: 'Family traveler, SG',
+    quote: 'The provider flow, chat, and post-trip feedback make it feel like a modern platform.'
   },
   {
-    initials: 'EW',
     name: 'Emma Williams',
-    country: 'Australia',
-    flag: '🇦🇺',
-    quote: 'We felt safe from the first day. Verified providers and 24/7 support made the whole journey premium and reliable.'
+    role: 'Solo traveler, AU',
+    quote: 'The support and trust cues make booking feel calm and professional.'
   }
 ]
 
 const HomePage = () => {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.10),transparent_28%),linear-gradient(180deg,#f8fafc_0%,#f5f7fb_100%)] text-slate-900">
       <Navbar variant="light" />
 
-      {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(3,105,161,0.88)_52%,rgba(15,118,110,0.82))]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.08),transparent_24%)]" />
           <div
-            className="absolute inset-0 bg-cover bg-center scale-105"
-            style={{
-              backgroundImage: 'url(/hero-bg.webp)',
-              opacity: 0.45
-            }}
-          ></div>
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-950/75 via-primary/75 to-cyan-700/70"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.16),_transparent_30%),radial-gradient(circle_at_bottom_left,_rgba(255,255,255,0.10),_transparent_24%)]"></div>
+            className="absolute inset-0 bg-cover bg-center mix-blend-soft-light opacity-20 scale-105"
+            style={{ backgroundImage: 'url(/hero-bg.webp)' }}
+          />
         </div>
 
-        <div className="relative z-10 container mx-auto px-6 py-24 md:py-32 lg:py-36">
-          <div className="max-w-5xl mx-auto text-center text-white">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 backdrop-blur-md mb-8 shadow-lg">
-              <FaShieldAlt className="text-amber-300" />
-              <span className="text-sm font-semibold tracking-wide">Trusted by 10,000+ travelers</span>
-            </div>
+        <div className="relative z-10 container mx-auto px-6 py-16 lg:py-24">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center">
+            <div className="text-white max-w-3xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 backdrop-blur-md shadow-lg shadow-black/10">
+                <MdVerified className="text-amber-300" />
+                <span className="text-sm font-semibold tracking-wide">Trusted travel marketplace for Sri Lanka</span>
+              </div>
 
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.02] max-w-4xl mx-auto">
-              Travel Sri Lanka with
-              <span className="block mt-3 bg-gradient-to-r from-amber-200 via-white to-cyan-200 bg-clip-text text-transparent">
-                confidence and style
-              </span>
-            </h1>
+              <h1 className="mt-6 text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[0.96]">
+                Book verified travel services
+                <span className="block mt-4 bg-gradient-to-r from-amber-200 via-white to-cyan-200 bg-clip-text text-transparent">
+                  with real-world confidence
+                </span>
+              </h1>
 
-            <p className="mt-8 text-lg md:text-xl leading-8 text-white/85 max-w-3xl mx-auto">
-              Discover premium guides, seamless trip planning, and safe travel support in one polished platform built for real journeys.
-            </p>
+              <p className="mt-6 text-lg md:text-xl leading-8 text-white/78 max-w-2xl">
+                TourMate brings together guides, transport, stays, support, and post-trip feedback in one clean workflow.
+              </p>
 
-            <div className="mt-10 premium-panel-soft p-4 md:p-5 max-w-4xl mx-auto bg-white/15 border-white/10">
-              <div className="grid grid-cols-1 md:grid-cols-[1.1fr_1fr_0.9fr_auto] gap-3 items-center">
-                <div className="relative">
-                  <FaMapMarkerAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Where would you like to go?"
-                    className="input pl-12 bg-white text-slate-800 border-white/20"
-                  />
-                </div>
-
-                <div className="relative">
-                  <FaCalendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="date"
-                    className="input pl-12 bg-white text-slate-800 border-white/20"
-                  />
-                </div>
-
-                <select className="input bg-white text-slate-800 border-white/20">
-                  <option>Service Type</option>
-                  <option>Tour Guide</option>
-                  <option>Vehicle</option>
-                  <option>Accommodation</option>
-                  <option>Safari</option>
-                </select>
-
-                <Link
-                  to="/services"
-                  className="btn btn-primary whitespace-nowrap px-7"
-                >
-                  <FaSearch />
-                  <span>Explore Services</span>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link to="/services" className="btn btn-primary px-8">
+                  Explore services
+                  <FaArrowRight />
                 </Link>
+                <Link to="/register" className="btn bg-white/10 text-white border border-white/15 hover:bg-white/15 px-8">
+                  Create account
+                </Link>
+              </div>
+
+              <div className="mt-8 flex flex-wrap gap-3 text-sm text-white/75">
+                {trustPoints.map((item) => (
+                  <div key={item} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-4 py-2 backdrop-blur-sm">
+                    <FaCheckCircle className="text-emerald-300" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-10">
+                {stats.map((stat) => (
+                  <div key={stat.label} className="rounded-3xl border border-white/12 bg-white/10 backdrop-blur-md p-5 shadow-xl shadow-black/10">
+                    <div className="text-3xl md:text-4xl font-extrabold">{stat.value}</div>
+                    <div className="mt-1 text-sm text-white/72 capitalize">{stat.label}</div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mt-10 max-w-3xl mx-auto">
-              {statCards.map((stat) => (
-                <div key={stat.label} className="rounded-3xl border border-white/15 bg-white/10 backdrop-blur-md p-5 shadow-xl shadow-black/10">
-                  <div className="text-3xl md:text-4xl font-extrabold">{stat.value}</div>
-                  <div className="mt-1 text-sm text-white/75">{stat.label}</div>
+            <div className="relative">
+              <div className="absolute -inset-4 rounded-[34px] bg-cyan-400/20 blur-3xl" />
+              <div className="relative rounded-[32px] border border-white/10 bg-slate-950/82 p-6 md:p-7 text-white shadow-[0_24px_90px_rgba(2,6,23,0.45)] backdrop-blur-xl">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.24em] text-cyan-200/70 font-bold">Marketplace preview</div>
+                    <h2 className="mt-2 text-2xl font-extrabold">A booking flow that feels operational</h2>
+                  </div>
+                  <div className="rounded-2xl bg-emerald-400/15 border border-emerald-300/20 px-3 py-2 text-xs font-semibold text-emerald-200">
+                    Live availability
+                  </div>
                 </div>
-              ))}
+
+                <div className="mt-6 rounded-[28px] border border-white/10 bg-white/6 p-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-[1.15fr_0.85fr] gap-4 items-center">
+                    <div>
+                      <div className="flex items-center gap-3 text-white/80">
+                        <div className="w-11 h-11 rounded-2xl bg-cyan-400/15 flex items-center justify-center text-cyan-200">
+                          <FaMapMarkedAlt />
+                        </div>
+                        <div>
+                          <div className="font-semibold">Colombo to Ella</div>
+                          <div className="text-sm text-white/55">District, route, and service filters applied</div>
+                        </div>
+                      </div>
+                      <div className="mt-4 grid grid-cols-2 gap-3">
+                        <div className="rounded-2xl bg-white/7 border border-white/10 p-4">
+                          <div className="text-[11px] uppercase tracking-[0.18em] text-white/55">Trip date</div>
+                          <div className="mt-2 font-semibold flex items-center gap-2 text-sm"><FaCalendarAlt className="text-cyan-200" /> 12 May - 18 May</div>
+                        </div>
+                        <div className="rounded-2xl bg-white/7 border border-white/10 p-4">
+                          <div className="text-[11px] uppercase tracking-[0.18em] text-white/55">Support</div>
+                          <div className="mt-2 font-semibold flex items-center gap-2 text-sm"><FaHeadset className="text-cyan-200" /> 24/7</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="rounded-[26px] bg-gradient-to-br from-white/10 to-white/5 border border-white/10 p-4">
+                      <div className="flex items-center justify-between text-sm text-white/70">
+                        <span>Provider score</span>
+                        <span className="inline-flex items-center gap-1 text-amber-300 font-semibold"><FaStar /> 4.9</span>
+                      </div>
+                      <div className="mt-3 h-2 rounded-full bg-white/10 overflow-hidden">
+                        <div className="h-full w-[92%] rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300" />
+                      </div>
+                      <div className="mt-4 space-y-3">
+                        <div className="flex items-center gap-3 rounded-2xl bg-white/7 border border-white/10 p-3">
+                          <div className="w-10 h-10 rounded-xl bg-sky-400/15 flex items-center justify-center text-sky-200"><MdVerified /></div>
+                          <div>
+                            <div className="font-semibold text-sm">Verified profile</div>
+                            <div className="text-xs text-white/55">Identity and service checks passed</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 rounded-2xl bg-white/7 border border-white/10 p-3">
+                          <div className="w-10 h-10 rounded-xl bg-emerald-400/15 flex items-center justify-center text-emerald-200"><FaClock /></div>
+                          <div>
+                            <div className="font-semibold text-sm">Fast response</div>
+                            <div className="text-xs text-white/55">Chat before you book</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-2xl bg-cyan-500/12 border border-cyan-300/15 p-4 flex items-center justify-between gap-4">
+                    <div>
+                      <div className="text-sm text-cyan-100/70">Next best action</div>
+                      <div className="mt-1 font-semibold">Compare providers by rating, response time, and completion history</div>
+                    </div>
+                    <FaChartLine className="text-2xl text-cyan-200" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section id="about" className="py-24 md:py-28">
+      <section id="features" className="py-20 md:py-24">
         <div className="container mx-auto px-6">
-          <div className="relative overflow-hidden premium-panel p-10 md:p-14 text-center max-w-5xl mx-auto">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(22,128,147,0.10),_transparent_30%),radial-gradient(circle_at_bottom_left,_rgba(14,165,233,0.08),_transparent_25%)]"></div>
+          <div className="max-w-3xl">
+            <div className="section-eyebrow mb-5"><span>Built like a marketplace</span></div>
+            <h2 className="section-title">A platform that behaves like a real booking app</h2>
+            <p className="section-copy mt-5">
+              Search, compare, chat, complete, and review in a flow that feels familiar to users of modern travel and ride-hailing apps.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
+            {workflow.map((step, index) => (
+              <div key={step.title} className="premium-panel p-7">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-extrabold text-lg">
+                    0{index + 1}
+                  </div>
+                  {index < workflow.length - 1 && <FaArrowRight className="text-slate-300 hidden md:block" />}
+                </div>
+                <h3 className="text-xl font-extrabold text-slate-900">{step.title}</h3>
+                <p className="mt-3 text-slate-600 leading-7">{step.description}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-6 items-stretch">
+            <div className="premium-panel p-7 md:p-8">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-sky-100 text-sky-700 flex items-center justify-center"><FaUsers /></div>
+                <div>
+                  <div className="font-bold text-slate-900">Trust by design</div>
+                  <div className="text-sm text-slate-500">Verified profiles and completion-based reviews</div>
+                </div>
+              </div>
+              <p className="mt-5 text-slate-600 leading-7">
+                The platform is built around safety cues and post-trip feedback so users can make decisions with more confidence.
+              </p>
+            </div>
+
+            <div className="premium-panel p-7 md:p-8">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center"><BiCustomize className="text-xl" /></div>
+                <div>
+                  <div className="font-bold text-slate-900">Structured feedback</div>
+                  <div className="text-sm text-slate-500">Service quality, communication, value, and cleanliness</div>
+                </div>
+              </div>
+              <p className="mt-5 text-slate-600 leading-7">
+                The feedback system is intentionally multi-category, so it feels closer to a real-world marketplace than a simple star rating.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="services" className="py-20 md:py-24 bg-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(135deg,theme(colors.slate.900)_25%,transparent_25%),linear-gradient(225deg,theme(colors.slate.900)_25%,transparent_25%),linear-gradient(45deg,theme(colors.slate.900)_25%,transparent_25%),linear-gradient(315deg,theme(colors.slate.900)_25%,#ffffff_25%)] bg-[length:36px_36px] bg-[position:0_0,0_18px,18px_-18px,-18px_0px]" />
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="section-eyebrow mx-auto mb-5"><span>Services</span></div>
+            <h2 className="section-title">Everything users expect to book in one place</h2>
+            <p className="section-copy mt-5">A cleaner category layout with stronger visual hierarchy and less noise.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredServices.map((card) => {
+              const Icon = card.icon
+              return (
+                <div key={card.title} className="group premium-panel p-7 hover:-translate-y-1 transition-transform duration-300">
+                  <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-primary/10 to-cyan-500/10 flex items-center justify-center text-primary shadow-sm mb-6 group-hover:scale-105 transition-transform">
+                    <Icon className="text-2xl" />
+                  </div>
+                  <h3 className="text-xl font-extrabold text-slate-900">{card.title}</h3>
+                  <p className="mt-3 text-slate-600 leading-7">{card.description}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section id="reviews" className="py-20 md:py-24 bg-slate-950 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.18),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.14),transparent_24%)]" />
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-cyan-200 mb-5">
+              <FaShieldAlt />
+              <span>Customer stories</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">Designed to feel dependable in real travel scenarios</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {reviews.map((item) => (
+              <div key={item.name} className="rounded-[28px] border border-white/10 bg-white/6 backdrop-blur-md p-7 shadow-xl shadow-black/10">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center font-bold text-cyan-100">
+                    {item.name.split(' ').map((part) => part[0]).join('')}
+                  </div>
+                  <div>
+                    <div className="font-bold">{item.name}</div>
+                    <div className="text-sm text-white/60">{item.role}</div>
+                  </div>
+                </div>
+                <p className="text-white/80 leading-8">“{item.quote}”</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="about" className="py-20 md:py-24">
+        <div className="container mx-auto px-6">
+          <div className="premium-panel p-10 md:p-14 text-center max-w-5xl mx-auto relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(22,128,147,0.10),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.08),transparent_25%)]" />
             <div className="relative z-10">
               <div className="bg-primary/10 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <AiOutlineSafety className="text-primary text-4xl" />
               </div>
               <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">
-                Ready to start your next great trip?
+                Ready to launch your next trip with a real product feel?
               </h2>
               <p className="text-slate-600 text-lg max-w-3xl mx-auto mb-8 leading-8">
-                Join thousands of travelers who use TourMate to discover Sri Lanka with better planning, trusted providers, and premium support.
+                Search services, book with confidence, and manage support, chat, and feedback in one application.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/register" className="btn btn-primary px-8">
-                  Get Started Free
+                  Create account
                 </Link>
                 <Link to="/services" className="btn btn-secondary px-8">
-                  Explore Services
+                  Browse services
                 </Link>
               </div>
             </div>
@@ -196,160 +372,3 @@ const HomePage = () => {
 }
 
 export default HomePage
-
-      {/* Features Section */}
-      <section id="features" className="py-24 md:py-28 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-80 h-80 bg-primary/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl translate-x-1/3 translate-y-1/3"></div>
-
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="text-center mb-16 max-w-3xl mx-auto">
-            <div className="section-eyebrow mx-auto mb-5">
-              <span>Trusted platform</span>
-            </div>
-            <h2 className="section-title">A better way to plan premium travel</h2>
-            <p className="section-copy mt-5">
-              TourMate combines verified providers, custom travel requests, and emergency support into one polished experience.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-            {featureCards.map((card) => {
-              const Icon = card.icon
-              return (
-                <div key={card.title} className="group relative">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${card.accent} rounded-[28px] blur-2xl opacity-0 group-hover:opacity-20 transition-opacity`}></div>
-                  <div className="relative premium-panel p-8 md:p-10 h-full group-hover:-translate-y-1 transition-transform duration-300">
-                    <div className={`w-20 h-20 rounded-3xl bg-gradient-to-br ${card.iconBg} flex items-center justify-center mb-8 shadow-lg`}>
-                      <Icon className={`text-4xl text-slate-900 ${card.textAccent}`} />
-                    </div>
-                    <h3 className="text-2xl font-extrabold text-slate-900 mb-4">{card.title}</h3>
-                    <p className="text-slate-600 leading-7 mb-8 min-h-[88px]">{card.description}</p>
-                    <Link
-                      to={card.href}
-                      className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-primary-dark"
-                    >
-                      <span>{card.linkLabel}</span>
-                      <FaArrowRight className="text-xs" />
-                    </Link>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Services Section */}
-      <section id="services" className="py-24 md:py-28 bg-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(135deg,theme(colors.slate.900)_25%,transparent_25%),linear-gradient(225deg,theme(colors.slate.900)_25%,transparent_25%),linear-gradient(45deg,theme(colors.slate.900)_25%,transparent_25%),linear-gradient(315deg,theme(colors.slate.900)_25%,#ffffff_25%)] bg-[length:36px_36px] bg-[position:0_0,0_18px,18px_-18px,-18px_0px]"></div>
-
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="text-center mb-16 max-w-3xl mx-auto">
-            <div className="section-eyebrow mx-auto mb-5">
-              <span>Our services</span>
-            </div>
-            <h2 className="section-title">Everything you need for a refined journey</h2>
-            <p className="section-copy mt-5">
-              From expert guides to reliable transport and luxury stays, the platform brings all essential travel services together.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-            {serviceCards.map((service) => {
-              const Icon = service.icon
-              return (
-                <div key={service.title} className="group relative">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${service.accent} rounded-[24px] opacity-0 group-hover:opacity-10 transition-opacity`}></div>
-                  <div className="relative premium-panel p-7 h-full group-hover:-translate-y-1 transition-transform duration-300">
-                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${service.accent} flex items-center justify-center mb-6 shadow-lg`}>
-                      <Icon className="text-white text-2xl" />
-                    </div>
-                    <h3 className="text-xl font-extrabold text-slate-900 mb-3">{service.title}</h3>
-                    <p className="text-slate-600 text-sm leading-7">{service.description}</p>
-                    <div className="mt-5 text-sm font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                      Learn more <FaArrowRight className="inline-block ml-1 text-xs" />
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Reviews Section */}
-      <section id="reviews" className="py-24 md:py-28 bg-gradient-to-b from-slate-50 to-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-secondary/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-primary/5 rounded-full blur-3xl"></div>
-
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="text-center mb-16 max-w-3xl mx-auto">
-            <div className="section-eyebrow mx-auto mb-5">
-              <FaStar className="text-amber-400" />
-              <span>Testimonials</span>
-            </div>
-            <h2 className="section-title">What travelers say about TourMate</h2>
-            <p className="section-copy mt-5">
-              Real experiences from travelers who planned Sri Lanka trips with confidence.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-            {testimonials.map((testimonial) => (
-              <div key={testimonial.name} className="group relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary to-cyan-600 rounded-[28px] opacity-0 group-hover:opacity-5 transition-opacity"></div>
-                <div className="relative premium-panel p-8 md:p-9 h-full group-hover:-translate-y-1 transition-transform duration-300">
-                  <div className="flex items-center gap-1 mb-6">
-                    {[...Array(5)].map((_, i) => (
-                      <FaStar key={i} className="text-amber-400 text-lg" />
-                    ))}
-                  </div>
-                  <p className="text-slate-700 mb-8 text-lg leading-8 relative z-10">
-                    <span className="text-5xl text-primary/15 absolute -top-2 -left-2">"</span>
-                    {testimonial.quote}
-                  </p>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                      {testimonial.initials}
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900">{testimonial.name}</div>
-                      <div className="text-sm text-slate-500 flex items-center gap-1">
-                        <span>{testimonial.flag}</span> {testimonial.country}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-16 text-center">
-            <div className="inline-flex flex-wrap items-center justify-center gap-6 rounded-full premium-panel px-8 py-4">
-              <div className="flex items-center gap-3">
-                <div className="text-3xl font-extrabold text-primary">4.9</div>
-                <div className="flex flex-col items-start">
-                  <div className="flex gap-0.5">
-                    {[...Array(5)].map((_, i) => (
-                      <FaStar key={i} className="text-amber-400 text-sm" />
-                    ))}
-                  </div>
-                  <div className="text-xs text-slate-500">Average rating</div>
-                </div>
-              </div>
-              <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
-              <div className="text-center">
-                <div className="text-2xl font-extrabold text-slate-900">10,000+</div>
-                <div className="text-xs text-slate-500">Happy travelers</div>
-              </div>
-              <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
-              <div className="text-center">
-                <div className="text-2xl font-extrabold text-slate-900">24/7</div>
-                <div className="text-xs text-slate-500">Support available</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-

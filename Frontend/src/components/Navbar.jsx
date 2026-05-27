@@ -40,7 +40,7 @@ const Navbar = ({ variant = 'light' }) => {
           </Link>
 
           {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-1 rounded-full px-2 py-1 ${isLight ? 'bg-slate-100/80' : 'bg-white/10'}">
+          <div className={`${isLight ? 'bg-slate-100/80' : 'bg-white/10'} hidden md:flex items-center space-x-1 rounded-full px-2 py-1`}>
             <a
               href="#features"
               onClick={(e) => handleScroll(e, 'features')}

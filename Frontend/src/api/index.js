@@ -81,7 +81,8 @@ export const messageAPI = {
 
 export const feedbackAPI = {
   createFeedback: (data) => apiClient.post('/feedback', data),
-  getServiceFeedback: (serviceId) => apiClient.get(`/feedback/service/${serviceId}`)
+  getServiceFeedback: (serviceId) => apiClient.get(`/feedback/service/${serviceId}`),
+  getBookingFeedback: (bookingId) => apiClient.get(`/feedback/booking/${bookingId}`)
 }
 
 export const sosAPI = {

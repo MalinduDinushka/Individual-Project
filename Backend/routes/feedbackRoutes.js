@@ -1,14 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
+const feedbackController = require('../controllers/feedbackController');
 
-// Placeholder controller
-router.post('/', protect, (req, res) => {
-  res.json({ message: 'Feedback routes - To be implemented' });
-});
-
-router.get('/service/:serviceId', (req, res) => {
-  res.json({ message: 'Get service feedback - To be implemented' });
-});
+router.post('/', protect, feedbackController.createFeedback);
+router.get('/service/:serviceId', feedbackController.getServiceFeedback);
+router.get('/booking/:bookingId', protect, feedbackController.getBookingFeedback);
 
 module.exports = router;

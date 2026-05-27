@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { bookingAPI } from '../../api'
+import { bookingAPI, feedbackAPI } from '../../api'
 import PayHereCheckoutButton from '../../components/payments/PayHereCheckoutButton'
 import { toast } from 'react-hot-toast'
+import FeedbackForm from '../../components/feedback/FeedbackForm'
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeBooking, setActiveBooking] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -49,6 +51,11 @@ const MyBookings = () => {
                 {(b.status === 'confirmed' || b.status === 'in-progress' || b.status === 'completed') && (
                   <button onClick={() => navigate(`/tourist/messages?booking=${b._id}`)} className="btn btn-secondary mt-2 mr-2">Chat</button>
                 )}
+                {b.status === 'completed' && (
+                  <>
+                    <button onClick={() => setActiveBooking(b)} className="btn btn-outline mt-2 ml-2">Leave feedback</button>
+                  </>
+                )}
                 {b.paymentStatus === 'pending' && (
                   <PayHereCheckoutButton
                     paymentType="booking"
@@ -67,6 +74,17 @@ const MyBookings = () => {
           </div>
         ))}
       </div>
+      {activeBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded w-full max-w-2xl mx-4">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Leave feedback for {activeBooking.serviceSnapshot?.name || activeBooking.service?.name || 'service'}</h3>
+              <button onClick={() => setActiveBooking(null)} className="text-gray-600 hover:text-gray-900">✕</button>
+            </div>
+            <FeedbackForm booking={activeBooking} onClose={() => setActiveBooking(null)} onSubmitted={() => fetchBookings()} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

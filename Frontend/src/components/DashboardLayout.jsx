@@ -13,6 +13,7 @@ const iconMap = {
   heart: MdFavorite,
   settings: MdSettings,
   briefcase: MdWork,
+  package: MdWork,
   inbox: MdInbox,
   dollar: MdAttachMoney,
   users: MdPeople,

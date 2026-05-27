@@ -9,12 +9,34 @@ const buildGoogleMapsEmbedUrl = (location) => {
   return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`
 }
 
+const photoCategoryLabels = {
+  profile: 'Profile',
+  guide: 'Guide',
+  vehicle: 'Vehicle',
+  hotel: 'Hotel / Guest house',
+  restaurant: 'Restaurant',
+  photographer: 'Photographer',
+  equipment: 'Equipment',
+  other: 'Other'
+}
+
+const groupPhotosByCategory = (photos = []) => {
+  return photos.reduce((acc, photo) => {
+    const key = photo?.type || 'other'
+    if (!acc[key]) acc[key] = []
+    acc[key].push(photo)
+    return acc
+  }, {})
+}
+
 const ProfilePage = () => {
   const { user, updateUser } = useAuthStore()
   const [form, setForm] = useState({ name: '', phone: '', gender: '', businessInfo: {} })
   const [avatarFile, setAvatarFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
   const [uploading, setUploading] = useState(false)
+
+  const groupedPhotos = groupPhotosByCategory(user?.photos || [])
 
   useEffect(() => {
     if (user) {
@@ -176,11 +198,42 @@ const ProfilePage = () => {
           </>
         )}
 
-        <div className="pt-4">
-          <button type="submit" className="btn btn-primary">Save Changes</button>
-        </div>
+        {user?.role === 'provider' && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <h3 className="font-medium">Business Photos</h3>
+              <span className="text-sm text-gray-500">{(user.photos || []).length} uploaded</span>
+            </div>
+
+            {Object.keys(groupedPhotos).length === 0 ? (
+              <div className="text-sm text-gray-600 bg-gray-50 border rounded-xl p-4">
+                No business photos uploaded yet.
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {Object.entries(groupedPhotos).map(([category, photos]) => (
+                  <div key={category}>
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                      <h4 className="text-sm font-semibold text-gray-800">{photoCategoryLabels[category] || category}</h4>
+                      <span className="text-xs text-gray-500 uppercase tracking-wide">{photos.length} item{photos.length === 1 ? '' : 's'}</span>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {photos.map((photo) => (
+                        <div key={photo._id || photo.url} className="rounded-xl overflow-hidden border bg-white">
+                          <img src={photo.url} alt={photo.caption || category} className="w-full h-36 object-cover" />
+                          {photo.caption && <div className="px-3 py-2 text-xs text-gray-600">{photo.caption}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </form>
     </div>
+
   )
 }
 

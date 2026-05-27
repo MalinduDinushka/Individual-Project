@@ -5,6 +5,81 @@ const crypto = require('crypto');
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 
+const parseTravelPackages = (travelPackages) => {
+  if (!travelPackages) return undefined
+
+  const parsePackageImages = (images) => {
+    if (!images) return []
+
+    const items = Array.isArray(images) ? images : [images]
+    return items
+      .map((item) => {
+        if (!item) return null
+
+        if (typeof item === 'string') {
+          const url = String(item || '').trim()
+          return url ? { url } : null
+        }
+
+        if (typeof item !== 'object') return null
+
+        const url = String(item.url || item.src || '').trim()
+        if (!url) return null
+
+        const label = String(item.label || item.caption || '').trim()
+        const type = String(item.type || '').trim()
+
+        return {
+          url,
+          ...(label ? { label } : {}),
+          ...(type ? { type } : {})
+        }
+      })
+      .filter(Boolean)
+  }
+
+  const items = Array.isArray(travelPackages) ? travelPackages : []
+  const normalized = items
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null
+
+      const title = String(item.title || '').trim()
+      const description = String(item.description || '').trim()
+      const includedDistricts = Array.isArray(item.includedDistricts)
+        ? item.includedDistricts.map((district) => String(district || '').trim()).filter(Boolean)
+        : String(item.includedDistricts || '')
+            .split(',')
+            .map((district) => district.trim())
+            .filter(Boolean)
+      const highlights = Array.isArray(item.highlights)
+        ? item.highlights.map((highlight) => String(highlight || '').trim()).filter(Boolean)
+        : String(item.highlights || '')
+            .split(',')
+            .map((highlight) => highlight.trim())
+            .filter(Boolean)
+      const images = parsePackageImages(item.images)
+      const amount = Number(item.price?.amount)
+      const currency = String(item.price?.currency || 'USD').trim() || 'USD'
+
+      if (!title && !description && includedDistricts.length === 0 && !Number.isFinite(amount) && !String(item.duration || '').trim() && highlights.length === 0 && images.length === 0) {
+        return null
+      }
+
+      return {
+        title,
+        description,
+        includedDistricts,
+        duration: String(item.duration || '').trim(),
+        highlights,
+        images,
+        price: Number.isFinite(amount) ? { amount, currency } : undefined
+      }
+    })
+    .filter(Boolean)
+
+  return normalized.length > 0 ? normalized : []
+}
+
 // Only enable Cloudinary if credentials look valid (not placeholder values)
 const cloudName = process.env.CLOUDINARY_CLOUD_NAME || ''
 const cloudKey = process.env.CLOUDINARY_API_KEY || ''
@@ -36,7 +111,7 @@ exports.register = async (req, res) => {
       });
     }
 
-    const { name, email, password, role, phone, gender, nic, passport, nationality, businessInfo, languages, photos } = req.body;
+    const { name, email, password, role, phone, gender, nic, passport, nationality, businessInfo, languages, photos, travelPackages } = req.body;
 
     // Check if user already exists
     const userExists = await User.findOne({ email });
@@ -85,6 +160,11 @@ exports.register = async (req, res) => {
       userData.businessInfo.serviceType = businessInfo.serviceType || selectedServiceTypes[0] || 'other';
       if (businessInfo.serviceDetails) {
         userData.businessInfo.serviceDetails = businessInfo.serviceDetails;
+      }
+
+      const nextTravelPackages = parseTravelPackages(travelPackages || businessInfo.travelPackages)
+      if (nextTravelPackages) {
+        userData.businessInfo.travelPackages = nextTravelPackages
       }
     }
 
@@ -437,6 +517,18 @@ exports.updateProfile = async (req, res) => {
         serviceType: req.body.businessInfo.serviceType || nextServiceTypes[0] || req.user.businessInfo?.serviceType || 'other',
         serviceDetails: req.body.businessInfo.serviceDetails || req.user.businessInfo?.serviceDetails || {}
       };
+
+      const nextTravelPackages = parseTravelPackages(req.body.travelPackages || req.body.businessInfo.travelPackages)
+      if (nextTravelPackages) {
+        fieldsToUpdate.businessInfo.travelPackages = nextTravelPackages
+      }
+    }
+
+    if (req.user.role === 'provider' && !req.body.businessInfo && req.body.travelPackages) {
+      fieldsToUpdate.businessInfo = {
+        ...req.user.businessInfo,
+        travelPackages: parseTravelPackages(req.body.travelPackages) || []
+      }
     }
 
     if (req.user.role === 'provider' && req.body.gender) {

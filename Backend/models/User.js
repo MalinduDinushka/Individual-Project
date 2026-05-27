@@ -124,6 +124,38 @@ const userSchema = new mongoose.Schema({
       type: Number,
       default: 0
     }
+    ,
+    travelPackages: [{
+      title: {
+        type: String,
+        trim: true
+      },
+      description: {
+        type: String,
+        trim: true
+      },
+      includedDistricts: [{
+        type: String,
+        trim: true
+      }],
+      duration: String,
+      highlights: [String],
+      images: [{
+        url: String,
+        label: String,
+        type: String
+      }],
+      price: {
+        amount: {
+          type: Number,
+          min: 0
+        },
+        currency: {
+          type: String,
+          default: 'USD'
+        }
+      }
+    }]
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date

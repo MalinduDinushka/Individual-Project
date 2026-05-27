@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { FaStar, FaCheckCircle, FaCommentDots, FaPhoneAlt, FaMapMarkerAlt } from 'react-icons/fa'
+import { FaStar, FaCheckCircle, FaCommentDots, FaPhoneAlt, FaMapMarkerAlt, FaCamera, FaRoute } from 'react-icons/fa'
 import { messageAPI, userAPI } from '../../api'
 import { toast } from 'react-hot-toast'
 
@@ -8,6 +8,34 @@ const buildGoogleMapsEmbedUrl = (location) => {
   const query = String(location || '').trim()
   if (!query) return ''
   return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`
+}
+
+const photoCategoryLabels = {
+  profile: 'Profile',
+  guide: 'Guide',
+  vehicle: 'Vehicle',
+  hotel: 'Hotel / Guest house',
+  restaurant: 'Restaurant',
+  photographer: 'Photographer',
+  equipment: 'Equipment',
+  other: 'Other'
+}
+
+const groupPhotosByCategory = (photos = []) => {
+  return photos.reduce((acc, photo) => {
+    const key = photo?.type || 'other'
+    if (!acc[key]) acc[key] = []
+    acc[key].push(photo)
+    return acc
+  }, {})
+}
+
+const normalizeText = (value) => String(value || '').trim().toLowerCase()
+
+const packageMatchesSelectedRequest = (travelPackage = {}, selectedLocationText = '') => {
+  if (!selectedLocationText) return true
+  const includedDistricts = Array.isArray(travelPackage.includedDistricts) ? travelPackage.includedDistricts : []
+  return includedDistricts.some((district) => normalizeText(selectedLocationText).includes(normalizeText(district)) || normalizeText(district).includes(normalizeText(selectedLocationText)))
 }
 
 const ProviderProfilePage = () => {
@@ -35,6 +63,7 @@ const ProviderProfilePage = () => {
   }
 
   const requestId = searchParams.get('request')
+  const selectedDistrictText = searchParams.get('districts') || ''
 
   const openChat = () => {
     if (!requestId) {
@@ -47,6 +76,9 @@ const ProviderProfilePage = () => {
   if (loading) return <div>Loading provider profile...</div>
 
   if (!provider) return <div>Provider profile not found.</div>
+
+  const groupedPhotos = groupPhotosByCategory(provider.photos || [])
+  const travelPackages = Array.isArray(provider.businessInfo?.travelPackages) ? provider.businessInfo.travelPackages.filter((pkg) => packageMatchesSelectedRequest(pkg, selectedDistrictText)) : []
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -155,6 +187,115 @@ const ProviderProfilePage = () => {
             {provider.businessInfo?.description || 'This provider has not added a detailed description yet.'}
           </div>
         </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border p-6 space-y-5">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">Provider gallery</h2>
+            <p className="text-sm text-gray-500 mt-1">Photos uploaded during registration, grouped by category.</p>
+          </div>
+          <div className="inline-flex items-center gap-2 text-sm text-gray-600">
+            <FaCamera />
+            <span>{(provider.photos || []).length} photo{(provider.photos || []).length === 1 ? '' : 's'}</span>
+          </div>
+        </div>
+
+        {Object.keys(groupedPhotos).length === 0 ? (
+          <div className="text-sm text-gray-600 bg-gray-50 border rounded-xl p-4">No photos have been added by this provider yet.</div>
+        ) : (
+          <div className="space-y-6">
+            {Object.entries(groupedPhotos).map(([category, photos]) => (
+              <div key={category}>
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <h3 className="text-lg font-semibold text-gray-900">{photoCategoryLabels[category] || category}</h3>
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{photos.length} item{photos.length === 1 ? '' : 's'}</span>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {photos.map((photo, index) => (
+                    <figure key={`${photo.url}-${index}`} className="overflow-hidden rounded-2xl border bg-gray-50 shadow-sm">
+                      <img
+                        src={photo.url}
+                        alt={photo.label || `${category} photo`}
+                        className="h-44 w-full object-cover"
+                      />
+                      <figcaption className="p-3 text-xs text-gray-600 bg-white border-t">
+                        <div className="font-medium text-gray-800 truncate">{photo.label || 'Photo'}</div>
+                        <div className="mt-1 uppercase tracking-wide text-[10px] text-gray-500">{photo.type || 'other'}</div>
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border p-6 space-y-5">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">Travel packages</h2>
+            <p className="text-sm text-gray-500 mt-1">Packages and prices shared by this provider.</p>
+          </div>
+          <div className="inline-flex items-center gap-2 text-sm text-gray-600">
+            <FaRoute />
+            <span>{travelPackages.length} available</span>
+          </div>
+        </div>
+
+        {travelPackages.length === 0 ? (
+          <div className="text-sm text-gray-600 bg-gray-50 border rounded-xl p-4">No travel packages match your current trip selection.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {travelPackages.map((travelPackage, index) => (
+              <div key={`${travelPackage.title || 'package'}-${index}`} className="rounded-2xl border bg-slate-50 p-5 space-y-3 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">{travelPackage.title || 'Travel package'}</h3>
+                    <p className="text-sm text-gray-500 mt-1">{travelPackage.duration || 'Flexible duration'}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-base font-bold text-primary">
+                      {travelPackage.price?.currency || 'USD'} {travelPackage.price?.amount ?? 'N/A'}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 leading-6">{travelPackage.description || 'No package description provided.'}</p>
+                {Array.isArray(travelPackage.images) && travelPackage.images.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {travelPackage.images.map((image, imageIndex) => (
+                      <figure key={`${image.url || index}-${imageIndex}`} className="overflow-hidden rounded-xl border bg-white">
+                        <img
+                          src={image.url}
+                          alt={image.label || `${travelPackage.title || 'Travel package'} image`}
+                          className="h-32 w-full object-cover"
+                        />
+                        {image.label && (
+                          <figcaption className="px-3 py-2 text-xs text-gray-600 border-t bg-white truncate">
+                            {image.label}
+                          </figcaption>
+                        )}
+                      </figure>
+                    ))}
+                  </div>
+                )}
+                {Array.isArray(travelPackage.highlights) && travelPackage.highlights.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {travelPackage.highlights.map((highlight) => (
+                      <span key={highlight} className="rounded-full bg-white border px-3 py-1 text-xs text-gray-600">
+                        {highlight}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {Array.isArray(travelPackage.includedDistricts) && travelPackage.includedDistricts.length > 0 && (
+                  <div className="text-xs text-gray-500">Districts: {travelPackage.includedDistricts.join(', ')}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border p-6">

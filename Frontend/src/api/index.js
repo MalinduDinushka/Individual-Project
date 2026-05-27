@@ -54,7 +54,8 @@ export const serviceAPI = {
 }
 
 export const userAPI = {
-  getProviderProfile: (id) => apiClient.get(`/users/providers/${id}`)
+  getProviderProfile: (id) => apiClient.get(`/users/providers/${id}`),
+  getPackageSuggestions: (districts) => apiClient.get('/users/package-suggestions', { params: { districts: Array.isArray(districts) ? districts.join(',') : districts } })
 }
 
 export const bookingAPI = {

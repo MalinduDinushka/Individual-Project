@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FaBus, FaCalendarAlt, FaCar, FaChild, FaFemale, FaMapMarkerAlt, FaMale, FaRoute, FaUsers } from 'react-icons/fa'
-import { tourAPI } from '../../api'
+import { tourAPI, userAPI } from '../../api'
 import { toast } from 'react-hot-toast'
 import SriLankaDistrictPicker from '../../components/tourist/SriLankaDistrictPicker'
 import { districtLookup } from '../../data/sriLankaTour'
@@ -51,6 +51,8 @@ const TourRequestCreate = () => {
   const [form, setForm] = useState(defaultForm)
   const [selectedDistricts, setSelectedDistricts] = useState([])
   const [selectedLocationsByDistrict, setSelectedLocationsByDistrict] = useState({})
+  const [packageSuggestions, setPackageSuggestions] = useState([])
+  const [loadingPackages, setLoadingPackages] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   const stayLength = useMemo(() => {
@@ -71,6 +73,28 @@ const TourRequestCreate = () => {
     () => selectedDistricts.map((districtId) => districtLookup[districtId]?.name).filter(Boolean),
     [selectedDistricts]
   )
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (selectedDistrictNames.length === 0) {
+        setPackageSuggestions([])
+        return
+      }
+
+      try {
+        setLoadingPackages(true)
+        const res = await userAPI.getPackageSuggestions(selectedDistrictNames)
+        setPackageSuggestions(res.data.data.suggestions || [])
+      } catch (error) {
+        console.error('Fetch package suggestions error:', error)
+        setPackageSuggestions([])
+      } finally {
+        setLoadingPackages(false)
+      }
+    }
+
+    fetchSuggestions()
+  }, [selectedDistrictNames])
 
   const selectedLocations = useMemo(
     () => Object.values(selectedLocationsByDistrict).flat(),
@@ -593,6 +617,67 @@ const TourRequestCreate = () => {
                 <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
                   Tip: choose districts first to make your request more useful to providers.
                 </p>
+              )}
+            </div>
+
+            <div className="rounded-3xl border bg-white p-5 space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-semibold text-gray-800">Recommended packages</h3>
+                  <p className="text-xs text-gray-500 mt-1">Matches from provider packages in your chosen districts</p>
+                </div>
+                <span className="text-xs text-gray-500">{selectedDistrictNames.length} district{selectedDistrictNames.length === 1 ? '' : 's'}</span>
+              </div>
+
+              {loadingPackages ? (
+                <div className="text-sm text-gray-500 bg-gray-50 border rounded-xl p-4">Searching packages...</div>
+              ) : packageSuggestions.length === 0 ? (
+                <div className="text-sm text-gray-500 bg-gray-50 border rounded-xl p-4">
+                  Select districts to see matching travel packages from providers.
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
+                  {packageSuggestions.slice(0, 6).map((item) => (
+                    <div key={item.id} className="rounded-2xl border bg-slate-50 p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <h4 className="font-semibold text-gray-900 leading-5">{item.package?.title || 'Travel package'}</h4>
+                          <p className="text-xs text-gray-500 mt-1">{item.provider?.name || 'Provider'}</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-sm font-bold text-primary">
+                            {item.package?.price?.currency || 'USD'} {item.package?.price?.amount ?? 'N/A'}
+                          </div>
+                          <div className="text-[11px] text-gray-500">{item.package?.duration || 'Flexible duration'}</div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 leading-6">{item.package?.description || 'No description provided.'}</p>
+                      {Array.isArray(item.package?.highlights) && item.package.highlights.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {item.package.highlights.slice(0, 3).map((highlight) => (
+                            <span key={highlight} className="rounded-full bg-white border px-3 py-1 text-xs text-gray-600">
+                              {highlight}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {Array.isArray(item.matchedDistricts) && item.matchedDistricts.length > 0 && (
+                        <div className="text-xs text-gray-500">
+                          Matches: {item.matchedDistricts.join(', ')}
+                        </div>
+                      )}
+                      {item.provider?.id && (
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/tourist/provider/${item.provider.id}`)}
+                          className="text-sm font-medium text-primary hover:underline"
+                        >
+                          View provider
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </aside>

@@ -6,6 +6,26 @@ import GoogleSignIn from '../components/GoogleSignIn'
 import { authAPI } from '../api'
 import { useAuthStore } from '../store/authStore'
 
+const languageOptions = [
+  'English',
+  'Sinhala',
+  'Tamil',
+  'Hindi',
+  'Mandarin Chinese',
+  'Spanish',
+  'French',
+  'Arabic',
+  'Portuguese',
+  'Russian',
+  'German',
+  'Japanese',
+  'Korean',
+  'Italian',
+  'Turkish',
+  'Thai',
+  'Vietnamese'
+]
+
 const providerServiceOptions = [
   { value: 'guide', label: 'Guide', hint: 'Tours, local knowledge, interpretation' },
   { value: 'vehicle', label: 'Vehicle', hint: 'Transport, transfers, rentals' },
@@ -48,6 +68,17 @@ const createDefaultServiceDetails = () => ({
   }
 })
 
+const providerPhotoBuckets = [
+  { key: 'profile', label: 'Profile / brand photo', hint: 'Your logo, face, or main business cover image.' },
+  { key: 'guide', label: 'Guide photos', hint: 'Guide portraits, tour shots, or team photos.' },
+  { key: 'vehicle', label: 'Vehicle photos', hint: 'Exterior, interior, seats, and luggage space.' },
+  { key: 'hotel', label: 'Hotel / guest house photos', hint: 'Rooms, lobby, exterior, and facilities.' },
+  { key: 'restaurant', label: 'Restaurant photos', hint: 'Dining area, dishes, ambience, and menu visuals.' },
+  { key: 'photographer', label: 'Photographer portfolio', hint: 'Sample work, camera setup, and service highlights.' },
+  { key: 'equipment', label: 'Equipment photos', hint: 'Items, gear, condition, and delivery setup.' },
+  { key: 'other', label: 'Other business photos', hint: 'Any remaining images that support your listing.' }
+]
+
 const buildGoogleMapsEmbedUrl = (location) => {
   const query = String(location || '').trim()
   if (!query) return ''
@@ -68,6 +99,8 @@ const RegisterPage = () => {
     nationality: 'local',
     nic: '',
     passport: '',
+    languages: [],
+    otherLanguages: '',
     businessInfo: {
       businessName: '',
       serviceType: '',
@@ -78,7 +111,16 @@ const RegisterPage = () => {
   })
   const [loading, setLoading] = useState(false)
   const [uploadingPhotos, setUploadingPhotos] = useState(false)
-  const [photoFiles, setPhotoFiles] = useState([])
+  const [photoGroups, setPhotoGroups] = useState({
+    profile: [],
+    guide: [],
+    vehicle: [],
+    hotel: [],
+    restaurant: [],
+    photographer: [],
+    equipment: [],
+    other: []
+  })
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -100,27 +142,33 @@ const RegisterPage = () => {
     }
   }
 
-  const handlePhotoSelect = (e) => {
+  const handlePhotoSelect = (e, bucketKey = 'other') => {
     const files = Array.from(e.target.files || [])
-    setPhotoFiles(files)
+    setPhotoGroups((current) => ({
+      ...current,
+      [bucketKey]: files
+    }))
   }
 
   const uploadPhotos = async () => {
-    if (photoFiles.length === 0) return []
+    const hasFiles = Object.values(photoGroups).some((files) => files.length > 0)
+    if (!hasFiles) return []
     setUploadingPhotos(true)
     const base = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
     const uploaded = []
     try {
-      for (const file of photoFiles) {
-        const form = new FormData()
-        form.append('avatar', file)
-        const res = await fetch(base + '/auth/avatar-public', {
-          method: 'POST',
-          body: form
-        })
-        const json = await res.json().catch(() => ({}))
-        if (res.ok && json.data && json.data.avatar) {
-          uploaded.push({ url: json.data.avatar, label: file.name, type: 'other' })
+      for (const [bucketKey, files] of Object.entries(photoGroups)) {
+        for (const file of files) {
+          const form = new FormData()
+          form.append('avatar', file)
+          const res = await fetch(base + '/auth/avatar-public', {
+            method: 'POST',
+            body: form
+          })
+          const json = await res.json().catch(() => ({}))
+          if (res.ok && json.data && json.data.avatar) {
+            uploaded.push({ url: json.data.avatar, label: file.name, type: bucketKey })
+          }
         }
       }
     } catch (err) {
@@ -169,6 +217,27 @@ const RegisterPage = () => {
     }))
   }
 
+  const handleLanguageToggle = (language) => {
+    setFormData((current) => {
+      const selected = current.languages || []
+      const nextLanguages = selected.includes(language)
+        ? selected.filter((item) => item !== language)
+        : [...selected, language]
+
+      return {
+        ...current,
+        languages: nextLanguages
+      }
+    })
+  }
+
+  const handleOtherLanguagesChange = (e) => {
+    setFormData((current) => ({
+      ...current,
+      otherLanguages: e.target.value
+    }))
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -188,13 +257,19 @@ const RegisterPage = () => {
         role: activeTab
       }
 
-      // Add languages (comma-separated string -> array)
-      if (formData.languages) {
-        payload.languages = String(formData.languages).split(',').map(s => s.trim()).filter(Boolean)
+      const selectedLanguages = Array.isArray(formData.languages) ? formData.languages : []
+      const otherLanguages = String(formData.otherLanguages || '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)
+      const allLanguages = [...selectedLanguages, ...otherLanguages]
+      if (allLanguages.length > 0) {
+        payload.languages = Array.from(new Set(allLanguages))
       }
 
       // Upload photos first if any selected
-      if (photoFiles.length > 0) {
+      const hasAnyPhotos = Object.values(photoGroups).some((files) => files.length > 0)
+      if (hasAnyPhotos) {
         const uploaded = await uploadPhotos()
         if (uploaded.length > 0) payload.photos = uploaded
       }
@@ -363,17 +438,48 @@ const RegisterPage = () => {
                 />
               </div>
 
-              <div>
+              <div className="md:col-span-2">
                 <label className="block text-sm font-semibold text-slate-700 mb-2">Languages</label>
-                <input
-                  type="text"
-                  name="languages"
-                  value={formData.languages || ''}
-                  onChange={handleChange}
-                  placeholder="English, Sinhala, Tamil"
-                  className="input"
-                />
-                <p className="text-xs text-gray-500 mt-1">List languages you can speak, separated by commas.</p>
+                <p className="text-sm text-slate-500 mb-4">
+                  Select the languages you speak. If yours is not listed, add it in the other field.
+                </p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {languageOptions.map((language) => {
+                    const isSelected = (formData.languages || []).includes(language)
+                    return (
+                      <button
+                        key={language}
+                        type="button"
+                        onClick={() => handleLanguageToggle(language)}
+                        className={`rounded-2xl border px-4 py-3 text-sm font-semibold text-left transition-all duration-200 ${
+                          isSelected
+                            ? 'border-primary bg-primary/10 text-primary shadow-sm'
+                            : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        {language}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <div className="mt-4">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Other languages not listed
+                  </label>
+                  <input
+                    type="text"
+                    name="otherLanguages"
+                    value={formData.otherLanguages}
+                    onChange={handleOtherLanguagesChange}
+                    placeholder="Write any other language, separated by commas if needed"
+                    className="input"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Example: Korean, Dutch, Swahili.
+                  </p>
+                </div>
               </div>
 
               {activeTab === 'provider' && (
@@ -784,9 +890,65 @@ const RegisterPage = () => {
               )}
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Photos (optional)</label>
-                <input type="file" multiple accept="image/*" onChange={handlePhotoSelect} className="w-full" />
-                <p className="text-xs text-gray-500 mt-1">Upload photos relevant to your account (vehicle, property, portfolio). They'll be uploaded during registration.</p>
+                <div className="rounded-3xl border border-slate-200 bg-slate-50/80 p-5 md:p-6 shadow-sm space-y-5">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-800">Photos by category</h3>
+                    <p className="text-sm text-slate-500 mt-1">
+                      Add photos separately so the account looks organized, for example vehicle photos for transport providers or room photos for hotels.
+                    </p>
+                  </div>
+
+                  {activeTab === 'provider' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {providerPhotoBuckets.map((bucket) => {
+                        const isRelevant = bucket.key === 'profile'
+                          || bucket.key === 'other'
+                          || (formData.businessInfo.serviceTypes || []).includes(bucket.key)
+
+                        if (!isRelevant) return null
+
+                        const selectedCount = photoGroups[bucket.key]?.length || 0
+
+                        return (
+                          <label key={bucket.key} className="block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-primary/30 transition-colors">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <span className="block text-sm font-semibold text-slate-800">{bucket.label}</span>
+                                <p className="text-xs text-slate-500 mt-1">{bucket.hint}</p>
+                              </div>
+                              {selectedCount > 0 && (
+                                <span className="badge bg-primary/10 text-primary">{selectedCount} selected</span>
+                              )}
+                            </div>
+                            <input
+                              type="file"
+                              multiple
+                              accept="image/*"
+                              onChange={(e) => handlePhotoSelect(e, bucket.key)}
+                              className="mt-4 w-full text-sm"
+                            />
+                          </label>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <label className="block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-primary/30 transition-colors">
+                      <span className="block text-sm font-semibold text-slate-800">Profile photos</span>
+                      <p className="text-xs text-slate-500 mt-1">Optional profile or identity images for your account.</p>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={(e) => handlePhotoSelect(e, 'profile')}
+                        className="mt-4 w-full text-sm"
+                      />
+                    </label>
+                  )}
+
+                  <p className="text-xs text-slate-500">
+                    Photos will be saved with a category tag such as vehicle, hotel, guide, or other so they stay organized in the profile.
+                  </p>
+                </div>
               </div>
             </div>
 

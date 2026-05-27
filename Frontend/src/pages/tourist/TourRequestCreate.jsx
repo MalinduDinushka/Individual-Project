@@ -271,14 +271,14 @@ const TourRequestCreate = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-800">Create Tour Request</h1>
         <p className="text-gray-600 mt-1">Choose districts first, then pick the best places to visit inside each district.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border p-6 space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_0.65fr] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-6">
           <div className="space-y-6">
             <section className="rounded-3xl border bg-slate-50/80 p-5 space-y-4">
               <div>

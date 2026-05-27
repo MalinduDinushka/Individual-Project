@@ -166,9 +166,9 @@ const SriLankaDistrictPicker = ({
         )}
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_0.95fr] gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-6 items-start">
         <div className="bg-white border rounded-3xl p-5 shadow-sm">
-          <div ref={mapContainerRef} className="relative rounded-3xl bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-4 border overflow-hidden">
+          <div ref={mapContainerRef} className="relative rounded-3xl bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-5 border overflow-hidden min-h-[620px] flex items-center justify-center">
             <Srilanka
               type="select-multiple"
               size="100%"
@@ -190,10 +190,10 @@ const SriLankaDistrictPicker = ({
                     y={lbl.y}
                     textAnchor="middle"
                     alignmentBaseline="central"
-                    fontSize={10}
+                    fontSize={12}
                     fill="#0f172a"
                     stroke="#ffffff"
-                    strokeWidth={0.6}
+                    strokeWidth={0.75}
                     paintOrder="stroke"
                     style={{ fontWeight: 600 }}
                   >
@@ -211,14 +211,14 @@ const SriLankaDistrictPicker = ({
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="bg-white border rounded-2xl p-4 shadow-sm sticky top-4">
+        <div className="space-y-4 lg:sticky lg:top-4 self-start">
+          <div className="bg-white border rounded-2xl p-5 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-gray-800">Selected districts</h3>
               <span className="text-xs text-gray-500">{selectedDistricts.length} chosen</span>
             </div>
             {selectedDistrictObjects.length === 0 ? (
-              <p className="text-sm text-gray-500">Click districts on the map to build your itinerary.</p>
+              <p className="text-sm text-gray-500 leading-6">Click districts on the map to build your itinerary. Start with one or two districts, then add places inside each area.</p>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {selectedDistrictObjects.map((district) => (
@@ -235,14 +235,14 @@ const SriLankaDistrictPicker = ({
             )}
           </div>
 
-          <div className="bg-white border rounded-2xl p-4 shadow-sm max-h-[500px] overflow-y-auto">
+          <div className="bg-white border rounded-2xl p-5 shadow-sm max-h-[620px] overflow-y-auto">
             <div className="flex items-center justify-between gap-2 mb-3">
               <h3 className="font-semibold text-gray-800">Popular locations by district</h3>
               <p className="text-xs text-gray-500">Choose places inside the selected districts</p>
             </div>
 
             {selectedDistrictObjects.length === 0 ? (
-              <div className="rounded-xl border border-dashed p-4 text-sm text-gray-500 bg-gray-50">
+              <div className="rounded-xl border border-dashed p-5 text-sm text-gray-500 bg-gray-50 leading-6">
                 Select one or more districts first to see the best places to visit there.
               </div>
             ) : (
@@ -250,7 +250,7 @@ const SriLankaDistrictPicker = ({
                 {selectedDistrictObjects.map((district) => {
                   const selectedLocations = selectedLocationsByDistrict[district.id] || []
                   return (
-                    <div key={district.id} className="rounded-2xl border bg-gray-50/70 p-4">
+                    <div key={district.id} className="rounded-2xl border bg-gray-50/70 p-5">
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div>
                           <h4 className="font-semibold text-gray-900">{district.name}</h4>
@@ -274,7 +274,7 @@ const SriLankaDistrictPicker = ({
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2.5">
                         {district.popularLocations.map((location) => {
                           const isSelected = selectedLocations.includes(location)
                           return (
@@ -282,7 +282,7 @@ const SriLankaDistrictPicker = ({
                               key={location}
                               type="button"
                               onClick={() => onToggleLocation(district.id, location)}
-                              className={`${chipBase} ${isSelected ? 'bg-primary text-white border-primary shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:border-primary hover:text-primary'}`}
+                              className={`${chipBase} px-4 py-2 text-xs sm:text-sm ${isSelected ? 'bg-primary text-white border-primary shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:border-primary hover:text-primary'}`}
                             >
                               {location}
                             </button>

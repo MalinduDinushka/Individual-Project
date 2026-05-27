@@ -6,6 +6,52 @@ import { messageAPI } from '../api'
 import { useAuthStore } from '../store/authStore'
 import { connectSocket } from '../utils/socket'
 
+const getCounterpartKey = (conversation, currentUser) => {
+  if (!conversation) return ''
+
+  if (conversation.conversationKind === 'request') {
+    if (currentUser?.role === 'provider') {
+      return String(conversation.tourist?._id || conversation.tourist?.id || '')
+    }
+
+    return String(conversation.provider?._id || conversation.provider?.id || '')
+  }
+
+  if (currentUser?.role === 'tourist') {
+    return String(conversation.booking?.provider?._id || conversation.booking?.provider?.id || '')
+  }
+
+  return String(conversation.booking?.tourist?._id || conversation.booking?.tourist?.id || '')
+}
+
+const groupConversationsByCounterpart = (items, currentUser) => {
+  const byCounterpart = new Map()
+
+  for (const conversation of items) {
+    const key = getCounterpartKey(conversation, currentUser)
+    if (!key) continue
+
+    const existing = byCounterpart.get(key)
+    if (!existing) {
+      byCounterpart.set(key, conversation)
+      continue
+    }
+
+    const existingTime = existing.latestMessage?.createdAt ? new Date(existing.latestMessage.createdAt).getTime() : 0
+    const nextTime = conversation.latestMessage?.createdAt ? new Date(conversation.latestMessage.createdAt).getTime() : 0
+
+    if (nextTime >= existingTime) {
+      byCounterpart.set(key, conversation)
+    }
+  }
+
+  return Array.from(byCounterpart.values()).sort((a, b) => {
+    const aTime = a.latestMessage?.createdAt ? new Date(a.latestMessage.createdAt).getTime() : 0
+    const bTime = b.latestMessage?.createdAt ? new Date(b.latestMessage.createdAt).getTime() : 0
+    return bTime - aTime
+  })
+}
+
 const MessagesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -20,9 +66,14 @@ const MessagesPage = () => {
   const socketRef = useRef(null)
   const threadBottomRef = useRef(null)
 
+  const visibleConversations = useMemo(
+    () => groupConversationsByCounterpart(conversations, user),
+    [conversations, user]
+  )
+
   const selectedConversation = useMemo(
-    () => conversations.find((item) => item.conversationId === selectedConversationId),
-    [conversations, selectedConversationId]
+    () => visibleConversations.find((item) => item.conversationId === selectedConversationId),
+    [visibleConversations, selectedConversationId]
   )
 
   useEffect(() => {
@@ -42,10 +93,10 @@ const MessagesPage = () => {
   }, [searchParams])
 
   useEffect(() => {
-    if (!selectedConversationId && conversations.length > 0) {
-      setSelectedConversationId(conversations[0].conversationId)
+    if (!selectedConversationId && visibleConversations.length > 0) {
+      setSelectedConversationId(visibleConversations[0].conversationId)
     }
-  }, [conversations, selectedConversationId])
+  }, [visibleConversations, selectedConversationId])
 
   useEffect(() => {
     if (!token) return undefined
@@ -246,10 +297,10 @@ const MessagesPage = () => {
         <div className="flex-1 overflow-y-auto">
           {loadingList ? (
             <div className="p-4 text-gray-500">Loading conversations...</div>
-          ) : conversations.length === 0 ? (
+          ) : visibleConversations.length === 0 ? (
             <div className="p-4 text-gray-500">No conversations yet.</div>
           ) : (
-            conversations.map((conversation) => {
+            visibleConversations.map((conversation) => {
               const isActive = conversation.conversationId === selectedConversationId
               return (
                 <button

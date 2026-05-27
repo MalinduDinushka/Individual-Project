@@ -80,6 +80,53 @@ const parseTravelPackages = (travelPackages) => {
   return normalized.length > 0 ? normalized : []
 }
 
+const parsePhotos = (photos) => {
+  if (!photos) return undefined
+
+  let items = photos
+
+  if (typeof items === 'string') {
+    const trimmed = items.trim()
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+      try {
+        items = JSON.parse(trimmed)
+      } catch (error) {
+        items = trimmed.split(',').map((value) => value.trim()).filter(Boolean)
+      }
+    } else {
+      items = trimmed.split(',').map((value) => value.trim()).filter(Boolean)
+    }
+  }
+
+  const normalizedItems = Array.isArray(items) ? items : [items]
+  const normalized = normalizedItems
+    .map((item) => {
+      if (!item) return null
+
+      if (typeof item === 'string') {
+        const url = String(item || '').trim()
+        return url ? { url } : null
+      }
+
+      if (typeof item !== 'object') return null
+
+      const url = String(item.url || item.src || '').trim()
+      if (!url) return null
+
+      const label = String(item.label || item.caption || '').trim()
+      const type = String(item.type || '').trim()
+
+      return {
+        url,
+        ...(label ? { label } : {}),
+        ...(type ? { type } : {})
+      }
+    })
+    .filter(Boolean)
+
+  return normalized.length > 0 ? normalized : []
+}
+
 // Only enable Cloudinary if credentials look valid (not placeholder values)
 const cloudName = process.env.CLOUDINARY_CLOUD_NAME || ''
 const cloudKey = process.env.CLOUDINARY_API_KEY || ''
@@ -173,15 +220,19 @@ exports.register = async (req, res) => {
       userData.languages = Array.isArray(languages) ? languages : String(languages).split(',').map(s => s.trim()).filter(Boolean)
     }
 
-    if (photos) {
-      // Expect array of {url,label,type} or comma-separated urls
-      if (Array.isArray(photos)) userData.photos = photos
-      else if (typeof photos === 'string') {
-        userData.photos = photos.split(',').map(u => ({ url: u.trim() })).filter(p => p.url)
-      }
+    const nextPhotos = parsePhotos(photos)
+    if (nextPhotos && nextPhotos.length === 0) {
+      nextPhotos.length = 0
     }
 
     const user = await User.create(userData);
+
+    if (nextPhotos && nextPhotos.length > 0) {
+      await User.collection.updateOne(
+        { _id: user._id },
+        { $set: { photos: nextPhotos } }
+      )
+    }
 
     // Generate token
     const token = generateToken(user._id);
@@ -495,13 +546,11 @@ exports.updateProfile = async (req, res) => {
     }
 
     // allow updating languages and photos
-    if (req.body.languages) {
+    if (req.body.languages !== undefined) {
       fieldsToUpdate.languages = Array.isArray(req.body.languages) ? req.body.languages : String(req.body.languages).split(',').map(s => s.trim()).filter(Boolean)
     }
 
-    if (req.body.photos) {
-      fieldsToUpdate.photos = Array.isArray(req.body.photos) ? req.body.photos : String(req.body.photos).split(',').map(u => ({ url: u.trim() })).filter(p => p.url)
-    }
+    const nextPhotos = parsePhotos(req.body.photos)
 
     if (req.user.role === 'provider' && req.body.businessInfo) {
       const nextServiceTypes = Array.isArray(req.body.businessInfo.serviceTypes)
@@ -531,7 +580,7 @@ exports.updateProfile = async (req, res) => {
       }
     }
 
-    if (req.user.role === 'provider' && req.body.gender) {
+    if (req.body.gender !== undefined) {
       fieldsToUpdate.gender = req.body.gender;
     }
 
@@ -544,10 +593,21 @@ exports.updateProfile = async (req, res) => {
       }
     ).select('-password');
 
+    if (nextPhotos && nextPhotos.length > 0) {
+      await User.collection.updateOne(
+        { _id: req.user._id },
+        { $set: { photos: nextPhotos } }
+      )
+    }
+
+    const finalUser = nextPhotos && nextPhotos.length > 0
+      ? await User.findById(req.user._id).select('-password')
+      : user;
+
     res.json({
       success: true,
       message: 'Profile updated successfully',
-      data: { user }
+      data: { user: finalUser }
     });
   } catch (error) {
     console.error('Update profile error:', error);

@@ -85,6 +85,18 @@ const buildGoogleMapsEmbedUrl = (location) => {
   return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`
 }
 
+const formatValidationField = (field) => {
+  if (!field) return 'Registration'
+
+  return String(field)
+    .replace(/^businessInfo\./, 'business info ')
+    .replace(/^business\./, 'business ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[._]/g, ' ')
+    .trim()
+    .replace(/^./, (char) => char.toUpperCase())
+}
+
 const RegisterPage = () => {
   const navigate = useNavigate()
   const setAuth = useAuthStore(state => state.setAuth)
@@ -110,6 +122,7 @@ const RegisterPage = () => {
     }
   })
   const [loading, setLoading] = useState(false)
+  const [validationErrors, setValidationErrors] = useState([])
   const [uploadingPhotos, setUploadingPhotos] = useState(false)
   const [photoGroups, setPhotoGroups] = useState({
     profile: [],
@@ -124,6 +137,7 @@ const RegisterPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target
+    if (validationErrors.length > 0) setValidationErrors([])
     
     if (name.startsWith('business')) {
       const fieldName = name.replace('business.', '')
@@ -144,6 +158,7 @@ const RegisterPage = () => {
 
   const handlePhotoSelect = (e, bucketKey = 'other') => {
     const files = Array.from(e.target.files || [])
+    if (validationErrors.length > 0) setValidationErrors([])
     setPhotoGroups((current) => ({
       ...current,
       [bucketKey]: files
@@ -240,9 +255,11 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setValidationErrors([])
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match')
+      setValidationErrors([{ field: 'confirmPassword', message: 'Passwords do not match' }])
+      toast.error('Fix the highlighted registration error')
       return
     }
 
@@ -306,12 +323,19 @@ const RegisterPage = () => {
       const { user, token } = response.data.data
 
       setAuth(user, token)
+      setValidationErrors([])
       toast.success('Registration successful!')
 
       // Redirect based on role
       if (user.role === 'tourist') navigate('/tourist')
       else if (user.role === 'provider') navigate('/provider')
     } catch (error) {
+      const apiErrors = Array.isArray(error.response?.data?.errors) ? error.response.data.errors : []
+      if (apiErrors.length > 0) {
+        setValidationErrors(apiErrors)
+      } else {
+        setValidationErrors([{ field: 'registration', message: error.response?.data?.message || 'Registration failed' }])
+      }
       toast.error(error.response?.data?.message || 'Registration failed')
     } finally {
       setLoading(false)
@@ -361,6 +385,19 @@ const RegisterPage = () => {
           <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2">Create Your Account</h2>
           <p className="text-slate-500 mb-8">Start your journey with a streamlined premium experience.</p>
+
+          {validationErrors.length > 0 && (
+            <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-900 shadow-sm">
+              <div className="font-semibold">Please fix the following errors</div>
+              <ul className="mt-2 space-y-1 text-sm list-disc list-inside">
+                {validationErrors.map((errorItem, index) => (
+                  <li key={`${errorItem.field || 'error'}-${index}`}>
+                    <span className="font-medium">{formatValidationField(errorItem.field)}:</span> {errorItem.message}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

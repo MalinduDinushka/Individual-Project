@@ -101,10 +101,31 @@ const TourRequestCreate = () => {
     [selectedLocationsByDistrict]
   )
 
-  const googleMapsRouteUrl = useMemo(() => {
-    if (selectedLocations.length === 0) return ''
+  const qualifiedSelectedLocations = useMemo(() => {
+    const orderedDistrictIds = selectedDistricts.filter((districtId) => (selectedLocationsByDistrict[districtId] || []).length > 0)
+    const qualified = []
 
-    const uniqueLocations = [...new Set(selectedLocations)].filter(Boolean)
+    orderedDistrictIds.forEach((districtId) => {
+      const districtName = districtLookup[districtId]?.name || ''
+      const districtLocations = selectedLocationsByDistrict[districtId] || []
+
+      districtLocations.forEach((location) => {
+        if (!location) return
+
+        // Give Maps enough context to resolve common place names inside Sri Lanka.
+        const base = String(location).trim()
+        const withDistrict = districtName ? `${base}, ${districtName}` : base
+        qualified.push(`${withDistrict}, Sri Lanka`)
+      })
+    })
+
+    return qualified
+  }, [selectedDistricts, selectedLocationsByDistrict])
+
+  const googleMapsRouteUrl = useMemo(() => {
+    if (qualifiedSelectedLocations.length === 0) return ''
+
+    const uniqueLocations = [...new Set(qualifiedSelectedLocations)].filter(Boolean)
     if (uniqueLocations.length === 1) {
       return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(uniqueLocations[0])}`
     }
@@ -121,7 +142,15 @@ const TourRequestCreate = () => {
     }
 
     return `https://www.google.com/maps/dir/?${params.toString()}`
-  }, [selectedLocations])
+  }, [qualifiedSelectedLocations])
+
+  const routeStops = useMemo(
+    () => selectedLocations.map((location, index) => ({
+      index: index + 1,
+      location
+    })),
+    [selectedLocations]
+  )
 
   const locationPlan = useMemo(
     () =>
@@ -565,6 +594,36 @@ const TourRequestCreate = () => {
                     </div>
                   ) : (
                     <p className="text-gray-400">No popular places selected yet.</p>
+                  )}
+                </div>
+
+                <div className="rounded-2xl border bg-slate-50 p-4">
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <div>
+                      <p className="font-medium text-gray-800">Route plan</p>
+                      <p className="text-xs text-gray-500">Selected famous places are ordered into a route automatically.</p>
+                    </div>
+                    <span className="text-xs text-gray-500">{routeStops.length} stop{routeStops.length === 1 ? '' : 's'}</span>
+                  </div>
+
+                  {routeStops.length > 0 ? (
+                    <div className="space-y-2">
+                      <div className="max-h-44 overflow-y-auto space-y-2 pr-1">
+                        {routeStops.slice(0, 10).map((stop) => (
+                          <div key={`${stop.index}-${stop.location}`} className="flex items-start gap-3 rounded-xl bg-white border px-3 py-2 text-sm">
+                            <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                              {stop.index}
+                            </span>
+                            <span className="text-gray-700 leading-6">{stop.location}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {routeStops.length > 10 && (
+                        <p className="text-xs text-gray-500">+{routeStops.length - 10} more stops included in the route.</p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400">Pick districts and famous places to auto-build the route.</p>
                   )}
                 </div>
 

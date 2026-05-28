@@ -5,6 +5,7 @@ const {
   register,
   login,
   googleAuth,
+  googleExchange,
   forgotPassword,
   resetPassword,
   getMe,
@@ -37,6 +38,8 @@ router.post(
 );
 
 router.post('/google-auth', googleAuth);
+// Exchange authorization code (server-side) for tokens and authenticate
+router.post('/google-exchange', googleExchange);
 
 router.post(
   '/forgot-password',

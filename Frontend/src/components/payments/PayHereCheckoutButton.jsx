@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { paymentAPI } from '../../api'
 import { useAuthStore } from '../../store/authStore'
 
-const sandboxAction = 'https://sandbox.payhere.lk/pay/checkout'
+const defaultCheckoutAction = 'https://sandbox.payhere.lk/pay/checkout'
 
 const buildCustomerFallback = (user) => {
   const nameParts = String(user?.name || '').trim().split(/\s+/).filter(Boolean)
@@ -90,6 +90,7 @@ const PayHereCheckoutButton = ({
       })
 
       const checkout = response.data.data.checkout
+      const checkoutAction = checkout?.checkoutUrl || defaultCheckoutAction
 
       if (onCreated) {
         onCreated(checkout)
@@ -97,10 +98,10 @@ const PayHereCheckoutButton = ({
 
       const form = document.createElement('form')
       form.method = 'POST'
-      form.action = sandboxAction
+      form.action = checkoutAction
 
       Object.entries(checkout).forEach(([name, value]) => {
-        if (name === 'sandboxUrl') return
+        if (name === 'checkoutUrl') return
         const input = document.createElement('input')
         input.type = 'hidden'
         input.name = name

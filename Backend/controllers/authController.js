@@ -353,6 +353,7 @@ const { OAuth2Client } = require('google-auth-library')
 
 exports.googleAuth = async (req, res) => {
   try {
+    console.log('googleAuth called with body keys:', Object.keys(req.body))
     // Accept either an idToken (credential) or legacy googleId/email payload
     const { idToken, googleId, email, name, avatar } = req.body
 
@@ -361,11 +362,18 @@ exports.googleAuth = async (req, res) => {
     if (idToken) {
       const clientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID
       if (!clientId) {
+        console.error('googleAuth: missing server GOOGLE_CLIENT_ID')
         return res.status(400).json({ success: false, message: 'Google client ID not configured on server' })
       }
       const client = new OAuth2Client(clientId)
-      const ticket = await client.verifyIdToken({ idToken, audience: clientId })
-      payload = ticket.getPayload()
+      try {
+        const ticket = await client.verifyIdToken({ idToken, audience: clientId })
+        payload = ticket.getPayload()
+        console.log('googleAuth: token payload sub=', payload?.sub, 'email=', payload?.email)
+      } catch (verifyErr) {
+        console.error('googleAuth: token verification failed', verifyErr && verifyErr.message)
+        return res.status(400).json({ success: false, message: 'Invalid Google id token', error: verifyErr.message })
+      }
     }
 
     // Fallback to provided fields
@@ -395,7 +403,8 @@ exports.googleAuth = async (req, res) => {
         googleId: finalGoogleId,
         avatar: finalAvatar || undefined,
         isVerified: true,
-        role: 'tourist'
+        role: 'tourist',
+        nationality: 'local'
       })
     }
 
@@ -418,6 +427,86 @@ exports.googleAuth = async (req, res) => {
   } catch (error) {
     console.error('Google auth error:', error)
     res.status(500).json({ success: false, message: 'Google authentication failed', error: error.message })
+  }
+}
+
+// @desc    Exchange authorization code from Google (server-side)
+// @route   POST /api/auth/google-exchange
+// @access  Public
+exports.googleExchange = async (req, res) => {
+  try {
+    const { code, redirectUri } = req.body
+
+    if (!code) return res.status(400).json({ success: false, message: 'Authorization code is required' })
+
+    const clientId = process.env.GOOGLE_CLIENT_ID
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET
+
+    if (!clientId || !clientSecret) {
+      return res.status(400).json({ success: false, message: 'Server Google client credentials not configured' })
+    }
+
+    const redirect = redirectUri || `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/google/callback`
+
+    const client = new OAuth2Client(clientId, clientSecret, redirect)
+    // exchange code for tokens
+    const { tokens } = await client.getToken(code)
+    if (!tokens || !tokens.id_token) {
+      return res.status(400).json({ success: false, message: 'Failed to obtain id_token from Google' })
+    }
+
+    // verify id token
+    const ticket = await client.verifyIdToken({ idToken: tokens.id_token, audience: clientId })
+    const payload = ticket.getPayload()
+
+    const finalGoogleId = payload && payload.sub
+    const finalEmail = payload && payload.email
+    const finalName = payload && payload.name
+    const finalAvatar = payload && payload.picture
+
+    if (!finalEmail) {
+      return res.status(400).json({ success: false, message: 'Email is required from Google' })
+    }
+
+    // Find or create user
+    let user = await User.findOne({ $or: [{ googleId: finalGoogleId }, { email: finalEmail }] })
+
+    if (user) {
+      if (finalGoogleId && !user.googleId) {
+        user.googleId = finalGoogleId
+        await user.save()
+      }
+    } else {
+      user = await User.create({
+        name: finalName || 'Google User',
+        email: finalEmail,
+        googleId: finalGoogleId,
+        avatar: finalAvatar || undefined,
+        isVerified: true,
+        role: 'tourist',
+        nationality: 'local'
+      })
+    }
+
+    const token = generateToken(user._id)
+
+    res.json({
+      success: true,
+      message: 'Google exchange successful',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          avatar: user.avatar
+        },
+        token
+      }
+    })
+  } catch (error) {
+    console.error('Google exchange error:', error)
+    res.status(500).json({ success: false, message: 'Google exchange failed', error: error.message })
   }
 }
 

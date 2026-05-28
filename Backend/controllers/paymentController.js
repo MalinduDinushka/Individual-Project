@@ -10,9 +10,11 @@ const ADVANCE_PAYMENT_PERCENTAGE = Number(process.env.TOUR_ADVANCE_PAYMENT_PERCE
 const DEFAULT_PAYMENT_GATEWAY = String(process.env.DEFAULT_PAYMENT_GATEWAY || 'payhere').toLowerCase();
 const PAYHERE_MERCHANT_ID = process.env.PAYHERE_MERCHANT_ID || '';
 const PAYHERE_MERCHANT_SECRET = process.env.PAYHERE_MERCHANT_SECRET || '';
-const PAYHERE_RETURN_URL = process.env.PAYHERE_RETURN_URL || 'http://localhost:3000/tourist/trips';
-const PAYHERE_CANCEL_URL = process.env.PAYHERE_CANCEL_URL || 'http://localhost:3000/tourist/requests';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const PAYHERE_RETURN_URL = process.env.PAYHERE_RETURN_URL || `${FRONTEND_URL}/tourist/trips`;
+const PAYHERE_CANCEL_URL = process.env.PAYHERE_CANCEL_URL || `${FRONTEND_URL}/tourist/requests`;
 const PAYHERE_NOTIFY_URL = process.env.PAYHERE_NOTIFY_URL || 'http://localhost:5000/api/payments/payhere/notify';
+const PAYHERE_CHECKOUT_URL = process.env.PAYHERE_CHECKOUT_URL || 'https://sandbox.payhere.lk/pay/checkout';
 
 const getAdvanceAmount = (amount) => Math.max(1, Math.round(Number(amount || 0) * ADVANCE_PAYMENT_PERCENTAGE / 100));
 
@@ -85,7 +87,7 @@ const createPayHereCheckoutPayload = ({ payment, items, amount, currency, user }
       merchantSecret: PAYHERE_MERCHANT_SECRET
     }),
     ...buildCustomerFields(user),
-    sandboxUrl: 'https://sandbox.payhere.lk/pay/checkout'
+    checkoutUrl: PAYHERE_CHECKOUT_URL
   };
 };
 
@@ -131,8 +133,10 @@ exports.getPayHereConfigStatus = async (req, res) => {
     data: {
       configured: Boolean(PAYHERE_MERCHANT_ID && PAYHERE_MERCHANT_SECRET),
       gateway: 'payhere',
+      checkoutUrl: PAYHERE_CHECKOUT_URL,
       returnUrl: PAYHERE_RETURN_URL,
-      cancelUrl: PAYHERE_CANCEL_URL
+      cancelUrl: PAYHERE_CANCEL_URL,
+      notifyUrl: PAYHERE_NOTIFY_URL
     }
   });
 };
@@ -381,13 +385,20 @@ exports.createPayHereCheckoutData = async (req, res) => {
 
 exports.payhereNotify = async (req, res) => {
   try {
+    if (!PAYHERE_MERCHANT_SECRET) {
+      return res.status(503).send('PayHere is not configured');
+    }
+
     const payload = req.body;
 
     if (!verifyPayHereSignature(payload, PAYHERE_MERCHANT_SECRET)) {
       return res.status(400).send('Invalid signature');
     }
 
-    const payment = await Payment.findOne({ transactionId: String(payload.order_id || '') });
+    const orderId = String(payload.order_id || '');
+    const payment = await Payment.findOne({
+      $or: [{ gatewayOrderId: orderId }, { transactionId: orderId }]
+    });
     if (!payment) {
       return res.status(404).send('Payment not found');
     }

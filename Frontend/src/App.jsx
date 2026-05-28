@@ -8,6 +8,7 @@ import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import GoogleCallback from './pages/GoogleCallback'
 import TouristDashboard from './pages/tourist/TouristDashboard'
 import ProviderDashboard from './pages/provider/ProviderDashboard'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -44,6 +45,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/auth/google/callback" element={<GoogleCallback />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/service/:id" element={<ServiceDetails />} />

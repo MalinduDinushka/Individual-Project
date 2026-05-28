@@ -4,6 +4,7 @@ export const authAPI = {
   register: (data) => apiClient.post('/auth/register', data),
   login: (data) => apiClient.post('/auth/login', data),
   googleAuth: (data) => apiClient.post('/auth/google-auth', data),
+  googleExchange: (data) => apiClient.post('/auth/google-exchange', data),
   forgotPassword: (data) => apiClient.post('/auth/forgot-password', data),
   resetPassword: (token, data) => apiClient.put(`/auth/reset-password/${token}`, data),
   getMe: () => apiClient.get('/auth/me'),

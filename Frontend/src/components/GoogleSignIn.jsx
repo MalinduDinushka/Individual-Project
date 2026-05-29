@@ -89,21 +89,23 @@ const GoogleSignIn = () => {
     <div>
       <div ref={btnRef} />
       {error && null}
-      {/* Fallback: redirect-based OAuth if GSI isn't desired */}
-      <div className="mt-3">
-        <a
-          href={(() => {
-            const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
-            const redirect = window.location.origin + '/auth/google/callback'
-            const scope = encodeURIComponent('openid email profile')
-            return `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirect)}&scope=${scope}&access_type=offline&prompt=consent`
-          })()}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.6 12.23c0-.78-.07-1.53-.2-2.25H12v4.26h5.64c-.24 1.3-.97 2.4-2.06 3.14v2.6h3.32c1.94-1.79 3.06-4.42 3.06-7.75z" fill="#4285F4"/><path d="M12 22c2.7 0 4.97-.9 6.63-2.44l-3.32-2.6c-.92.62-2.09.99-3.31.99-2.55 0-4.71-1.72-5.48-4.03H2.97v2.54C4.63 19.9 8 22 12 22z" fill="#34A853"/><path d="M6.52 13.92A6.998 6.998 0 0 1 6 12c0-.67.1-1.32.28-1.92V7.54H2.97A10.98 10.98 0 0 0 1 12c0 1.8.43 3.49 1.21 4.96l4.31-3.04z" fill="#FBBC05"/><path d="M12 6.5c1.47 0 2.8.51 3.85 1.52l2.88-2.88C16.96 3.45 14.7 2.5 12 2.5 8 2.5 4.63 4.6 2.97 7.46l4.31 3.04C7.29 8.22 9.45 6.5 12 6.5z" fill="#EA4335"/></svg>
-          Sign in with Google (redirect)
-        </a>
-      </div>
+      {/* Optional server-side OAuth redirect — only show when explicitly enabled */}
+      {import.meta.env.VITE_GOOGLE_SERVER_SIDE === 'true' ? (
+        <div className="mt-3">
+          <a
+            href={(() => {
+              const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
+              const redirect = window.location.origin + '/auth/google/callback'
+              const scope = encodeURIComponent('openid email profile')
+              return `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirect)}&scope=${scope}&access_type=offline&prompt=consent`
+            })()}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.6 12.23c0-.78-.07-1.53-.2-2.25H12v4.26h5.64c-.24 1.3-.97 2.4-2.06 3.14v2.6h3.32c1.94-1.79 3.06-4.42 3.06-7.75z" fill="#4285F4"/><path d="M12 22c2.7 0 4.97-.9 6.63-2.44l-3.32-2.6c-.92.62-2.09.99-3.31.99-2.55 0-4.71-1.72-5.48-4.03H2.97v2.54C4.63 19.9 8 22 12 22z" fill="#34A853"/><path d="M6.52 13.92A6.998 6.998 0 0 1 6 12c0-.67.1-1.32.28-1.92V7.54H2.97A10.98 10.98 0 0 0 1 12c0 1.8.43 3.49 1.21 4.96l4.31-3.04z" fill="#FBBC05"/><path d="M12 6.5c1.47 0 2.8.51 3.85 1.52l2.88-2.88C16.96 3.45 14.7 2.5 12 2.5 8 2.5 4.63 4.6 2.97 7.46l4.31 3.04C7.29 8.22 9.45 6.5 12 6.5z" fill="#EA4335"/></svg>
+            Sign in with Google (redirect)
+          </a>
+        </div>
+      ) : null}
     </div>
   )
 }

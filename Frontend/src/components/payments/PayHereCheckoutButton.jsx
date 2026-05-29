@@ -92,6 +92,10 @@ const PayHereCheckoutButton = ({
       const checkout = response.data.data.checkout
       const checkoutAction = checkout?.checkoutUrl || defaultCheckoutAction
 
+      // Debug: log checkout payload before submitting to PayHere
+      try {
+        console.log('PayHere checkout (client):', checkout)
+      } catch (e) {}
       if (onCreated) {
         onCreated(checkout)
       }
@@ -101,7 +105,7 @@ const PayHereCheckoutButton = ({
       form.action = checkoutAction
 
       Object.entries(checkout).forEach(([name, value]) => {
-        if (name === 'checkoutUrl') return
+        if (name === 'checkoutUrl' || name.startsWith('_')) return
         const input = document.createElement('input')
         input.type = 'hidden'
         input.name = name

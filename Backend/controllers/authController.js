@@ -390,22 +390,35 @@ exports.googleAuth = async (req, res) => {
     let user = await User.findOne({ $or: [{ googleId: finalGoogleId }, { email: finalEmail }] })
 
     if (user) {
-      // Update Google ID if provided and not set
+      // Update Google ID if provided and not set (use raw update to avoid validation errors on existing accounts)
       if (finalGoogleId && !user.googleId) {
-        user.googleId = finalGoogleId
-        await user.save()
+        try {
+          await User.collection.updateOne({ _id: user._id }, { $set: { googleId: finalGoogleId } })
+          // reload user
+          user = await User.findById(user._id)
+        } catch (updateErr) {
+          console.error('googleAuth: failed to update existing user googleId', updateErr && updateErr.message)
+        }
       }
     } else {
-      // Create new user with role tourist by default
-      user = await User.create({
+      // Create new user from authorization-code exchange; insert raw doc to avoid strict validation
+      const raw = {
         name: finalName || 'Google User',
         email: finalEmail,
         googleId: finalGoogleId,
         avatar: finalAvatar || undefined,
         isVerified: true,
         role: 'tourist',
-        nationality: 'local'
-      })
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+      try {
+        await User.collection.insertOne(raw)
+      } catch (insertErr) {
+        console.error('googleExchange: raw insert failed', insertErr && insertErr.message)
+        return res.status(500).json({ success: false, message: 'Failed to create user' })
+      }
+      user = await User.findOne({ email: finalEmail })
     }
 
     const token = generateToken(user._id)
@@ -473,8 +486,12 @@ exports.googleExchange = async (req, res) => {
 
     if (user) {
       if (finalGoogleId && !user.googleId) {
-        user.googleId = finalGoogleId
-        await user.save()
+        try {
+          await User.collection.updateOne({ _id: user._id }, { $set: { googleId: finalGoogleId } })
+          user = await User.findById(user._id)
+        } catch (updateErr) {
+          console.error('googleExchange: failed to update existing user googleId', updateErr && updateErr.message)
+        }
       }
     } else {
       user = await User.create({

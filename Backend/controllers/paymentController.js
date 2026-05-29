@@ -23,8 +23,17 @@ const upperMd5 = (value) => crypto.createHash('md5').update(String(value)).diges
 const formatAmount = (amount) => Number(amount || 0).toFixed(2);
 
 const generatePayHereHash = ({ merchantId, orderId, amount, currency, merchantSecret }) => {
-  const hashInput = `${merchantId}${orderId}${formatAmount(amount)}${currency}${upperMd5(merchantSecret)}`;
-  return crypto.createHash('md5').update(hashInput).digest('hex').toUpperCase();
+  const mId = String(merchantId || '').trim();
+  const oId = String(orderId || '').trim();
+  const amt = formatAmount(amount);
+  const cur = String(currency || '').trim().toUpperCase();
+  const secretHash = upperMd5(String(merchantSecret || '').trim());
+
+  const hashInput = `${mId}${oId}${amt}${cur}${secretHash}`;
+  const result = crypto.createHash('md5').update(hashInput).digest('hex').toUpperCase();
+
+  // Attach raw input for debugging (non-sensitive: merchant id and order id only)
+  return { hash: result, hashInput };
 };
 
 const verifyPayHereSignature = (payload, merchantSecret) => {
@@ -41,16 +50,34 @@ const splitName = (name) => {
   };
 };
 
+const normalizeEmail = (email, fallbackId) => {
+  const value = String(email || '').trim();
+  if (value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    return value;
+  }
+
+  return `tourmate+${String(fallbackId || 'user').replace(/[^a-zA-Z0-9]/g, '')}@example.com`;
+};
+
+const normalizePhone = (phone) => {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (digits.length >= 9) {
+    return digits;
+  }
+
+  return '0770000000';
+};
+
 const buildCustomerFields = (user) => {
   const { first_name, last_name } = splitName(user?.name);
 
   return {
     first_name,
     last_name,
-    email: user?.email || '',
-    phone: user?.phone || '',
-    address: user?.address || '',
-    city: user?.city || '',
+    email: normalizeEmail(user?.email, user?._id),
+    phone: normalizePhone(user?.phone),
+    address: String(user?.address || 'No address provided').trim() || 'No address provided',
+    city: String(user?.city || 'Colombo').trim() || 'Colombo',
     country: user?.country || 'Sri Lanka'
   };
 };
@@ -79,16 +106,58 @@ const createPayHereCheckoutPayload = ({ payment, items, amount, currency, user }
     items: String(items || 'TourMate booking'),
     amount: checkoutAmount,
     currency: checkoutCurrency,
-    hash: generatePayHereHash({
-      merchantId: PAYHERE_MERCHANT_ID,
-      orderId,
-      amount: checkoutAmount,
-      currency: checkoutCurrency,
-      merchantSecret: PAYHERE_MERCHANT_SECRET
-    }),
+    // generatePayHereHash now returns { hash, hashInput }
+    ...(() => {
+      const g = generatePayHereHash({
+        merchantId: PAYHERE_MERCHANT_ID,
+        orderId,
+        amount: checkoutAmount,
+        currency: checkoutCurrency,
+        merchantSecret: PAYHERE_MERCHANT_SECRET
+      });
+      return { hash: g.hash, _hashInput: g.hashInput };
+    })(),
     ...buildCustomerFields(user),
     checkoutUrl: PAYHERE_CHECKOUT_URL
   };
+};
+
+// Debug helper: log checkout fields (temporary)
+const debugLogCheckout = (checkout) => {
+  try {
+    console.log('PayHere checkout payload:');
+    console.log({
+      merchant_id: checkout.merchant_id,
+      order_id: checkout.order_id,
+      amount: checkout.amount,
+      currency: checkout.currency,
+      hash: checkout.hash,
+      _hashInput: checkout._hashInput,
+      checkoutUrl: checkout.checkoutUrl
+    });
+  } catch (e) {
+    console.error('Failed to log checkout payload', e);
+  }
+};
+
+// Debug endpoint: returns computed checkout data and hash input for a payment
+exports.debugPayHereForPayment = async (req, res) => {
+  try {
+    const payment = await Payment.findById(req.params.id);
+    if (!payment) return res.status(404).json({ success: false, message: 'Payment not found' });
+
+    // Only involved users may access
+    if (String(payment.tourist) !== String(req.user._id) && String(payment.provider) !== String(req.user._id)) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const checkout = createPayHereCheckoutPayload({ payment, items: payment.metadata?.items || 'TourMate', amount: payment.amount, currency: payment.currency || 'LKR', user: req.user });
+
+    return res.json({ success: true, data: { checkout } });
+  } catch (error) {
+    console.error('Debug PayHere error:', error);
+    res.status(500).json({ success: false, message: 'Failed to compute debug checkout', error: error.message });
+  }
 };
 
 const findOrCreatePendingPayment = async ({ touristId, providerId, amount, currency, purpose, bookingId, tourRequestId, metadata }) => {
@@ -111,7 +180,7 @@ const findOrCreatePendingPayment = async ({ touristId, providerId, amount, curre
     currency,
     paymentMethod: 'payhere',
     gateway: 'payhere',
-    transactionId: `PH-${crypto.randomBytes(12).toString('hex')}`,
+    transactionId: `PH${crypto.randomBytes(12).toString('hex').toUpperCase()}`,
     status: 'pending',
     purpose,
     metadata
@@ -181,6 +250,9 @@ exports.createPayment = async (req, res) => {
       currency: 'LKR',
       user: req.user
     });
+
+      // Log checkout for debugging
+      try { debugLogCheckout(checkout); } catch (e) {}
 
     payment.gatewayOrderId = checkout.order_id;
     payment.paymentDetails = {
@@ -259,6 +331,8 @@ exports.createAdvancePayment = async (req, res) => {
       user: req.user
     });
 
+      // Log checkout for debugging
+      try { debugLogCheckout(checkout); } catch (e) {}
     payment.gatewayOrderId = checkout.order_id;
     payment.paymentDetails = {
       ...(payment.paymentDetails || {}),

@@ -3,6 +3,7 @@ const router = express.Router();
 const { body } = require('express-validator');
 const { protect } = require('../middleware/auth');
 const { createPayment, createPayHereCheckoutData, payhereNotify, getPaymentStatus, getPayHereConfigStatus } = require('../controllers/paymentController');
+const { debugPayHereForPayment } = require('../controllers/paymentController');
 
 router.get('/payhere/config', getPayHereConfigStatus);
 
@@ -26,6 +27,8 @@ router.post(
 );
 
 router.post('/payhere/notify', express.urlencoded({ extended: false }), payhereNotify);
+
+router.get('/payhere/debug/:id', protect, debugPayHereForPayment);
 
 router.get('/:id', protect, getPaymentStatus);
 

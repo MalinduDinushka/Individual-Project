@@ -39,13 +39,15 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['local', 'foreign'],
     required: function() {
-      return this.role === 'tourist';
+      // nationality required for tourists only when not created via Google OAuth
+      return this.role === 'tourist' && !this.googleId;
     }
   },
   nic: {
     type: String,
     required: function() {
-      return this.role === 'provider' || (this.role === 'tourist' && this.nationality === 'local');
+      // NIC required for providers, or for local tourists — but skip requirement for Google OAuth users
+      return (this.role === 'provider' || (this.role === 'tourist' && this.nationality === 'local')) && !this.googleId;
     },
     trim: true,
     match: [/^([0-9]{9}[vVxX]|[0-9]{12})$/, 'Please provide a valid NIC number']
@@ -53,7 +55,8 @@ const userSchema = new mongoose.Schema({
   passport: {
     type: String,
     required: function() {
-      return this.role === 'tourist' && this.nationality === 'foreign';
+      // passport required for foreign tourists unless created via Google OAuth
+      return this.role === 'tourist' && this.nationality === 'foreign' && !this.googleId;
     },
     trim: true
   },

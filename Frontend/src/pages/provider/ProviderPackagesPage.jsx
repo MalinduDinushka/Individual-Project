@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { authAPI } from '../../api'
+import { sriLankaDistricts } from '../../data/sriLankaTour'
 import { useAuthStore } from '../../store/authStore'
 
 const createDefaultTravelPackage = () => ({
   title: '',
   description: '',
-  includedDistricts: '',
+  includedDistricts: [],
   duration: '',
   highlights: '',
   images: [],
@@ -60,15 +61,17 @@ const normalizePackageImages = (images = []) => {
     .filter(Boolean)
 }
 
-const normalizeTravelPackages = (travelPackages = []) => {
+  const normalizeTravelPackages = (travelPackages = []) => {
   return travelPackages
     .map((item) => {
       const title = String(item.title || '').trim()
       const description = String(item.description || '').trim()
-      const includedDistricts = String(item.includedDistricts || '')
-        .split(',')
-        .map((district) => district.trim())
-        .filter(Boolean)
+      const includedDistricts = Array.isArray(item.includedDistricts)
+        ? item.includedDistricts.map((d) => String(d || '').trim()).filter(Boolean)
+        : String(item.includedDistricts || '')
+            .split(',')
+            .map((district) => district.trim())
+            .filter(Boolean)
       const duration = String(item.duration || '').trim()
       const highlights = String(item.highlights || '')
         .split(',')
@@ -106,7 +109,12 @@ const ProviderPackagesPage = () => {
       ? user.businessInfo.travelPackages.map((item) => ({
           title: item.title || '',
           description: item.description || '',
-          includedDistricts: Array.isArray(item.includedDistricts) ? item.includedDistricts.join(', ') : '',
+          includedDistricts: Array.isArray(item.includedDistricts)
+            ? item.includedDistricts
+            : String(item.includedDistricts || '')
+                .split(',')
+                .map((d) => d.trim())
+                .filter(Boolean),
           duration: item.duration || '',
           highlights: Array.isArray(item.highlights) ? item.highlights.join(', ') : '',
           images: Array.isArray(item.images)
@@ -212,6 +220,14 @@ const ProviderPackagesPage = () => {
         }
       }
 
+      // Debug: print payload sent to server
+      try {
+        // Avoid logging very large payloads
+        console.log('savePackages payload', JSON.stringify(payload).slice(0, 2000))
+      } catch (e) {
+        console.warn('Could not stringify savePackages payload', e)
+      }
+
       const res = await authAPI.updateProfile(payload)
       updateUser(res.data.data.user)
       toast.success('Travel packages saved')
@@ -249,13 +265,35 @@ const ProviderPackagesPage = () => {
               </label>
               <label className="block">
                 <span className="block text-sm font-semibold text-slate-700 mb-2">Duration</span>
-                <input value={pkg.duration} onChange={(e) => handleChange(index, 'duration', e.target.value)} className="input w-full" placeholder="4 days / 3 nights" />
+                <select value={pkg.duration} onChange={(e) => handleChange(index, 'duration', e.target.value)} className="input w-full">
+                  <option value="">Select duration</option>
+                  <option value="1 day">1 day</option>
+                  <option value="2 days">2 days</option>
+                  <option value="3 days">3 days</option>
+                  <option value="4 days">4 days</option>
+                  <option value="5 days">5 days</option>
+                  <option value="7 days">7 days</option>
+                  <option value="10 days">10 days</option>
+                  <option value="14 days">14 days</option>
+                </select>
               </label>
             </div>
 
             <label className="block">
               <span className="block text-sm font-semibold text-slate-700 mb-2">Included districts</span>
-              <input value={pkg.includedDistricts} onChange={(e) => handleChange(index, 'includedDistricts', e.target.value)} className="input w-full" placeholder="Kandy, Nuwara Eliya, Badulla" />
+              <select
+                multiple
+                value={Array.isArray(pkg.includedDistricts) ? pkg.includedDistricts : []}
+                onChange={(e) => {
+                  const values = Array.from(e.target.selectedOptions || []).map((o) => o.value)
+                  handleChange(index, 'includedDistricts', values)
+                }}
+                className="input w-full h-36"
+              >
+                {sriLankaDistricts.map((d) => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
             </label>
 
             <label className="block">

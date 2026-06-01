@@ -279,6 +279,196 @@ exports.verifyProvider = async (req, res) => {
   }
 };
 
+// @desc    Update user active status
+// @route   PATCH /api/admin/users/:id/status
+// @access  Private/Admin
+exports.updateUserStatus = async (req, res) => {
+  try {
+    const { isActive } = req.body;
+
+    if (typeof isActive !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        message: 'isActive must be a boolean'
+      });
+    }
+
+    if (String(req.params.id) === String(req.user?._id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'You cannot deactivate your own account'
+      });
+    }
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    user.isActive = isActive;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: `User ${isActive ? 'activated' : 'deactivated'} successfully`,
+      data: {
+        user: await User.findById(user._id).select('-password')
+      }
+    });
+  } catch (error) {
+    console.error('Update user status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update user status',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Delete a user
+// @route   DELETE /api/admin/users/:id
+// @access  Private/Admin
+exports.deleteUser = async (req, res) => {
+  try {
+    if (String(req.params.id) === String(req.user?._id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'You cannot delete your own account'
+      });
+    }
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+
+    res.json({
+      success: true,
+      message: 'User deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete user',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Get SOS alerts for admin management
+// @route   GET /api/admin/sos
+// @access  Private/Admin
+exports.getSOSAlerts = async (req, res) => {
+  try {
+    const { status, priority, search } = req.query;
+
+    const query = {};
+    if (status) query.status = status;
+    if (priority) query.priority = priority;
+
+    const alerts = await SOSAlert.find(query)
+      .populate('tourist', 'name phone email avatar role')
+      .populate('assignedTo', 'name email avatar role')
+      .sort('-createdAt');
+
+    const filteredAlerts = search
+      ? alerts.filter((alert) => {
+          const text = [
+            alert.emergencyType,
+            alert.description,
+            alert.contactNumber,
+            alert.location?.address,
+            alert.tourist?.name,
+            alert.tourist?.email
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+          return text.includes(search.toLowerCase());
+        })
+      : alerts;
+
+    res.json({
+      success: true,
+      count: filteredAlerts.length,
+      data: filteredAlerts
+    });
+  } catch (error) {
+    console.error('Admin SOS alerts error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch SOS alerts',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Update SOS alert status
+// @route   PATCH /api/admin/sos/:id
+// @access  Private/Admin
+exports.updateSOSAlert = async (req, res) => {
+  try {
+    const { status, note } = req.body;
+
+    const alert = await SOSAlert.findById(req.params.id);
+
+    if (!alert) {
+      return res.status(404).json({
+        success: false,
+        message: 'SOS alert not found'
+      });
+    }
+
+    if (status) {
+      alert.status = status;
+      if (status === 'resolved') {
+        alert.resolvedAt = new Date();
+        alert.resolvedBy = req.user._id;
+      }
+    }
+
+    if (note && String(note).trim()) {
+      alert.notes = alert.notes || [];
+      alert.notes.push({
+        admin: req.user._id,
+        note: String(note).trim(),
+        timestamp: new Date()
+      });
+    }
+
+    await alert.save();
+
+    const updatedAlert = await SOSAlert.findById(alert._id)
+      .populate('tourist', 'name phone email avatar role')
+      .populate('assignedTo', 'name email avatar role');
+
+    res.json({
+      success: true,
+      message: 'SOS alert updated successfully',
+      data: updatedAlert
+    });
+  } catch (error) {
+    console.error('Update SOS alert error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update SOS alert',
+      error: error.message
+    });
+  }
+};
+
 // Helper function to get relative time
 function getRelativeTime(date) {
   const now = new Date();

@@ -142,11 +142,10 @@ const userSchema = new mongoose.Schema({
       }],
       duration: String,
       highlights: [String],
-      images: [{
-        url: String,
-        label: String,
-        type: String
-      }],
+      images: {
+        type: [mongoose.Schema.Types.Mixed],
+        default: []
+      },
       price: {
         amount: {
           type: Number,

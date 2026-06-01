@@ -32,7 +32,7 @@ apiClient.interceptors.response.use(
 
       if (!isPublicService) {
         localStorage.removeItem('tourmate-auth')
-        window.location.href = '/login'
+        window.location.replace('/login')
       } else {
         // For public service fetches, let the caller handle the error (avoid forced logout)
         console.warn('Received 401 for public service endpoint, skipping auto-logout')

@@ -31,7 +31,7 @@ const DashboardLayout = ({ children, navItems, userRole }) => {
 
   const handleLogout = () => {
     logout()
-    navigate('/login')
+    navigate('/login', { replace: true })
   }
 
   const roleLabels = {

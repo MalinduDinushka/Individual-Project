@@ -102,7 +102,11 @@ export const notificationAPI = {
 
 export const adminAPI = {
   getDashboardStats: () => apiClient.get('/admin/dashboard'),
-  getAllUsers: () => apiClient.get('/admin/users'),
+  getAllUsers: (params) => apiClient.get('/admin/users', { params }),
   getVerifications: () => apiClient.get('/admin/verifications'),
-  verifyProvider: (id, data) => apiClient.put(`/admin/verify-provider/${id}`, data)
+  verifyProvider: (id, data) => apiClient.put(`/admin/verify-provider/${id}`, data),
+  updateUserStatus: (id, data) => apiClient.patch(`/admin/users/${id}/status`, data),
+  deleteUser: (id) => apiClient.delete(`/admin/users/${id}`),
+  getSOSAlerts: (params) => apiClient.get('/admin/sos', { params }),
+  updateSOSAlert: (id, data) => apiClient.patch(`/admin/sos/${id}`, data)
 }

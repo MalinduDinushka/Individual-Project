@@ -1,6 +1,8 @@
 import { Routes, Route } from 'react-router-dom'
 import DashboardLayout from '../../components/DashboardLayout'
 import AdminDashboardHome from './AdminDashboardHome'
+import AdminUsersPage from './AdminUsersPage'
+import AdminSOSPage from './AdminSOSPage'
 
 const AdminDashboard = () => {
   const navItems = [
@@ -15,9 +17,9 @@ const AdminDashboard = () => {
     <DashboardLayout navItems={navItems} userRole="admin">
       <Routes>
         <Route path="/" element={<AdminDashboardHome />} />
-        <Route path="/users" element={<div>User Management - Coming Soon</div>} />
+        <Route path="/users" element={<AdminUsersPage />} />
         <Route path="/verifications" element={<div>Verifications - Coming Soon</div>} />
-        <Route path="/sos" element={<div>SOS Alerts - Coming Soon</div>} />
+        <Route path="/sos" element={<AdminSOSPage />} />
         <Route path="/reports" element={<div>Reports - Coming Soon</div>} />
       </Routes>
     </DashboardLayout>

@@ -84,7 +84,7 @@
   }
 
   .section-eyebrow {
-    @apply inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/8 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-primary;
+    @apply inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-primary;
   }
 
   .section-title {

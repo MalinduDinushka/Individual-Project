@@ -25,47 +25,47 @@ import { AiOutlineSafety } from 'react-icons/ai'
 const stats = [
   { value: '500+', label: 'verified providers' },
   { value: '50K+', label: 'bookings completed' },
-  { value: '4.9/5', label: 'average traveler rating' },
-  { value: '24/7', label: 'support coverage' }
+  { value: '4.9/5', label: 'average rating' },
+  { value: '24/7', label: 'support' }
 ]
 
-const trustPoints = ['Identity-verified providers', 'Completion-based feedback', 'Live booking and chat support']
+const trustPoints = ['Verified providers', 'Clear pricing', 'Chat and booking support']
 
 const featuredServices = [
   {
     icon: FaRoute,
     title: 'Tour guides',
-    description: 'Certified local guides with route planning, pickup coordination, and trip support.'
+    description: 'Local guides with simple route planning and trip support.'
   },
   {
     icon: FaTaxi,
     title: 'Transport',
-    description: 'Airport transfers, day trips, and private vehicle bookings with transparent pricing.'
+    description: 'Airport transfers, day trips, and private vehicle bookings.'
   },
   {
     icon: FaHotel,
     title: 'Stays',
-    description: 'Comfortable accommodation options with a clean booking flow and clear service details.'
+    description: 'Hotels and guest stays with clear service details.'
   },
   {
     icon: FaMotorcycle,
     title: 'Safari & rides',
-    description: 'Flexible travel experiences for wildlife tours, adventure travel, and local mobility.'
+    description: 'Safari tours, ride options, and flexible travel experiences.'
   }
 ]
 
 const workflow = [
   {
-    title: 'Search with intent',
-    description: 'Choose a district, service type, and date to narrow results to what matters.'
+    title: 'Search simply',
+    description: 'Choose a district, service type, and date.'
   },
   {
-    title: 'Compare and contact',
-    description: 'Check provider quality, ratings, and booking context before you commit.'
+    title: 'Compare providers',
+    description: 'Review quality, ratings, and booking details before you decide.'
   },
   {
-    title: 'Complete and review',
-    description: 'After the trip, submit structured feedback and help the next traveler decide.'
+    title: 'Book and review',
+    description: 'Complete the trip and leave feedback after travel.'
   }
 ]
 
@@ -73,23 +73,23 @@ const reviews = [
   {
     name: 'Sarah Johnson',
     role: 'Traveler, UK',
-    quote: 'It finally feels like a real travel product, not just a booking form.'
+    quote: 'It feels simple, clear, and easy to trust.'
   },
   {
     name: 'Michael Chen',
     role: 'Family traveler, SG',
-    quote: 'The provider flow, chat, and post-trip feedback make it feel like a modern platform.'
+    quote: 'The booking flow feels organized and modern.'
   },
   {
     name: 'Emma Williams',
     role: 'Solo traveler, AU',
-    quote: 'The support and trust cues make booking feel calm and professional.'
+    quote: 'The support and trust cues make booking feel comfortable.'
   }
 ]
 
 const HomePage = () => {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.10),transparent_28%),linear-gradient(180deg,#f8fafc_0%,#f5f7fb_100%)] text-slate-900">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.06),transparent_28%),linear-gradient(180deg,#f8fafc_0%,#f5f7fb_100%)] text-slate-900">
       <Navbar variant="light" />
 
       <section className="relative overflow-hidden">
@@ -107,18 +107,18 @@ const HomePage = () => {
             <div className="text-white max-w-3xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 backdrop-blur-md shadow-lg shadow-black/10">
                 <MdVerified className="text-amber-300" />
-                <span className="text-sm font-semibold tracking-wide">Trusted travel marketplace for Sri Lanka</span>
+                <span className="text-sm font-semibold tracking-wide">Travel booking platform for Sri Lanka</span>
               </div>
 
               <h1 className="mt-6 text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[0.96]">
-                Book verified travel services
+                Plan and book travel
                 <span className="block mt-4 bg-gradient-to-r from-amber-200 via-white to-cyan-200 bg-clip-text text-transparent">
-                  with real-world confidence
+                  in one simple place
                 </span>
               </h1>
 
               <p className="mt-6 text-lg md:text-xl leading-8 text-white/78 max-w-2xl">
-                TourMate brings together guides, transport, stays, support, and post-trip feedback in one clean workflow.
+                TourMate brings together guides, transport, stays, support, and reviews in one clean workflow.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -156,7 +156,7 @@ const HomePage = () => {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-cyan-200/70 font-bold">Marketplace preview</div>
-                    <h2 className="mt-2 text-2xl font-extrabold">A booking flow that feels operational</h2>
+                    <h2 className="mt-2 text-2xl font-extrabold">A clean booking flow</h2>
                   </div>
                   <div className="rounded-2xl bg-emerald-400/15 border border-emerald-300/20 px-3 py-2 text-xs font-semibold text-emerald-200">
                     Live availability
@@ -172,7 +172,7 @@ const HomePage = () => {
                         </div>
                         <div>
                           <div className="font-semibold">Colombo to Ella</div>
-                          <div className="text-sm text-white/55">District, route, and service filters applied</div>
+                          <div className="text-sm text-white/55">District, route, and service filters</div>
                         </div>
                       </div>
                       <div className="mt-4 grid grid-cols-2 gap-3">
@@ -182,7 +182,7 @@ const HomePage = () => {
                         </div>
                         <div className="rounded-2xl bg-white/7 border border-white/10 p-4">
                           <div className="text-[11px] uppercase tracking-[0.18em] text-white/55">Support</div>
-                          <div className="mt-2 font-semibold flex items-center gap-2 text-sm"><FaHeadset className="text-cyan-200" /> 24/7</div>
+                          <div className="mt-2 font-semibold flex items-center gap-2 text-sm"><FaHeadset className="text-cyan-200" /> 24/7 help</div>
                         </div>
                       </div>
                     </div>
@@ -217,7 +217,7 @@ const HomePage = () => {
                   <div className="mt-4 rounded-2xl bg-cyan-500/12 border border-cyan-300/15 p-4 flex items-center justify-between gap-4">
                     <div>
                       <div className="text-sm text-cyan-100/70">Next best action</div>
-                      <div className="mt-1 font-semibold">Compare providers by rating, response time, and completion history</div>
+                      <div className="mt-1 font-semibold">Compare providers by rating, response time, and booking details</div>
                     </div>
                     <FaChartLine className="text-2xl text-cyan-200" />
                   </div>
@@ -232,9 +232,9 @@ const HomePage = () => {
         <div className="container mx-auto px-6">
           <div className="max-w-3xl">
             <div className="section-eyebrow mb-5"><span>Built like a marketplace</span></div>
-            <h2 className="section-title">A platform that behaves like a real booking app</h2>
+            <h2 className="section-title">A simple platform for booking travel services</h2>
             <p className="section-copy mt-5">
-              Search, compare, chat, complete, and review in a flow that feels familiar to users of modern travel and ride-hailing apps.
+              Search, compare, chat, book, and review in a flow that is easy to use on desktop and mobile.
             </p>
           </div>
 
@@ -259,11 +259,11 @@ const HomePage = () => {
                 <div className="w-12 h-12 rounded-2xl bg-sky-100 text-sky-700 flex items-center justify-center"><FaUsers /></div>
                 <div>
                   <div className="font-bold text-slate-900">Trust by design</div>
-                  <div className="text-sm text-slate-500">Verified profiles and completion-based reviews</div>
+                  <div className="text-sm text-slate-500">Verified profiles and reviews</div>
                 </div>
               </div>
               <p className="mt-5 text-slate-600 leading-7">
-                The platform is built around safety cues and post-trip feedback so users can make decisions with more confidence.
+                The platform uses clear profile and feedback cues so users can make decisions more easily.
               </p>
             </div>
 
@@ -272,11 +272,11 @@ const HomePage = () => {
                 <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center"><BiCustomize className="text-xl" /></div>
                 <div>
                   <div className="font-bold text-slate-900">Structured feedback</div>
-                  <div className="text-sm text-slate-500">Service quality, communication, value, and cleanliness</div>
+                  <div className="text-sm text-slate-500">Service quality, communication, and value</div>
                 </div>
               </div>
               <p className="mt-5 text-slate-600 leading-7">
-                The feedback system is intentionally multi-category, so it feels closer to a real-world marketplace than a simple star rating.
+                The feedback system keeps ratings simple while still giving useful detail.
               </p>
             </div>
           </div>
@@ -288,8 +288,8 @@ const HomePage = () => {
         <div className="container mx-auto px-6 relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-14">
             <div className="section-eyebrow mx-auto mb-5"><span>Services</span></div>
-            <h2 className="section-title">Everything users expect to book in one place</h2>
-            <p className="section-copy mt-5">A cleaner category layout with stronger visual hierarchy and less noise.</p>
+            <h2 className="section-title">The main services in one place</h2>
+            <p className="section-copy mt-5">Simple categories, clear labels, and less visual noise.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -315,9 +315,9 @@ const HomePage = () => {
           <div className="text-center max-w-3xl mx-auto mb-14">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-cyan-200 mb-5">
               <FaShieldAlt />
-              <span>Customer stories</span>
+              <span>Reviews</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">Designed to feel dependable in real travel scenarios</h2>
+            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">What travelers say</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -347,11 +347,11 @@ const HomePage = () => {
               <div className="bg-primary/10 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <AiOutlineSafety className="text-primary text-4xl" />
               </div>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">
-                Ready to launch your next trip with a real product feel?
+                <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">
+                Ready to plan your next trip?
               </h2>
               <p className="text-slate-600 text-lg max-w-3xl mx-auto mb-8 leading-8">
-                Search services, book with confidence, and manage support, chat, and feedback in one application.
+                Search services, book with confidence, and manage support, chat, and feedback in one app.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/register" className="btn btn-primary px-8">

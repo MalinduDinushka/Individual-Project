@@ -10,30 +10,40 @@ const parseTravelPackages = (travelPackages) => {
 
   const parsePackageImages = (images) => {
     if (!images) return []
-
     const items = Array.isArray(images) ? images : [images]
     return items
-      .map((item) => {
-        if (!item) return null
+      .flatMap((item) => {
+        if (!item) return []
 
+        // If item is a string that looks like JSON, try to parse it
         if (typeof item === 'string') {
+          const trimmed = item.trim()
+          if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+            try {
+              const parsed = JSON.parse(trimmed)
+              if (Array.isArray(parsed)) return parsed
+              if (parsed && typeof parsed === 'object') return [parsed]
+            } catch (e) {
+              // not JSON, fallthrough to treat as single URL string
+            }
+          }
           const url = String(item || '').trim()
-          return url ? { url } : null
+          return url ? [{ url }] : []
         }
 
-        if (typeof item !== 'object') return null
+        if (typeof item !== 'object') return []
 
         const url = String(item.url || item.src || '').trim()
-        if (!url) return null
+        if (!url) return []
 
         const label = String(item.label || item.caption || '').trim()
         const type = String(item.type || '').trim()
 
-        return {
+        return [{
           url,
           ...(label ? { label } : {}),
           ...(type ? { type } : {})
-        }
+        }]
       })
       .filter(Boolean)
   }
@@ -640,11 +650,26 @@ exports.getMe = async (req, res) => {
 // @access  Private
 exports.updateProfile = async (req, res) => {
   try {
-    const fieldsToUpdate = {
-      name: req.body.name,
-      phone: req.body.phone,
-      avatar: req.body.avatar
-    };
+    // Debug: log incoming request context for troubleshooting
+    try {
+      console.log('UpdateProfile called by user:', req.user?._id, 'role:', req.user?.role);
+      console.log('UpdateProfile payload:', JSON.stringify(req.body).slice(0, 2000));
+    } catch (logErr) {
+      console.warn('Failed to stringify update-profile payload for logging', logErr);
+    }
+    const fieldsToUpdate = {};
+
+    if (req.body.name !== undefined) {
+      fieldsToUpdate.name = req.body.name;
+    }
+
+    if (req.body.phone !== undefined) {
+      fieldsToUpdate.phone = req.body.phone;
+    }
+
+    if (req.body.avatar !== undefined) {
+      fieldsToUpdate.avatar = req.body.avatar;
+    }
 
     // Update role-specific fields
     if (req.user.role === 'tourist' && req.body.preferences) {
@@ -690,14 +715,90 @@ exports.updateProfile = async (req, res) => {
       fieldsToUpdate.gender = req.body.gender;
     }
 
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      fieldsToUpdate,
-      {
-        new: true,
-        runValidators: true
+    // Use document load + save to ensure proper casting of nested subdocuments
+    let user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // If businessInfo.travelPackages present in payload, normalize it first
+    if (fieldsToUpdate.businessInfo && Array.isArray(fieldsToUpdate.businessInfo.travelPackages)) {
+      const normalizePkg = (pkg) => {
+        const next = { ...(pkg || {}) }
+
+        // includedDistricts -> array of ids/codes
+        if (Array.isArray(next.includedDistricts)) {
+          next.includedDistricts = next.includedDistricts.map((d) => String(d || '').trim()).filter(Boolean)
+        } else if (typeof next.includedDistricts === 'string') {
+          next.includedDistricts = next.includedDistricts.split(',').map((d) => d.trim()).filter(Boolean)
+        } else {
+          next.includedDistricts = []
+        }
+
+        // duration -> string
+        next.duration = String(next.duration || '').trim()
+
+        // highlights -> array
+        if (Array.isArray(next.highlights)) {
+          next.highlights = next.highlights.map((h) => String(h || '').trim()).filter(Boolean)
+        } else if (typeof next.highlights === 'string') {
+          next.highlights = next.highlights.split(',').map((h) => h.trim()).filter(Boolean)
+        } else {
+          next.highlights = []
+        }
+
+        // images -> normalize to array of objects {url,label,type}
+        let imgs = next.images || []
+        if (typeof imgs === 'string') {
+          const t = imgs.trim()
+          if (t.startsWith('[') || t.startsWith('{')) {
+            try { imgs = JSON.parse(t) } catch (e) { imgs = [t] }
+          } else {
+            imgs = [t]
+          }
+        }
+        if (!Array.isArray(imgs)) imgs = [imgs]
+        next.images = imgs.map((img) => {
+          if (!img) return null
+          if (typeof img === 'string') return { url: String(img).trim() }
+          if (typeof img === 'object') {
+            const url = String(img.url || img.src || '').trim()
+            if (!url) return null
+            return { url, label: String(img.label || img.caption || '').trim() || undefined, type: String(img.type || '').trim() || undefined }
+          }
+          return null
+        }).filter(Boolean)
+
+        // price.amount -> number
+        if (next.price && next.price.amount !== undefined) {
+          const n = Number(next.price.amount)
+          next.price.amount = Number.isFinite(n) ? n : undefined
+          next.price.currency = String(next.price.currency || 'USD').trim() || 'USD'
+        }
+
+        return next
       }
-    ).select('-password');
+
+      try {
+        fieldsToUpdate.businessInfo.travelPackages = fieldsToUpdate.businessInfo.travelPackages.map(normalizePkg)
+      } catch (e) {
+        console.warn('Failed to normalize incoming travelPackages', e)
+      }
+    }
+
+    // Apply top-level updates
+    for (const key of Object.keys(fieldsToUpdate)) {
+      if (key === 'businessInfo' && typeof fieldsToUpdate.businessInfo === 'object') {
+        user.businessInfo = {
+          ...(user.businessInfo || {}),
+          ...fieldsToUpdate.businessInfo
+        };
+      } else {
+        user[key] = fieldsToUpdate[key];
+      }
+    }
+
+    await user.save();
 
     if (nextPhotos && nextPhotos.length > 0) {
       await User.collection.updateOne(
@@ -706,9 +807,7 @@ exports.updateProfile = async (req, res) => {
       )
     }
 
-    const finalUser = nextPhotos && nextPhotos.length > 0
-      ? await User.findById(req.user._id).select('-password')
-      : user;
+    const finalUser = await User.findById(req.user._id).select('-password');
 
     res.json({
       success: true,
@@ -717,6 +816,22 @@ exports.updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.error('Update profile error:', error);
+
+    // Handle mongoose validation errors explicitly to return 400
+    if (error && error.name === 'ValidationError') {
+      const errors = Object.values(error.errors || {}).map(err => ({ field: err.path, message: err.message }));
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors
+      });
+    }
+
+    // Log stack for debugging in development
+    if (error && error.stack) {
+      console.error(error.stack);
+    }
+
     res.status(500).json({
       success: false,
       message: 'Failed to update profile',

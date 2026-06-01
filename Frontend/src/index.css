@@ -21,9 +21,9 @@
     @apply font-sans antialiased text-slate-700 bg-slate-50;
     font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background:
-      radial-gradient(circle at top left, rgba(22, 128, 147, 0.08), transparent 30%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.06), transparent 22%),
-      linear-gradient(180deg, #f8fafc 0%, #f5f7fb 100%);
+      radial-gradient(circle at top left, rgba(15, 118, 110, 0.06), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.05), transparent 22%),
+      linear-gradient(180deg, #f8fafc 0%, #f3f6fb 100%);
     min-height: 100vh;
   }
 
@@ -38,11 +38,11 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 focus:ring-offset-transparent;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary/25 focus:ring-offset-2 focus:ring-offset-transparent;
   }
   
   .btn-primary {
-    @apply bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:-translate-y-0.5 active:translate-y-0;
+    @apply bg-primary text-white shadow-sm shadow-primary/15 hover:bg-primary-dark hover:shadow-md active:translate-y-0;
   }
   
   .btn-secondary {
@@ -54,11 +54,11 @@
   }
   
   .input {
-    @apply w-full px-4 py-3.5 border border-slate-200 rounded-2xl bg-white/90 text-slate-800 placeholder:text-slate-400 shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 focus:shadow-md;
+    @apply w-full px-4 py-3 border border-slate-200 rounded-xl bg-white/95 text-slate-800 placeholder:text-slate-400 shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 focus:shadow-md;
   }
   
   .card {
-    @apply bg-white/90 backdrop-blur-xl rounded-3xl shadow-[0_18px_50px_rgba(15,23,42,0.08)] border border-white/70 p-6;
+    @apply bg-white rounded-2xl shadow-[0_12px_30px_rgba(15,23,42,0.06)] border border-slate-200/70 p-6;
   }
   
   .badge {
@@ -71,28 +71,28 @@
 
   .page-shell::before {
     content: '';
-    @apply absolute inset-x-0 top-0 h-80 pointer-events-none;
-    background: linear-gradient(180deg, rgba(10, 96, 123, 0.14), rgba(10, 96, 123, 0));
+    @apply absolute inset-x-0 top-0 h-64 pointer-events-none;
+    background: linear-gradient(180deg, rgba(15, 118, 110, 0.10), rgba(15, 118, 110, 0));
   }
 
   .premium-panel {
-    @apply bg-white/85 backdrop-blur-xl border border-white/70 shadow-[0_18px_60px_rgba(15,23,42,0.10)] rounded-[28px];
+    @apply bg-white backdrop-blur-xl border border-slate-200/70 shadow-[0_12px_34px_rgba(15,23,42,0.07)] rounded-2xl;
   }
 
   .premium-panel-soft {
-    @apply bg-white/70 backdrop-blur-xl border border-white/70 shadow-[0_12px_40px_rgba(15,23,42,0.08)] rounded-[24px];
+    @apply bg-white/80 backdrop-blur-xl border border-slate-200/70 shadow-[0_10px_28px_rgba(15,23,42,0.06)] rounded-2xl;
   }
 
   .section-eyebrow {
-    @apply inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-primary;
+    @apply inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/8 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-primary;
   }
 
   .section-title {
-    @apply text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900;
+    @apply text-3xl md:text-4xl font-bold tracking-tight text-slate-900;
   }
 
   .section-copy {
-    @apply text-lg md:text-xl leading-8 text-slate-600;
+    @apply text-base md:text-lg leading-7 text-slate-600;
   }
 
   .map-label-text {

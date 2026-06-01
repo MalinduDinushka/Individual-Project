@@ -20,12 +20,12 @@ const Navbar = ({ variant = 'light' }) => {
   }
 
   return (
-    <nav className={`${isLight ? 'bg-white/80 backdrop-blur-xl border-b border-white/70 shadow-[0_12px_40px_rgba(15,23,42,0.08)]' : 'bg-slate-950/75 backdrop-blur-xl border-b border-white/10 shadow-[0_12px_40px_rgba(15,23,42,0.22)]'} sticky top-0 z-50`}>
+    <nav className={`${isLight ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200/70 shadow-sm' : 'bg-slate-950/75 backdrop-blur-xl border-b border-white/10 shadow-[0_12px_40px_rgba(15,23,42,0.22)]'} sticky top-0 z-50`}>
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between gap-6">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className={`${isLight ? 'bg-gradient-to-br from-primary to-primary-dark' : 'bg-white'} p-2.5 rounded-2xl shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform duration-200`}>
+            <div className={`${isLight ? 'bg-primary' : 'bg-white'} p-2.5 rounded-xl shadow-sm group-hover:scale-105 transition-transform duration-200`}>
               <FaMapMarkerAlt className={`${isLight ? 'text-white' : 'text-primary'} text-xl`} />
             </div>
             <div>
@@ -34,7 +34,7 @@ const Navbar = ({ variant = 'light' }) => {
               </h1>
               <p className={`${isLight ? 'text-slate-500' : 'text-white/70'} text-xs font-medium flex items-center space-x-1`}>
                 <FaStar className="text-amber-400 text-[10px]" />
-                <span>Premium travel platform</span>
+                <span>Travel booking platform</span>
               </p>
             </div>
           </Link>
@@ -81,9 +81,9 @@ const Navbar = ({ variant = 'light' }) => {
             </Link>
             <Link 
               to="/register" 
-              className="flex items-center space-x-2 bg-gradient-to-r from-primary to-primary-dark text-white px-5 py-2.5 rounded-2xl font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:-translate-y-0.5 transition-all duration-200"
+              className="flex items-center space-x-2 bg-primary text-white px-5 py-2.5 rounded-xl font-semibold shadow-sm hover:bg-primary-dark hover:-translate-y-0.5 transition-all duration-200"
             >
-              <span>Get Started</span>
+              <span>Join Now</span>
               <MdArrowForward className="text-lg" />
             </Link>
           </div>

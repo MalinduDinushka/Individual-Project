@@ -10,7 +10,7 @@ router.post(
   protect,
   authorize('tourist'),
   [
-    body('emergencyType').isString().notEmpty(),
+    body('emergencyType').isIn(['medical', 'accident', 'theft', 'lost', 'harassment', 'natural-disaster', 'fire', 'other']),
     body('description').isString().notEmpty(),
     body('contactNumber').isString().notEmpty()
   ],

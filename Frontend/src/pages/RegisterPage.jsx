@@ -36,32 +36,69 @@ const providerServiceOptions = [
   { value: 'other', label: 'Other', hint: 'Any other tourism service' }
 ]
 
+const serviceDetailOptions = {
+  guide: {
+    specialties: ['Cultural tours', 'Wildlife', 'City tours', 'Hill country', 'Beach trips', 'Religious sites', 'Adventure', 'Food tours'],
+    groupSizes: ['Solo travelers', 'Couples', 'Families', 'Small groups', 'Large groups']
+  },
+  vehicle: {
+    vehicleTypes: ['Car', 'Van', 'SUV', 'Bus', 'Tuk-tuk', 'Motorbike', 'Luxury vehicle'],
+    capacity: ['1-2 passengers', '3-4 passengers', '5-7 passengers', '8-12 passengers', '13+ passengers'],
+    tripTypes: ['Airport transfers', 'Day tours', 'Multi-day trips', 'City rides', 'Long-distance routes']
+  },
+  hotel: {
+    roomCount: ['1-3 rooms', '4-10 rooms', '11-25 rooms', '26-50 rooms', '50+ rooms'],
+    roomTypes: ['Single', 'Double', 'Twin', 'Triple', 'Family', 'Dormitory', 'Villa', 'Suite'],
+    amenities: ['AC', 'Wi-Fi', 'Breakfast', 'Pool', 'Parking', 'Restaurant', 'Sea view', 'Kitchen']
+  },
+  restaurant: {
+    cuisines: ['Sri Lankan', 'Seafood', 'Chinese', 'Indian', 'Western', 'Italian', 'Cafe', 'Street food'],
+    dietaryOptions: ['Vegetarian', 'Vegan', 'Halal', 'Gluten-free', 'Seafood', 'Kids menu'],
+    diningOptions: ['Dine-in', 'Takeaway', 'Delivery', 'Group bookings', 'Outdoor seating']
+  },
+  photographer: {
+    coverage: ['Travel portraits', 'Events', 'Weddings', 'Drone shots', 'Wildlife', 'Hotel shoots', 'Social media content'],
+    equipment: ['DSLR camera', 'Mirrorless camera', 'Drone', 'Lighting kit', 'Gimbal', 'Video camera'],
+    delivery: ['Edited photos', 'Raw photos', 'Short videos', 'Same-day previews', 'Online gallery']
+  },
+  equipment: {
+    items: ['Camping gear', 'Surfboards', 'Bicycles', 'Scooters', 'Cameras', 'Hiking gear', 'Snorkeling gear'],
+    delivery: ['Pickup only', 'Hotel delivery', 'Airport delivery', 'District delivery', 'Return pickup'],
+    rentalPeriods: ['Hourly', 'Half day', 'Full day', 'Multi-day', 'Weekly']
+  }
+}
+
 const createDefaultServiceDetails = () => ({
   guide: {
     canTakePhotos: false,
-    languages: '',
-    specialties: ''
+    specialties: [],
+    groupSizes: []
   },
   vehicle: {
-    vehicleTypes: '',
+    vehicleTypes: [],
     capacity: '',
+    tripTypes: [],
     driverIncluded: true
   },
   hotel: {
     roomCount: '',
-    roomTypes: ''
+    roomTypes: [],
+    amenities: []
   },
   restaurant: {
-    cuisines: '',
-    dietaryOptions: ''
+    cuisines: [],
+    dietaryOptions: [],
+    diningOptions: []
   },
   photographer: {
-    coverage: '',
-    equipment: ''
+    coverage: [],
+    equipment: [],
+    delivery: []
   },
   equipment: {
-    items: '',
-    delivery: ''
+    items: [],
+    delivery: [],
+    rentalPeriods: []
   },
   other: {
     notes: ''
@@ -96,6 +133,8 @@ const formatValidationField = (field) => {
     .trim()
     .replace(/^./, (char) => char.toUpperCase())
 }
+
+  const NIC_PATTERN = /^([0-9]{9}[vVxX]|[0-9]{12})$/
 
 const RegisterPage = () => {
   const navigate = useNavigate()
@@ -263,6 +302,24 @@ const RegisterPage = () => {
       return
     }
 
+    if (activeTab === 'tourist' && formData.nationality === 'local') {
+      const nicValue = String(formData.nic || '').trim()
+      if (!NIC_PATTERN.test(nicValue)) {
+        setValidationErrors([{ field: 'nic', message: 'Use a valid NIC format: 9 digits + V/X, or 12 digits.' }])
+        toast.error('Fix the highlighted registration error')
+        return
+      }
+    }
+
+    if (activeTab === 'provider') {
+      const nicValue = String(formData.nic || '').trim()
+      if (!NIC_PATTERN.test(nicValue)) {
+        setValidationErrors([{ field: 'nic', message: 'Use a valid NIC format: 9 digits + V/X, or 12 digits.' }])
+        toast.error('Fix the highlighted registration error')
+        return
+      }
+    }
+
     setLoading(true)
 
     try {
@@ -294,6 +351,7 @@ const RegisterPage = () => {
       // Add tourist-specific fields
       if (activeTab === 'tourist') {
         payload.nationality = formData.nationality
+        payload.gender = formData.gender
         if (formData.nationality === 'local') {
           payload.nic = formData.nic
         } else {
@@ -519,7 +577,7 @@ const RegisterPage = () => {
                 </div>
               </div>
 
-              {activeTab === 'provider' && (
+              {(activeTab === 'tourist' || activeTab === 'provider') && (
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Gender *
@@ -573,9 +631,12 @@ const RegisterPage = () => {
                     value={formData.nic}
                     onChange={handleChange}
                     placeholder="123456789V or 200012345678"
+                    pattern="^([0-9]{9}[vVxX]|[0-9]{12})$"
+                    title="Use 9 digits plus V/X, or 12 digits"
                     className="input"
                     required
                   />
+                  <p className="mt-1 text-xs text-slate-500">Use 9 digits followed by V/X, or a 12-digit NIC number.</p>
                 </div>
               )}
 
@@ -690,39 +751,70 @@ const RegisterPage = () => {
                     <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-slate-50/80 p-5 space-y-4 shadow-sm">
                       <div>
                         <h3 className="font-semibold text-slate-800">Guide details</h3>
-                        <p className="text-sm text-slate-500">Add the guide-specific skills and language support you offer.</p>
+                        <p className="text-sm text-slate-500">Select your specialties and group sizes you can guide.</p>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label className="space-y-2">
-                          <span className="text-sm font-semibold text-slate-700">Languages</span>
-                          <input
-                            type="text"
-                            value={formData.businessInfo.serviceDetails.guide.languages}
-                            onChange={(e) => handleServiceDetailChange('guide', 'languages', e.target.value)}
-                            placeholder="English, Sinhala, Tamil"
-                            className="input"
-                          />
-                        </label>
-                        <label className="space-y-2">
-                          <span className="text-sm font-semibold text-slate-700">Specialties</span>
-                          <input
-                            type="text"
-                            value={formData.businessInfo.serviceDetails.guide.specialties}
-                            onChange={(e) => handleServiceDetailChange('guide', 'specialties', e.target.value)}
-                            placeholder="Culture, wildlife, city tours"
-                            className="input"
-                          />
-                        </label>
-                        <label className="flex items-center gap-3 md:col-span-2 rounded-xl bg-white border px-4 py-3 text-sm text-gray-700">
-                          <input
-                            type="checkbox"
-                            checked={Boolean(formData.businessInfo.serviceDetails.guide.canTakePhotos)}
-                            onChange={(e) => handleServiceDetailChange('guide', 'canTakePhotos', e.target.checked)}
-                            className="checkbox checkbox-primary"
-                          />
-                          Can take photos for travelers
-                        </label>
+                      
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Specialties</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {serviceDetailOptions.guide.specialties.map((specialty) => {
+                            const isSelected = (formData.businessInfo.serviceDetails.guide?.specialties || []).includes(specialty)
+                            return (
+                              <label key={specialty} className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm cursor-pointer hover:border-primary transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const current = formData.businessInfo.serviceDetails.guide?.specialties || []
+                                    const next = e.target.checked
+                                      ? [...current, specialty]
+                                      : current.filter(s => s !== specialty)
+                                    handleServiceDetailChange('guide', 'specialties', next)
+                                  }}
+                                  className="checkbox checkbox-primary"
+                                />
+                                {specialty}
+                              </label>
+                            )
+                          })}
+                        </div>
                       </div>
+
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Group sizes you can guide</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {serviceDetailOptions.guide.groupSizes.map((size) => {
+                            const isSelected = (formData.businessInfo.serviceDetails.guide?.groupSizes || []).includes(size)
+                            return (
+                              <label key={size} className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm cursor-pointer hover:border-primary transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const current = formData.businessInfo.serviceDetails.guide?.groupSizes || []
+                                    const next = e.target.checked
+                                      ? [...current, size]
+                                      : current.filter(s => s !== size)
+                                    handleServiceDetailChange('guide', 'groupSizes', next)
+                                  }}
+                                  className="checkbox checkbox-primary"
+                                />
+                                {size}
+                              </label>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      <label className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm text-gray-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(formData.businessInfo.serviceDetails.guide.canTakePhotos)}
+                          onChange={(e) => handleServiceDetailChange('guide', 'canTakePhotos', e.target.checked)}
+                          className="checkbox checkbox-primary"
+                        />
+                        Can take photos for travelers
+                      </label>
                     </div>
                   )}
 
@@ -730,40 +822,84 @@ const RegisterPage = () => {
                     <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-slate-50/80 p-5 space-y-4 shadow-sm">
                       <div>
                         <h3 className="font-semibold text-slate-800">Vehicle service details</h3>
-                        <p className="text-sm text-slate-500">Tell travelers what kind of vehicle service you provide.</p>
+                        <p className="text-sm text-slate-500">Select the types of vehicles and services you provide.</p>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label className="space-y-2">
-                          <span className="text-sm font-semibold text-slate-700">Vehicle types</span>
-                          <input
-                            type="text"
-                            value={formData.businessInfo.serviceDetails.vehicle.vehicleTypes}
-                            onChange={(e) => handleServiceDetailChange('vehicle', 'vehicleTypes', e.target.value)}
-                            placeholder="Car, van, bus, tuk-tuk"
-                            className="input"
-                          />
-                        </label>
-                        <label className="space-y-2">
-                          <span className="text-sm font-semibold text-slate-700">Passenger capacity</span>
-                          <input
-                            type="number"
-                            min="1"
-                            value={formData.businessInfo.serviceDetails.vehicle.capacity}
-                            onChange={(e) => handleServiceDetailChange('vehicle', 'capacity', e.target.value)}
-                            placeholder="6"
-                            className="input"
-                          />
-                        </label>
-                        <label className="flex items-center gap-3 md:col-span-2 rounded-xl bg-white border px-4 py-3 text-sm text-gray-700">
-                          <input
-                            type="checkbox"
-                            checked={Boolean(formData.businessInfo.serviceDetails.vehicle.driverIncluded)}
-                            onChange={(e) => handleServiceDetailChange('vehicle', 'driverIncluded', e.target.checked)}
-                            className="checkbox checkbox-primary"
-                          />
-                          Driver included
-                        </label>
+
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Vehicle types</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {serviceDetailOptions.vehicle.vehicleTypes.map((type) => {
+                            const isSelected = (formData.businessInfo.serviceDetails.vehicle?.vehicleTypes || []).includes(type)
+                            return (
+                              <label key={type} className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm cursor-pointer hover:border-primary transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const current = formData.businessInfo.serviceDetails.vehicle?.vehicleTypes || []
+                                    const next = e.target.checked
+                                      ? [...current, type]
+                                      : current.filter(t => t !== type)
+                                    handleServiceDetailChange('vehicle', 'vehicleTypes', next)
+                                  }}
+                                  className="checkbox checkbox-primary"
+                                />
+                                {type}
+                              </label>
+                            )
+                          })}
+                        </div>
                       </div>
+
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Passenger capacity</label>
+                        <select
+                          value={formData.businessInfo.serviceDetails.vehicle?.capacity || ''}
+                          onChange={(e) => handleServiceDetailChange('vehicle', 'capacity', e.target.value)}
+                          className="input"
+                        >
+                          <option value="">Select capacity</option>
+                          {serviceDetailOptions.vehicle.capacity.map((cap) => (
+                            <option key={cap} value={cap}>{cap}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Trip types</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {serviceDetailOptions.vehicle.tripTypes.map((trip) => {
+                            const isSelected = (formData.businessInfo.serviceDetails.vehicle?.tripTypes || []).includes(trip)
+                            return (
+                              <label key={trip} className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm cursor-pointer hover:border-primary transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const current = formData.businessInfo.serviceDetails.vehicle?.tripTypes || []
+                                    const next = e.target.checked
+                                      ? [...current, trip]
+                                      : current.filter(t => t !== trip)
+                                    handleServiceDetailChange('vehicle', 'tripTypes', next)
+                                  }}
+                                  className="checkbox checkbox-primary"
+                                />
+                                {trip}
+                              </label>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      <label className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm text-gray-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(formData.businessInfo.serviceDetails.vehicle.driverIncluded)}
+                          onChange={(e) => handleServiceDetailChange('vehicle', 'driverIncluded', e.target.checked)}
+                          className="checkbox checkbox-primary"
+                        />
+                        Driver included
+                      </label>
                     </div>
                   )}
 
@@ -771,29 +907,73 @@ const RegisterPage = () => {
                     <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-slate-50/80 p-5 space-y-4 shadow-sm">
                       <div>
                         <h3 className="font-semibold text-slate-800">Hotel / guest house details</h3>
-                        <p className="text-sm text-slate-500">Help travelers understand your stay capacity.</p>
+                        <p className="text-sm text-slate-500">Select your room count, types, and amenities.</p>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label className="space-y-2">
-                          <span className="text-sm font-semibold text-slate-700">Number of rooms</span>
-                          <input
-                            type="number"
-                            min="0"
-                            value={formData.businessInfo.serviceDetails.hotel.roomCount}
-                            onChange={(e) => handleServiceDetailChange('hotel', 'roomCount', e.target.value)}
-                            className="input"
-                          />
-                        </label>
-                        <label className="space-y-2">
-                          <span className="text-sm font-semibold text-slate-700">Room types</span>
-                          <input
-                            type="text"
-                            value={formData.businessInfo.serviceDetails.hotel.roomTypes}
-                            onChange={(e) => handleServiceDetailChange('hotel', 'roomTypes', e.target.value)}
-                            placeholder="Single, double, family"
-                            className="input"
-                          />
-                        </label>
+
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Number of rooms</label>
+                        <select
+                          value={formData.businessInfo.serviceDetails.hotel?.roomCount || ''}
+                          onChange={(e) => handleServiceDetailChange('hotel', 'roomCount', e.target.value)}
+                          className="input"
+                        >
+                          <option value="">Select room count</option>
+                          {serviceDetailOptions.hotel.roomCount.map((count) => (
+                            <option key={count} value={count}>{count}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Room types</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {serviceDetailOptions.hotel.roomTypes.map((type) => {
+                            const isSelected = (formData.businessInfo.serviceDetails.hotel?.roomTypes || []).includes(type)
+                            return (
+                              <label key={type} className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm cursor-pointer hover:border-primary transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const current = formData.businessInfo.serviceDetails.hotel?.roomTypes || []
+                                    const next = e.target.checked
+                                      ? [...current, type]
+                                      : current.filter(t => t !== type)
+                                    handleServiceDetailChange('hotel', 'roomTypes', next)
+                                  }}
+                                  className="checkbox checkbox-primary"
+                                />
+                                {type}
+                              </label>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Amenities</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {serviceDetailOptions.hotel.amenities.map((amenity) => {
+                            const isSelected = (formData.businessInfo.serviceDetails.hotel?.amenities || []).includes(amenity)
+                            return (
+                              <label key={amenity} className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm cursor-pointer hover:border-primary transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const current = formData.businessInfo.serviceDetails.hotel?.amenities || []
+                                    const next = e.target.checked
+                                      ? [...current, amenity]
+                                      : current.filter(a => a !== amenity)
+                                    handleServiceDetailChange('hotel', 'amenities', next)
+                                  }}
+                                  className="checkbox checkbox-primary"
+                                />
+                                {amenity}
+                              </label>
+                            )
+                          })}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -802,29 +982,85 @@ const RegisterPage = () => {
                     <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-slate-50/80 p-5 space-y-4 shadow-sm">
                       <div>
                         <h3 className="font-semibold text-slate-800">Restaurant details</h3>
-                        <p className="text-sm text-slate-500">Add cuisine styles and dietary support.</p>
+                        <p className="text-sm text-slate-500">Select your cuisine styles and dietary options.</p>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label className="space-y-2">
-                          <span className="text-sm font-semibold text-slate-700">Cuisine styles</span>
-                          <input
-                            type="text"
-                            value={formData.businessInfo.serviceDetails.restaurant.cuisines}
-                            onChange={(e) => handleServiceDetailChange('restaurant', 'cuisines', e.target.value)}
-                            placeholder="Sri Lankan, seafood, Chinese"
-                            className="input"
-                          />
-                        </label>
-                        <label className="space-y-2">
-                          <span className="text-sm font-semibold text-slate-700">Dietary options</span>
-                          <input
-                            type="text"
-                            value={formData.businessInfo.serviceDetails.restaurant.dietaryOptions}
-                            onChange={(e) => handleServiceDetailChange('restaurant', 'dietaryOptions', e.target.value)}
-                            placeholder="Halal, vegetarian, vegan"
-                            className="input"
-                          />
-                        </label>
+
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Cuisine styles</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {serviceDetailOptions.restaurant.cuisines.map((cuisine) => {
+                            const isSelected = (formData.businessInfo.serviceDetails.restaurant?.cuisines || []).includes(cuisine)
+                            return (
+                              <label key={cuisine} className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm cursor-pointer hover:border-primary transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const current = formData.businessInfo.serviceDetails.restaurant?.cuisines || []
+                                    const next = e.target.checked
+                                      ? [...current, cuisine]
+                                      : current.filter(c => c !== cuisine)
+                                    handleServiceDetailChange('restaurant', 'cuisines', next)
+                                  }}
+                                  className="checkbox checkbox-primary"
+                                />
+                                {cuisine}
+                              </label>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Dietary options</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {serviceDetailOptions.restaurant.dietaryOptions.map((option) => {
+                            const isSelected = (formData.businessInfo.serviceDetails.restaurant?.dietaryOptions || []).includes(option)
+                            return (
+                              <label key={option} className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm cursor-pointer hover:border-primary transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const current = formData.businessInfo.serviceDetails.restaurant?.dietaryOptions || []
+                                    const next = e.target.checked
+                                      ? [...current, option]
+                                      : current.filter(d => d !== option)
+                                    handleServiceDetailChange('restaurant', 'dietaryOptions', next)
+                                  }}
+                                  className="checkbox checkbox-primary"
+                                />
+                                {option}
+                              </label>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Dining options</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {serviceDetailOptions.restaurant.diningOptions.map((option) => {
+                            const isSelected = (formData.businessInfo.serviceDetails.restaurant?.diningOptions || []).includes(option)
+                            return (
+                              <label key={option} className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm cursor-pointer hover:border-primary transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const current = formData.businessInfo.serviceDetails.restaurant?.diningOptions || []
+                                    const next = e.target.checked
+                                      ? [...current, option]
+                                      : current.filter(d => d !== option)
+                                    handleServiceDetailChange('restaurant', 'diningOptions', next)
+                                  }}
+                                  className="checkbox checkbox-primary"
+                                />
+                                {option}
+                              </label>
+                            )
+                          })}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -833,29 +1069,85 @@ const RegisterPage = () => {
                     <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-slate-50/80 p-5 space-y-4 shadow-sm">
                       <div>
                         <h3 className="font-semibold text-slate-800">Photography details</h3>
-                        <p className="text-sm text-slate-500">Tell travelers what kind of photo coverage you offer.</p>
+                        <p className="text-sm text-slate-500">Select your coverage types, equipment, and delivery options.</p>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label className="space-y-2">
-                          <span className="text-sm font-semibold text-slate-700">Coverage</span>
-                          <input
-                            type="text"
-                            value={formData.businessInfo.serviceDetails.photographer.coverage}
-                            onChange={(e) => handleServiceDetailChange('photographer', 'coverage', e.target.value)}
-                            placeholder="Events, portraits, travel"
-                            className="input"
-                          />
-                        </label>
-                        <label className="space-y-2">
-                          <span className="text-sm font-semibold text-slate-700">Equipment</span>
-                          <input
-                            type="text"
-                            value={formData.businessInfo.serviceDetails.photographer.equipment}
-                            onChange={(e) => handleServiceDetailChange('photographer', 'equipment', e.target.value)}
-                            placeholder="DSLR, drone, lighting"
-                            className="input"
-                          />
-                        </label>
+
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Coverage types</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {serviceDetailOptions.photographer.coverage.map((type) => {
+                            const isSelected = (formData.businessInfo.serviceDetails.photographer?.coverage || []).includes(type)
+                            return (
+                              <label key={type} className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm cursor-pointer hover:border-primary transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const current = formData.businessInfo.serviceDetails.photographer?.coverage || []
+                                    const next = e.target.checked
+                                      ? [...current, type]
+                                      : current.filter(t => t !== type)
+                                    handleServiceDetailChange('photographer', 'coverage', next)
+                                  }}
+                                  className="checkbox checkbox-primary"
+                                />
+                                {type}
+                              </label>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Equipment</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {serviceDetailOptions.photographer.equipment.map((item) => {
+                            const isSelected = (formData.businessInfo.serviceDetails.photographer?.equipment || []).includes(item)
+                            return (
+                              <label key={item} className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm cursor-pointer hover:border-primary transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const current = formData.businessInfo.serviceDetails.photographer?.equipment || []
+                                    const next = e.target.checked
+                                      ? [...current, item]
+                                      : current.filter(i => i !== item)
+                                    handleServiceDetailChange('photographer', 'equipment', next)
+                                  }}
+                                  className="checkbox checkbox-primary"
+                                />
+                                {item}
+                              </label>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Delivery options</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {serviceDetailOptions.photographer.delivery.map((option) => {
+                            const isSelected = (formData.businessInfo.serviceDetails.photographer?.delivery || []).includes(option)
+                            return (
+                              <label key={option} className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm cursor-pointer hover:border-primary transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const current = formData.businessInfo.serviceDetails.photographer?.delivery || []
+                                    const next = e.target.checked
+                                      ? [...current, option]
+                                      : current.filter(d => d !== option)
+                                    handleServiceDetailChange('photographer', 'delivery', next)
+                                  }}
+                                  className="checkbox checkbox-primary"
+                                />
+                                {option}
+                              </label>
+                            )
+                          })}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -864,29 +1156,85 @@ const RegisterPage = () => {
                     <div className="md:col-span-2 rounded-3xl border border-slate-200 bg-slate-50/80 p-5 space-y-4 shadow-sm">
                       <div>
                         <h3 className="font-semibold text-slate-800">Equipment rental details</h3>
-                        <p className="text-sm text-slate-500">List the gear you can supply and how you handle delivery.</p>
+                        <p className="text-sm text-slate-500">Select items, delivery options, and rental periods.</p>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label className="space-y-2">
-                          <span className="text-sm font-semibold text-slate-700">Items</span>
-                          <input
-                            type="text"
-                            value={formData.businessInfo.serviceDetails.equipment.items}
-                            onChange={(e) => handleServiceDetailChange('equipment', 'items', e.target.value)}
-                            placeholder="Tents, cameras, bikes"
-                            className="input"
-                          />
-                        </label>
-                        <label className="space-y-2">
-                          <span className="text-sm font-semibold text-slate-700">Delivery</span>
-                          <input
-                            type="text"
-                            value={formData.businessInfo.serviceDetails.equipment.delivery}
-                            onChange={(e) => handleServiceDetailChange('equipment', 'delivery', e.target.value)}
-                            placeholder="Pickup, delivery, pickup points"
-                            className="input"
-                          />
-                        </label>
+
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Equipment items</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {serviceDetailOptions.equipment.items.map((item) => {
+                            const isSelected = (formData.businessInfo.serviceDetails.equipment?.items || []).includes(item)
+                            return (
+                              <label key={item} className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm cursor-pointer hover:border-primary transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const current = formData.businessInfo.serviceDetails.equipment?.items || []
+                                    const next = e.target.checked
+                                      ? [...current, item]
+                                      : current.filter(i => i !== item)
+                                    handleServiceDetailChange('equipment', 'items', next)
+                                  }}
+                                  className="checkbox checkbox-primary"
+                                />
+                                {item}
+                              </label>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Delivery options</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {serviceDetailOptions.equipment.delivery.map((option) => {
+                            const isSelected = (formData.businessInfo.serviceDetails.equipment?.delivery || []).includes(option)
+                            return (
+                              <label key={option} className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm cursor-pointer hover:border-primary transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const current = formData.businessInfo.serviceDetails.equipment?.delivery || []
+                                    const next = e.target.checked
+                                      ? [...current, option]
+                                      : current.filter(d => d !== option)
+                                    handleServiceDetailChange('equipment', 'delivery', next)
+                                  }}
+                                  className="checkbox checkbox-primary"
+                                />
+                                {option}
+                              </label>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-semibold text-slate-700 block mb-3">Rental periods</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {serviceDetailOptions.equipment.rentalPeriods.map((period) => {
+                            const isSelected = (formData.businessInfo.serviceDetails.equipment?.rentalPeriods || []).includes(period)
+                            return (
+                              <label key={period} className="flex items-center gap-3 rounded-xl bg-white border px-4 py-3 text-sm cursor-pointer hover:border-primary transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const current = formData.businessInfo.serviceDetails.equipment?.rentalPeriods || []
+                                    const next = e.target.checked
+                                      ? [...current, period]
+                                      : current.filter(p => p !== period)
+                                    handleServiceDetailChange('equipment', 'rentalPeriods', next)
+                                  }}
+                                  className="checkbox checkbox-primary"
+                                />
+                                {period}
+                              </label>
+                            )
+                          })}
+                        </div>
                       </div>
                     </div>
                   )}

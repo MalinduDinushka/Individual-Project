@@ -128,6 +128,10 @@ const userSchema = new mongoose.Schema({
     }
     ,
     travelPackages: [{
+      serviceType: {
+        type: String,
+        enum: ['guide', 'vehicle', 'hotel', 'restaurant', 'photographer', 'equipment', 'other']
+      },
       title: {
         type: String,
         trim: true
@@ -142,6 +146,14 @@ const userSchema = new mongoose.Schema({
       }],
       duration: String,
       highlights: [String],
+      details: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {}
+      },
+      foodImages: {
+        type: [mongoose.Schema.Types.Mixed],
+        default: []
+      },
       images: {
         type: [mongoose.Schema.Types.Mixed],
         default: []

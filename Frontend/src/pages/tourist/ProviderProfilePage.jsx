@@ -256,6 +256,9 @@ const ProviderProfilePage = () => {
                     <p className="text-sm text-gray-500 mt-1">{travelPackage.duration || 'Flexible duration'}</p>
                   </div>
                   <div className="text-right shrink-0">
+                    <div className="mb-1 inline-flex rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600 border">
+                      {(travelPackage.serviceType || provider.businessInfo?.serviceType || 'package') + ''}
+                    </div>
                     <div className="text-base font-bold text-primary">
                       {travelPackage.price?.currency || 'USD'} {travelPackage.price?.amount ?? 'N/A'}
                     </div>
@@ -278,6 +281,43 @@ const ProviderProfilePage = () => {
                         )}
                       </figure>
                     ))}
+                  </div>
+                )}
+                {Array.isArray(travelPackage.foodImages) && travelPackage.foodImages.length > 0 && (
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-wide text-amber-700 mb-2">Food images</div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {travelPackage.foodImages.map((image, imageIndex) => (
+                        <figure key={`${image.url || index}-${imageIndex}`} className="overflow-hidden rounded-xl border bg-white">
+                          <img
+                            src={image.url}
+                            alt={image.label || `${travelPackage.title || 'Travel package'} food image`}
+                            className="h-32 w-full object-cover"
+                          />
+                          {image.label && (
+                            <figcaption className="px-3 py-2 text-xs text-gray-600 border-t bg-white truncate">
+                              {image.label}
+                            </figcaption>
+                          )}
+                        </figure>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {travelPackage.details?.hotel && provider.businessInfo?.serviceType === 'hotel' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-700 border-t pt-3">
+                    <div><strong>Rooms:</strong> {travelPackage.details.hotel.roomCount || 'Not provided'}</div>
+                    <div><strong>Room types:</strong> {travelPackage.details.hotel.roomTypes || 'Not provided'}</div>
+                    <div><strong>Meal plan:</strong> {travelPackage.details.hotel.mealPlan || 'Not provided'}</div>
+                    <div><strong>Amenities:</strong> {travelPackage.details.hotel.amenities || 'Not provided'}</div>
+                  </div>
+                )}
+                {travelPackage.details?.vehicle && provider.businessInfo?.serviceType === 'vehicle' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-700 border-t pt-3">
+                    <div><strong>Vehicle types:</strong> {travelPackage.details.vehicle.vehicleTypes || 'Not provided'}</div>
+                    <div><strong>Capacity:</strong> {travelPackage.details.vehicle.capacity || 'Not provided'}</div>
+                    <div><strong>Driver included:</strong> {travelPackage.details.vehicle.driverIncluded ? 'Yes' : 'No'}</div>
+                    <div><strong>Air conditioned:</strong> {travelPackage.details.vehicle.airConditioned ? 'Yes' : 'No'}</div>
                   </div>
                 )}
                 {Array.isArray(travelPackage.highlights) && travelPackage.highlights.length > 0 && (

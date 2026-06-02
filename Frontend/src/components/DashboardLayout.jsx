@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { FaMapMarkerAlt, FaBell, FaPhoneAlt, FaSignOutAlt, FaCalendarAlt } from 'react-icons/fa'
+import { FaMapMarkerAlt, FaPhoneAlt, FaSignOutAlt, FaCalendarAlt, FaBars, FaTimes } from 'react-icons/fa'
 import { MdDashboard, MdExplore, MdMessage, MdFavorite, MdSettings, MdWork, MdInbox, MdAttachMoney, MdPeople, MdVerifiedUser, MdWarning, MdBarChart } from 'react-icons/md'
 import { useAuthStore } from '../store/authStore'
 import { useState } from 'react'
@@ -28,6 +28,7 @@ const DashboardLayout = ({ children, navItems, userRole }) => {
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
   const [showSOS, setShowSOS] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -42,10 +43,20 @@ const DashboardLayout = ({ children, navItems, userRole }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex text-slate-700">
-      <aside className="w-72 bg-slate-950 text-white fixed h-full border-r border-white/10 shadow-[8px_0_40px_rgba(15,23,42,0.15)]">
+      {sidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close sidebar"
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 z-30 bg-slate-950/45 lg:hidden"
+        />
+      )}
+
+      <aside className={`w-72 bg-slate-950 text-white fixed inset-y-0 left-0 z-40 border-r border-white/10 shadow-[8px_0_40px_rgba(15,23,42,0.15)] transition-transform duration-200 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-6 border-b border-white/10">
+          <div className="flex items-center justify-between gap-4">
           <Link to="/" className="flex items-center space-x-3">
-            <div className="bg-gradient-to-br from-cyan-400 to-primary p-2 rounded-2xl shadow-lg shadow-cyan-500/20">
+            <div className="bg-gradient-to-br from-cyan-400 to-primary p-2 rounded-lg shadow-lg shadow-cyan-500/20">
               <FaMapMarkerAlt className="text-white text-xl" />
             </div>
             <div>
@@ -55,6 +66,10 @@ const DashboardLayout = ({ children, navItems, userRole }) => {
               </span>
             </div>
           </Link>
+            <button type="button" onClick={() => setSidebarOpen(false)} className="p-2 rounded-lg hover:bg-white/10 lg:hidden" aria-label="Close sidebar">
+              <FaTimes />
+            </button>
+          </div>
         </div>
 
         <nav className="p-4">
@@ -66,7 +81,8 @@ const DashboardLayout = ({ children, navItems, userRole }) => {
               <Link
                 key={item.path}
                 to={`/${userRole}${item.path ? '/' + item.path : ''}`}
-                className={`flex items-center justify-between px-4 py-3 rounded-2xl mb-2 transition border ${
+                onClick={() => setSidebarOpen(false)}
+                className={`flex items-center justify-between px-4 py-3 rounded-lg mb-2 transition border ${
                   isActive
                     ? 'bg-white text-slate-950 font-semibold border-white/10 shadow-lg'
                     : 'text-white/75 hover:bg-white/5 border-transparent'
@@ -87,20 +103,24 @@ const DashboardLayout = ({ children, navItems, userRole }) => {
         </nav>
       </aside>
 
-      <div className="ml-72 flex-1">
+      <div className="lg:ml-72 flex-1 min-w-0">
         <header className="sticky top-0 z-10 bg-white/75 backdrop-blur-xl border-b border-white/70 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
-          <div className="flex items-center justify-between px-8 py-4">
-            <div className="flex-1">
+          <div className="flex items-center justify-between gap-4 px-4 md:px-8 py-4">
+            <button type="button" onClick={() => setSidebarOpen(true)} className="p-3 rounded-lg hover:bg-slate-100 lg:hidden" aria-label="Open sidebar">
+              <FaBars className="text-slate-700" />
+            </button>
+            <div className="flex-1 min-w-0">
               <p className="text-sm text-slate-500">Dashboard</p>
-              <h2 className="text-lg font-semibold text-slate-900">{roleLabels[userRole]} workspace</h2>
+              <h2 className="text-lg font-semibold text-slate-900 truncate">{roleLabels[userRole]} workspace</h2>
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 md:space-x-4">
               <SOSModal open={showSOS} onClose={() => setShowSOS(false)} />
               {userRole === 'tourist' && (
-                <button onClick={() => setShowSOS(true)} className="flex items-center space-x-2 bg-gradient-to-r from-rose-500 to-red-500 text-white px-4 py-2.5 rounded-2xl hover:shadow-lg hover:shadow-rose-500/25 transition-all duration-200">
+                <button onClick={() => setShowSOS(true)} className="flex items-center space-x-2 bg-gradient-to-r from-rose-600 to-red-600 text-white px-3 md:px-4 py-2.5 rounded-lg font-bold shadow-md shadow-rose-500/20 ring-2 ring-rose-100 hover:shadow-lg hover:shadow-rose-500/25 transition-all duration-200">
                   <FaPhoneAlt />
-                  <span className="font-medium">SOS</span>
+                  <span className="hidden sm:inline">Emergency SOS</span>
+                  <span className="sm:hidden">SOS</span>
                 </button>
               )}
 
@@ -111,7 +131,7 @@ const DashboardLayout = ({ children, navItems, userRole }) => {
                   <img
                     src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'JD')}`}
                     alt={user?.name}
-                    className="w-11 h-11 rounded-2xl object-cover ring-2 ring-white shadow-md"
+                    className="w-11 h-11 rounded-lg object-cover ring-2 ring-white shadow-md"
                   />
                 </Link>
                 <div className="hidden md:block">
@@ -120,14 +140,14 @@ const DashboardLayout = ({ children, navItems, userRole }) => {
                 </div>
               </div>
 
-              <button onClick={handleLogout} className="p-3 text-slate-600 hover:bg-slate-100 rounded-2xl transition-colors" title="Logout">
+              <button onClick={handleLogout} className="p-3 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" title="Logout">
                 <FaSignOutAlt className="text-xl" />
               </button>
             </div>
           </div>
         </header>
 
-        <main className="p-6 md:p-8 lg:p-10">
+        <main className="p-4 md:p-8 lg:p-10">
           {children}
         </main>
       </div>

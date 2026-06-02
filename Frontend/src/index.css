@@ -21,8 +21,8 @@
     @apply font-sans antialiased text-slate-700 bg-slate-50;
     font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background:
-      radial-gradient(circle at top left, rgba(15, 118, 110, 0.06), transparent 28%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.05), transparent 22%),
+      linear-gradient(135deg, rgba(15, 118, 110, 0.05), transparent 36%),
+      linear-gradient(225deg, rgba(14, 165, 233, 0.04), transparent 34%),
       linear-gradient(180deg, #f8fafc 0%, #f3f6fb 100%);
     min-height: 100vh;
   }
@@ -38,7 +38,7 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary/25 focus:ring-offset-2 focus:ring-offset-transparent;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary/25 focus:ring-offset-2 focus:ring-offset-transparent;
   }
   
   .btn-primary {
@@ -54,11 +54,11 @@
   }
   
   .input {
-    @apply w-full px-4 py-3 border border-slate-200 rounded-xl bg-white/95 text-slate-800 placeholder:text-slate-400 shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 focus:shadow-md;
+    @apply w-full px-4 py-3 border border-slate-200 rounded-lg bg-white/95 text-slate-800 placeholder:text-slate-400 shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 focus:shadow-md;
   }
   
   .card {
-    @apply bg-white rounded-2xl shadow-[0_12px_30px_rgba(15,23,42,0.06)] border border-slate-200/70 p-6;
+    @apply bg-white rounded-lg shadow-[0_12px_30px_rgba(15,23,42,0.06)] border border-slate-200/70 p-6;
   }
   
   .badge {
@@ -72,15 +72,15 @@
   .page-shell::before {
     content: '';
     @apply absolute inset-x-0 top-0 h-64 pointer-events-none;
-    background: linear-gradient(180deg, rgba(15, 118, 110, 0.10), rgba(15, 118, 110, 0));
+    background: linear-gradient(180deg, rgba(15, 118, 110, 0.09), rgba(15, 118, 110, 0));
   }
 
   .premium-panel {
-    @apply bg-white backdrop-blur-xl border border-slate-200/70 shadow-[0_12px_34px_rgba(15,23,42,0.07)] rounded-2xl;
+    @apply bg-white backdrop-blur-xl border border-slate-200/70 shadow-[0_12px_34px_rgba(15,23,42,0.07)] rounded-lg;
   }
 
   .premium-panel-soft {
-    @apply bg-white/80 backdrop-blur-xl border border-slate-200/70 shadow-[0_10px_28px_rgba(15,23,42,0.06)] rounded-2xl;
+    @apply bg-white/80 backdrop-blur-xl border border-slate-200/70 shadow-[0_10px_28px_rgba(15,23,42,0.06)] rounded-lg;
   }
 
   .section-eyebrow {
@@ -93,6 +93,161 @@
 
   .section-copy {
     @apply text-base md:text-lg leading-7 text-slate-600;
+  }
+
+  .section-grid-enhanced {
+    @apply grid gap-5 md:gap-6;
+    animation: fadeInUp 0.6s ease-out;
+  }
+
+  .card-hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .card-hover-lift:hover {
+    @apply -translate-y-2 shadow-[0_20px_40px_rgba(18,123,150,0.15)];
+  }
+
+  .card-glow {
+    @apply relative overflow-hidden;
+  }
+
+  .card-glow::before {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-500;
+    background: radial-gradient(600px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(15, 118, 110, 0.1), transparent 80%);
+  }
+
+  .group:hover .card-glow::before {
+    @apply opacity-100;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent;
+  }
+
+  .glass-effect {
+    @apply backdrop-blur-xl bg-white/70 border border-white/20;
+  }
+
+  .glass-effect-dark {
+    @apply backdrop-blur-xl bg-slate-950/70 border border-white/10;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes pulse-subtle {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+  }
+
+  .animate-slide-in-left {
+    animation: slideInLeft 0.6s ease-out;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.6s ease-out;
+  }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 3s ease-in-out infinite;
+  }
+
+  .hover-shine {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hover-shine::after {
+    content: '';
+    @apply absolute inset-0 transform -skew-x-12 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 transition-opacity duration-500;
+  }
+
+  .group:hover .hover-shine::after {
+    @apply opacity-30;
+  }
+
+  .stat-card {
+    @apply relative rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md;
+  }
+
+  .stat-card::before {
+    content: '';
+    @apply absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 pointer-events-none;
+    background: radial-gradient(400px at 50% 0%, rgba(18, 123, 150, 0.08), transparent 80%);
+  }
+
+  .stat-card:hover::before {
+    @apply opacity-100;
+  }
+
+  .service-card-enhanced {
+    @apply relative bg-white rounded-xl border border-slate-200 p-6 shadow-sm overflow-hidden transition-all duration-300 cursor-pointer;
+  }
+
+  .service-card-enhanced::before {
+    content: '';
+    @apply absolute top-0 left-0 w-1 h-0 bg-primary transition-all duration-500;
+  }
+
+  .service-card-enhanced:hover::before {
+    @apply h-full;
+  }
+
+  .service-card-enhanced:hover {
+    @apply -translate-y-2 shadow-[0_20px_40px_rgba(18,123,150,0.15)] border-primary/30;
+  }
+
+  .feature-box {
+    @apply flex items-start gap-3 p-4 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors;
   }
 
   .map-label-text {

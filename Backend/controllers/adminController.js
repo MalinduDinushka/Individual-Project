@@ -40,7 +40,7 @@ exports.getDashboardStats = async (req, res) => {
 
     // Get active SOS alerts
     const activeSOS = await SOSAlert.countDocuments({ 
-      status: { $in: ['pending', 'in-progress'] }
+      status: { $in: ['active', 'in-progress'] }
     });
 
     // Get daily bookings for last 7 days
@@ -436,6 +436,9 @@ exports.updateSOSAlert = async (req, res) => {
       if (status === 'resolved') {
         alert.resolvedAt = new Date();
         alert.resolvedBy = req.user._id;
+      } else {
+        alert.resolvedAt = undefined;
+        alert.resolvedBy = undefined;
       }
     }
 
@@ -453,6 +456,16 @@ exports.updateSOSAlert = async (req, res) => {
     const updatedAlert = await SOSAlert.findById(alert._id)
       .populate('tourist', 'name phone email avatar role')
       .populate('assignedTo', 'name email avatar role');
+
+    try {
+      const { getIo } = require('../socket');
+      const io = getIo();
+      if (io) {
+        io.emit('sos:update', { sos: updatedAlert });
+      }
+    } catch (emitError) {
+      console.warn('Failed to emit SOS update', emitError.message);
+    }
 
     res.json({
       success: true,

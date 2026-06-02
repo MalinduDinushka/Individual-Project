@@ -18,6 +18,17 @@ exports.createSOSAlert = async (req, res) => {
       return res.status(400).json({ success: false, message: 'emergencyType, description and contactNumber are required' })
     }
 
+    const priorityByType = {
+      medical: 'critical',
+      accident: 'critical',
+      fire: 'critical',
+      'natural-disaster': 'critical',
+      harassment: 'high',
+      theft: 'high',
+      lost: 'high',
+      other: 'high'
+    }
+
     const sos = await SOSAlert.create({
       tourist: req.user._id,
       location: location || {},
@@ -25,8 +36,10 @@ exports.createSOSAlert = async (req, res) => {
       description,
       contactNumber,
       status: 'active',
-      priority: 'high'
+      priority: priorityByType[emergencyType] || 'high'
     })
+
+    const populatedSos = await SOSAlert.findById(sos._id).populate('tourist', 'name phone email avatar role')
 
     const admins = await User.find({ role: 'admin', isActive: true }).select('_id')
     if (admins.length > 0) {
@@ -44,13 +57,13 @@ exports.createSOSAlert = async (req, res) => {
     try {
       const io = getIo()
       if (io) {
-        io.emit('sos:new', { sos })
+        io.emit('sos:new', { sos: populatedSos })
       }
     } catch (emitErr) {
       console.warn('Failed to emit SOS socket event', emitErr.message)
     }
 
-    res.status(201).json({ success: true, message: 'SOS alert created', data: { sos } })
+    res.status(201).json({ success: true, message: 'SOS alert created', data: { sos: populatedSos } })
   } catch (error) {
     console.error('Create SOS error:', error)
     res.status(500).json({ success: false, message: 'Failed to create SOS alert', error: error.message })

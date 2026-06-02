@@ -17,7 +17,7 @@ const sosAlertSchema = new mongoose.Schema({
   },
   emergencyType: {
     type: String,
-    enum: ['medical', 'accident', 'theft', 'lost', 'other'],
+    enum: ['medical', 'accident', 'theft', 'lost', 'harassment', 'natural-disaster', 'fire', 'other'],
     required: true
   },
   description: {

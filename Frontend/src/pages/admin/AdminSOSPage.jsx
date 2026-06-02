@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { FaSearch, FaPhoneAlt, FaMapMarkerAlt, FaExclamationTriangle, FaCheckCircle, FaClock } from 'react-icons/fa'
 import { adminAPI } from '../../api'
 import { toast } from 'react-hot-toast'
+import { useAuthStore } from '../../store/authStore'
+import { connectSocket } from '../../utils/socket'
 
 const statusOptions = [
   { value: '', label: 'All Status' },
@@ -19,6 +21,7 @@ const priorityBadge = {
 }
 
 const AdminSOSPage = () => {
+  const token = useAuthStore((state) => state.token)
   const [alerts, setAlerts] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -43,7 +46,39 @@ const AdminSOSPage = () => {
     fetchAlerts()
   }, [])
 
+  useEffect(() => {
+    if (!token) return
+
+    const socket = connectSocket(token)
+    const handleNewSOS = ({ sos }) => {
+      if (!sos) {
+        fetchAlerts()
+        return
+      }
+      setAlerts((current) => [sos, ...current.filter((item) => item._id !== sos._id)])
+      toast.error('New tourist SOS alert received')
+    }
+    const handleSOSUpdate = ({ sos }) => {
+      if (!sos) {
+        fetchAlerts()
+        return
+      }
+      setAlerts((current) => current.map((item) => item._id === sos._id ? sos : item))
+    }
+
+    socket.on('sos:new', handleNewSOS)
+    socket.on('sos:update', handleSOSUpdate)
+
+    return () => {
+      socket.off('sos:new', handleNewSOS)
+      socket.off('sos:update', handleSOSUpdate)
+    }
+  }, [token])
+
   const filteredAlerts = useMemo(() => alerts, [alerts])
+  const activeCount = alerts.filter((alert) => alert.status === 'active').length
+  const inProgressCount = alerts.filter((alert) => alert.status === 'in-progress').length
+  const resolvedCount = alerts.filter((alert) => alert.status === 'resolved').length
 
   const handleSearch = async (event) => {
     event.preventDefault()
@@ -75,6 +110,21 @@ const AdminSOSPage = () => {
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold text-gray-800">SOS Alerts</h1>
         <p className="text-gray-600">Monitor active alerts and update their status in real time.</p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="rounded-lg border border-red-100 bg-red-50 p-5">
+          <div className="text-sm font-semibold text-red-700">Active emergencies</div>
+          <div className="mt-2 text-3xl font-extrabold text-red-800">{activeCount}</div>
+        </div>
+        <div className="rounded-lg border border-amber-100 bg-amber-50 p-5">
+          <div className="text-sm font-semibold text-amber-700">In progress</div>
+          <div className="mt-2 text-3xl font-extrabold text-amber-800">{inProgressCount}</div>
+        </div>
+        <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-5">
+          <div className="text-sm font-semibold text-emerald-700">Resolved</div>
+          <div className="mt-2 text-3xl font-extrabold text-emerald-800">{resolvedCount}</div>
+        </div>
       </div>
 
       <form onSubmit={handleSearch} className="grid gap-3 md:grid-cols-3 bg-white p-4 rounded-xl shadow-md">
@@ -115,7 +165,7 @@ const AdminSOSPage = () => {
           </div>
         ) : (
           filteredAlerts.map((alert) => (
-            <div key={alert._id} className="rounded-xl bg-white p-6 shadow-md border border-gray-100">
+            <div key={alert._id} className={`rounded-xl bg-white p-6 shadow-md border ${alert.status === 'active' ? 'border-red-200 ring-2 ring-red-50' : 'border-gray-100'}`}>
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-3">
                   <div className="flex flex-wrap items-center gap-2">
@@ -137,8 +187,18 @@ const AdminSOSPage = () => {
                   </div>
 
                   <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                    <span className="inline-flex items-center gap-2"><FaPhoneAlt /> {alert.contactNumber}</span>
+                    <a href={`tel:${alert.contactNumber}`} className="inline-flex items-center gap-2 font-semibold text-primary hover:text-primary-dark"><FaPhoneAlt /> {alert.contactNumber}</a>
                     <span className="inline-flex items-center gap-2"><FaMapMarkerAlt /> {alert.location?.address || 'No address provided'}</span>
+                    {alert.location?.latitude && alert.location?.longitude && (
+                      <a
+                        href={`https://www.google.com/maps?q=${alert.location.latitude},${alert.location.longitude}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 font-semibold text-primary hover:text-primary-dark"
+                      >
+                        Open GPS map
+                      </a>
+                    )}
                     <span className="inline-flex items-center gap-2"><FaClock /> {new Date(alert.createdAt).toLocaleString()}</span>
                   </div>
                 </div>
@@ -146,14 +206,16 @@ const AdminSOSPage = () => {
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => updateAlert(alert, 'in-progress')}
-                    className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    disabled={alert.status === 'in-progress'}
+                    className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <FaClock />
                     In Progress
                   </button>
                   <button
                     onClick={() => updateAlert(alert, 'resolved')}
-                    className="inline-flex items-center gap-2 rounded-lg bg-green-500 px-3 py-2 text-sm text-white hover:bg-green-600"
+                    disabled={alert.status === 'resolved'}
+                    className="inline-flex items-center gap-2 rounded-lg bg-green-500 px-3 py-2 text-sm text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <FaCheckCircle />
                     Resolve

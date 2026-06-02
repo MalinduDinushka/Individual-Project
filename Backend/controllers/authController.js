@@ -53,6 +53,7 @@ const parseTravelPackages = (travelPackages) => {
     .map((item) => {
       if (!item || typeof item !== 'object') return null
 
+      const serviceType = String(item.serviceType || '').trim()
       const title = String(item.title || '').trim()
       const description = String(item.description || '').trim()
       const includedDistricts = Array.isArray(item.includedDistricts)
@@ -67,20 +68,25 @@ const parseTravelPackages = (travelPackages) => {
             .split(',')
             .map((highlight) => highlight.trim())
             .filter(Boolean)
+      const foodImages = parsePackageImages(item.foodImages)
       const images = parsePackageImages(item.images)
+      const details = item.details && typeof item.details === 'object' ? item.details : {}
       const amount = Number(item.price?.amount)
       const currency = String(item.price?.currency || 'USD').trim() || 'USD'
 
-      if (!title && !description && includedDistricts.length === 0 && !Number.isFinite(amount) && !String(item.duration || '').trim() && highlights.length === 0 && images.length === 0) {
+      if (!title && !description && includedDistricts.length === 0 && !Number.isFinite(amount) && !String(item.duration || '').trim() && highlights.length === 0 && images.length === 0 && foodImages.length === 0 && Object.keys(details).length === 0) {
         return null
       }
 
       return {
+        serviceType: serviceType || undefined,
         title,
         description,
         includedDistricts,
         duration: String(item.duration || '').trim(),
         highlights,
+        details,
+        foodImages,
         images,
         price: Number.isFinite(amount) ? { amount, currency } : undefined
       }
@@ -726,6 +732,8 @@ exports.updateProfile = async (req, res) => {
       const normalizePkg = (pkg) => {
         const next = { ...(pkg || {}) }
 
+        next.serviceType = String(next.serviceType || '').trim() || undefined
+
         // includedDistricts -> array of ids/codes
         if (Array.isArray(next.includedDistricts)) {
           next.includedDistricts = next.includedDistricts.map((d) => String(d || '').trim()).filter(Boolean)
@@ -746,6 +754,28 @@ exports.updateProfile = async (req, res) => {
         } else {
           next.highlights = []
         }
+
+        // foodImages -> normalize to array of image objects
+        let foodImages = next.foodImages || []
+        if (typeof foodImages === 'string') {
+          const t = foodImages.trim()
+          if (t.startsWith('[') || t.startsWith('{')) {
+            try { foodImages = JSON.parse(t) } catch (e) { foodImages = [t] }
+          } else {
+            foodImages = [t]
+          }
+        }
+        if (!Array.isArray(foodImages)) foodImages = [foodImages]
+        next.foodImages = foodImages.map((img) => {
+          if (!img) return null
+          if (typeof img === 'string') return { url: String(img).trim() }
+          if (typeof img === 'object') {
+            const url = String(img.url || img.src || '').trim()
+            if (!url) return null
+            return { url, label: String(img.label || img.caption || '').trim() || undefined, type: String(img.type || '').trim() || undefined }
+          }
+          return null
+        }).filter(Boolean)
 
         // images -> normalize to array of objects {url,label,type}
         let imgs = next.images || []
@@ -774,6 +804,11 @@ exports.updateProfile = async (req, res) => {
           const n = Number(next.price.amount)
           next.price.amount = Number.isFinite(n) ? n : undefined
           next.price.currency = String(next.price.currency || 'USD').trim() || 'USD'
+        }
+
+        // details -> keep as plain object if provided
+        if (!next.details || typeof next.details !== 'object' || Array.isArray(next.details)) {
+          next.details = {}
         }
 
         return next

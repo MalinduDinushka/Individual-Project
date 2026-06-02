@@ -103,12 +103,12 @@ const HomePage = () => {
           alt="Sri Lankan travel"
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/70 via-slate-900/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/75 via-slate-900/55 to-slate-900/30" />
 
-        {/* Navbar - Overlay */}
-        <div className="absolute top-0 left-0 right-0 z-50">
+        {/* Navbar - Dark Overlay with Transparent Background */}
+        <nav className="absolute top-0 left-0 right-0 z-50 bg-gradient-to-b from-slate-900/40 to-transparent backdrop-blur-sm border-b border-white/10">
           <Navbar variant="light" />
-        </div>
+        </nav>
 
         {/* Content */}
         <div className="relative z-10 container mx-auto px-6 py-32 flex items-center min-h-screen">
@@ -172,32 +172,72 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Why Choose Us - With Gradient Background */}
-      <section className="py-24 bg-gradient-to-br from-primary/10 via-white to-slate-50">
+      {/* Travel Deals Section */}
+      <section className="py-24 bg-gradient-to-br from-blue-50 via-white to-slate-50">
         <div className="container mx-auto px-6">
-          <div className="mb-20 max-w-3xl">
-            <div className="section-eyebrow mb-4">Why TourMate</div>
-            <h2 className="section-title">Built for real travelers</h2>
+          <div className="mb-20 flex flex-col md:flex-row md:items-center md:justify-between">
+            <div className="max-w-3xl">
+              <div className="section-eyebrow mb-4">Featured Packages</div>
+              <h2 className="section-title">Popular travel deals</h2>
+            </div>
+            <Link to="/services" className="mt-6 md:mt-0 inline-flex items-center gap-2 font-semibold text-primary hover:text-primary-dark transition-colors">
+              Explore more
+              <FaArrowRight />
+            </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              {highlights.map((item, idx) => (
-                <div key={item} className="flex gap-4 group">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-white font-bold transition-transform group-hover:scale-110">
-                    ✓
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-900 group-hover:text-primary transition-colors">{item}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                title: 'Colombo City Tour',
+                image: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                duration: '2-3 days',
+                description: 'Explore colonial architecture and local markets',
+                price: '$199'
+              },
+              {
+                title: 'Ella Mountain Escape',
+                image: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                duration: '3-4 days',
+                description: 'Hiking and tea plantation tours',
+                price: '$249'
+              },
+              {
+                title: 'Beach & Water Sports',
+                image: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                duration: '2-3 days',
+                description: 'Surfing, diving, and beach relaxation',
+                price: '$229'
+              },
+              {
+                title: 'Wildlife Safari',
+                image: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                duration: '2 days',
+                description: 'National parks and wildlife viewing',
+                price: '$279'
+              }
+            ].map((deal, idx) => (
+              <div key={deal.title} className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer">
+                {/* Image Background */}
+                <div 
+                  className="relative h-48 bg-gradient-to-br overflow-hidden"
+                  style={{ background: deal.image }}
+                >
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all" />
+                </div>
+
+                {/* Content */}
+                <div className="bg-white p-6">
+                  <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-primary transition-colors">{deal.title}</h3>
+                  <p className="text-sm text-slate-600 mb-4 leading-relaxed">{deal.description}</p>
+                  
+                  <div className="border-t border-slate-200 pt-4 flex items-baseline justify-between">
+                    <div className="text-xs font-semibold text-slate-500 uppercase">{deal.duration}</div>
+                    <div className="text-2xl font-extrabold text-primary">{deal.price}</div>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <div className="relative h-96 rounded-2xl overflow-hidden shadow-xl">
-              <img src="/map-sl.webp" alt="Sri Lanka map" className="h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/30 to-transparent" />
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

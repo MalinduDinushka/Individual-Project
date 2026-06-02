@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { FaDollarSign, FaCalendar, FaStar } from 'react-icons/fa'
 import { MdTrendingUp } from 'react-icons/md'
 import { useAuthStore } from '../../store/authStore'
@@ -12,6 +13,8 @@ const ProviderDashboardHome = () => {
     profileRating: 4.9,
     reviewCount: 127
   })
+
+  const navigate = useNavigate()
 
   const [tourRequests, setTourRequests] = useState([
     {
@@ -163,6 +166,51 @@ const ProviderDashboardHome = () => {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Provider Packages Summary */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Your Packages</h2>
+            <p className="text-gray-600 text-sm mt-1">Quick view of saved travel packages</p>
+          </div>
+          <div className="inline-flex items-center gap-3">
+            <button
+              onClick={() => navigate('/provider/packages', { state: { openAdd: true } })}
+              className="btn btn-primary"
+            >
+              Add package
+            </button>
+            <button
+              onClick={() => navigate('/provider/packages')}
+              className="btn btn-secondary"
+            >
+              Manage packages
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {(user?.businessInfo?.travelPackages || []).slice(0, 6).map((p, i) => (
+            <div key={i} className="rounded-xl border bg-white p-4 shadow-sm">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-800">{p.title || 'Untitled package'}</h3>
+                  <p className="text-xs text-gray-500 mt-1">{p.duration || ''} • {p.includedDistricts ? (Array.isArray(p.includedDistricts) ? p.includedDistricts.join(', ') : String(p.includedDistricts)) : ''}</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-gray-500">from</div>
+                  <div className="text-lg font-bold text-gray-800">{p.price?.amount ? `$${p.price.amount}` : '-'}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {(user?.businessInfo?.travelPackages || []).length === 0 && (
+            <div className="rounded-xl border bg-white p-6 shadow-sm text-sm text-gray-600">No packages found. Click "Add package" to create your first package.</div>
+          )}
         </div>
       </div>
     </div>

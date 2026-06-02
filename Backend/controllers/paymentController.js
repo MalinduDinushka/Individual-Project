@@ -22,23 +22,49 @@ const upperMd5 = (value) => crypto.createHash('md5').update(String(value)).diges
 
 const formatAmount = (amount) => Number(amount || 0).toFixed(2);
 
+const normalizePayHereValue = (value) => String(value || '').trim();
+
 const generatePayHereHash = ({ merchantId, orderId, amount, currency, merchantSecret }) => {
-  const mId = String(merchantId || '').trim();
-  const oId = String(orderId || '').trim();
-  const amt = formatAmount(amount);
-  const cur = String(currency || '').trim().toUpperCase();
-  const secretHash = upperMd5(String(merchantSecret || '').trim());
+  const mId = normalizePayHereValue(merchantId);
+  const oId = normalizePayHereValue(orderId);
+  const amt = normalizePayHereValue(amount).split('.').length > 1
+    ? parseFloat(amount).toFixed(2)
+    : parseInt(amount).toFixed(2);
+  const cur = normalizePayHereValue(currency).toUpperCase() || 'LKR';
+  const secret = normalizePayHereValue(merchantSecret);
 
-  const hashInput = `${mId}${oId}${amt}${cur}${secretHash}`;
-  const result = crypto.createHash('md5').update(hashInput).digest('hex').toUpperCase();
+  const hashInput = `${mId}${oId}${amt}${cur}${secret}`;
+  const hash = upperMd5(hashInput);
 
-  // Attach raw input for debugging (non-sensitive: merchant id and order id only)
-  return { hash: result, hashInput };
+  console.log('PayHere Hash Generation Debug:', {
+    merchantId: mId,
+    orderId: oId,
+    amount: amt,
+    currency: cur,
+    merchantSecret: secret ? '***' : '(missing)',
+    hashInput: `${mId}${oId}${amt}${cur}*****`,
+    finalHash: hash
+  });
+
+  return { hash, hashInput };
 };
 
 const verifyPayHereSignature = (payload, merchantSecret) => {
-  const signatureInput = `${payload.merchant_id}${payload.order_id}${payload.payhere_amount}${payload.payhere_currency}${payload.status_code}${upperMd5(merchantSecret)}`;
-  const expected = crypto.createHash('md5').update(signatureInput).digest('hex').toUpperCase();
+  const mId = normalizePayHereValue(payload.merchant_id);
+  const oId = normalizePayHereValue(payload.order_id);
+  const payhereAmount = normalizePayHereValue(payload.payhere_amount);
+  const payhereCurrency = normalizePayHereValue(payload.payhere_currency);
+  const statusCode = normalizePayHereValue(payload.status_code);
+  const secretHash = upperMd5(normalizePayHereValue(merchantSecret));
+  const signatureInput = `${mId}${oId}${payhereAmount}${payhereCurrency}${statusCode}${secretHash}`;
+  const expected = upperMd5(signatureInput);
+
+  console.log('PayHere Notify Signature Debug:', {
+    signatureInput: `${mId}${oId}${payhereAmount}${payhereCurrency}${statusCode}*****`,
+    expected,
+    received: String(payload.md5sig || '').toUpperCase()
+  });
+
   return expected === String(payload.md5sig || '').toUpperCase();
 };
 
@@ -93,7 +119,7 @@ const ensurePayHereConfigured = () => {
 const createPayHereCheckoutPayload = ({ payment, items, amount, currency, user }) => {
   ensurePayHereConfigured();
 
-  const orderId = payment.gatewayOrderId || payment.transactionId;
+  const orderId = payment.transactionId;
   const checkoutCurrency = currency || 'LKR';
   const checkoutAmount = formatAmount(amount);
 
@@ -161,16 +187,8 @@ exports.debugPayHereForPayment = async (req, res) => {
 };
 
 const findOrCreatePendingPayment = async ({ touristId, providerId, amount, currency, purpose, bookingId, tourRequestId, metadata }) => {
-  const existingPayment = await Payment.findOne({
-    tourist: touristId,
-    purpose,
-    status: 'pending',
-    ...(bookingId ? { booking: bookingId } : {}),
-    ...(tourRequestId ? { tourRequest: tourRequestId } : {})
-  }).sort('-createdAt');
-
-  if (existingPayment) return existingPayment;
-
+  // Always create a fresh pending payment for a new checkout attempt.
+  // Reusing an old pending payment can cause PayHere to reject the request if the previous order_id was invalid.
   return Payment.create({
     booking: bookingId,
     tourRequest: tourRequestId,

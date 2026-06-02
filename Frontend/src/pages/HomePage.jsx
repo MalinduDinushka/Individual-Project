@@ -12,12 +12,9 @@ import {
   FaHotel,
   FaMapMarkerAlt,
   FaRoute,
-  FaSearch,
-  FaStar,
   FaUsers,
   FaGlobe
 } from 'react-icons/fa'
-import { MdVerified } from 'react-icons/md'
 
 const stats = [
   { value: '500+', label: 'Verified providers' },
@@ -51,23 +48,7 @@ const services = [
   }
 ]
 
-const workflow = [
-  {
-    icon: FaSearch,
-    title: 'Search by destination',
-    description: 'Filter by district, service type, date, budget, and traveler count.'
-  },
-  {
-    icon: MdVerified,
-    title: 'Compare trusted providers',
-    description: 'Review service details, ratings, profiles, photos, and response quality.'
-  },
-  {
-    icon: FaCalendarAlt,
-    title: 'Book with confidence',
-    description: 'Create bookings, manage trip requests, message providers, and leave feedback.'
-  }
-]
+/* Workflow section removed */
 
 const highlights = [
   'Verified provider profiles',
@@ -76,23 +57,6 @@ const highlights = [
   'Reviews, chat, bookings, and SOS support'
 ]
 
-const reviews = [
-  {
-    name: 'Sarah Johnson',
-    role: 'Traveler from the UK',
-    quote: 'TourMate made the trip feel organized from the first search to the final booking.'
-  },
-  {
-    name: 'Michael Chen',
-    role: 'Family traveler',
-    quote: 'The service cards and provider details made it easy to compare options quickly.'
-  },
-  {
-    name: 'Nimali Perera',
-    role: 'Service provider',
-    quote: 'The dashboard gives providers a clean way to manage requests, packages, and bookings.'
-  }
-]
 
 const HomePage = () => {
   const [activeTab, setActiveTab] = useState('guides')
@@ -197,39 +161,38 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Travel Deals Section */}
-      <section className="py-24 bg-gradient-to-br from-blue-50 via-white to-slate-50">
+      {/* Travel Deals Section - card style */}
+      <section className="py-24 bg-slate-50">
         <div className="container mx-auto px-6">
-          <div className="mb-20 flex flex-col md:flex-row md:items-center md:justify-between">
-            <div className="max-w-3xl">
-              <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-2">Travel deals under $600</h2>
-              <p className="text-slate-600">Popular packages and experiences across Sri Lanka</p>
+          <div className="mb-12 flex items-center justify-between">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-1">Travel deals under $367</h2>
+              <p className="text-slate-600">Curated trips and popular destinations</p>
             </div>
-            <Link to="/services" className="mt-6 md:mt-0 inline-flex items-center gap-2 font-semibold text-primary hover:text-primary-dark transition-colors">
+            <Link to="/services" className="inline-flex items-center gap-2 font-semibold text-primary hover:text-primary-dark transition-colors">
               Explore more <FaArrowRight />
             </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { title: 'Colombo City Tour', image: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', duration: '2-3 days', description: 'Colonial architecture & markets', price: '$199' },
-              { title: 'Ella Mountain Escape', image: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', duration: '3-4 days', description: 'Hiking & tea plantations', price: '$249' },
-              { title: 'Beach & Water Sports', image: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', duration: '2-3 days', description: 'Surfing & diving', price: '$229' },
-              { title: 'Wildlife Safari', image: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', duration: '2 days', description: 'National parks & wildlife', price: '$279' }
+              { title: 'Chennai', image: '/1.webp', duration: '1h 25m, non-stop', dates: 'Fri 7/17  ›  Fri 7/24', price: '$202' },
+              { title: 'Mumbai', image: '/2.webp', duration: '2h 50m, non-stop', dates: 'Wed 7/1  ›  Sat 7/4', price: '$264' },
+              { title: 'Kochi', image: '/3.webp', duration: '1h 10m, non-stop', dates: 'Thu 7/9  ›  Sun 7/12', price: '$276' },
+              { title: 'Hyderabad', image: '/4.webp', duration: '2h, non-stop', dates: 'Fri 7/17  ›  Fri 7/24', price: '$282' }
             ].map((deal) => (
-              <div key={deal.title} className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer">
-                <div className="relative h-48 bg-gradient-to-br overflow-hidden" style={{ background: deal.image }}>
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all" />
-                </div>
-                <div className="bg-white p-6">
-                  <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-primary transition-colors">{deal.title}</h3>
-                  <p className="text-sm text-slate-600 mb-4">{deal.description}</p>
-                  <div className="border-t border-slate-200 pt-4 flex items-baseline justify-between">
-                    <div className="text-xs font-semibold text-slate-500 uppercase">{deal.duration}</div>
-                    <div className="text-2xl font-extrabold text-primary">{deal.price}</div>
+              <article key={deal.title} className="rounded-2xl bg-white shadow-md border border-slate-200 overflow-hidden">
+                <div className="h-40 md:h-44 bg-cover bg-center" style={{ backgroundImage: `url(${deal.image})` }} />
+                <div className="p-5">
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">{deal.title}</h3>
+                  <div className="text-sm text-slate-600 mb-3">{deal.duration}</div>
+                  <div className="text-sm text-slate-500 mb-4">{deal.dates}</div>
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <div className="text-sm text-slate-600">from</div>
+                    <div className="text-2xl font-extrabold text-slate-900">{deal.price}</div>
                   </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </div>
@@ -261,59 +224,9 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* How It Works - Dark Section */}
-      <section className="py-24 bg-slate-900 text-white">
-        <div className="container mx-auto px-6">
-          <div className="mb-20 max-w-3xl">
-            <div className="section-eyebrow mb-4 border-cyan-300/30 bg-cyan-300/10 text-cyan-300">Our Process</div>
-            <h2 className="text-5xl font-extrabold mb-4">Simple booking process</h2>
-          </div>
+      {/* How It Works section removed per request */}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {workflow.map((step, index) => {
-              const Icon = step.icon
-              return (
-                <div key={step.title} className="relative">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-400 text-slate-900 text-2xl font-bold mb-6">{index + 1}</div>
-                  {index < workflow.length - 1 && <div className="hidden md:block absolute top-8 left-32 w-24 h-1 bg-cyan-400/30" />}
-                  <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
-                  <p className="text-white/75 leading-relaxed">{step.description}</p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Reviews - White Section */}
-      <section id="reviews" className="py-24 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="mb-20 max-w-3xl mx-auto text-center">
-            <div className="section-eyebrow mb-4 justify-center">Testimonials</div>
-            <h2 className="section-title">What users say</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {reviews.map((review) => (
-              <div key={review.name} className="rounded-xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-8 shadow-sm hover:shadow-lg hover:border-primary/30 transition-all">
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => <FaStar key={i} className="text-amber-400" />)}
-                </div>
-                <p className="text-slate-700 leading-relaxed mb-6">"{review.quote}"</p>
-                <div className="flex items-center gap-3 pt-6 border-t border-slate-200">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white font-bold text-sm">
-                    {review.name.split(' ').map((n) => n[0]).join('')}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-900">{review.name}</p>
-                    <p className="text-sm text-slate-500">{review.role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Testimonials removed per request */}
 
       {/* Final CTA */}
       <section className="py-24 bg-gradient-to-br from-primary via-primary/95 to-primary/85">

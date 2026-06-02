@@ -20,7 +20,7 @@ const Navbar = ({ variant = 'light' }) => {
   }
 
   return (
-    <nav className={`${isLight ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200/70 shadow-sm' : 'bg-slate-950/75 backdrop-blur-xl border-b border-white/10 shadow-[0_12px_40px_rgba(15,23,42,0.22)]'} sticky top-0 z-50`}>
+    <nav className={`${isLight ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200/70 shadow-sm' : 'backdrop-blur-xl  shadow-[0_12px_40px_rgba(15,23,42,0)]'} sticky top-0 z-50`}>
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between gap-6">
           {/* Logo */}

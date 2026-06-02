@@ -105,9 +105,9 @@ const HomePage = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-slate-900/75 via-slate-900/55 to-slate-900/30" />
 
-        {/* Navbar - Dark Overlay with Transparent Background */}
-        <nav className="absolute top-0 left-0 right-0 z-50 bg-gradient-to-b from-slate-900/40 to-transparent backdrop-blur-sm border-b border-white/10">
-          <Navbar variant="light" />
+        {/* Navbar - Modern Glass-Morphism Design */}
+        <nav className="absolute top-0 left-0 right-0 z-50">
+          <Navbar variant="dark" />
         </nav>
 
         {/* Content */}

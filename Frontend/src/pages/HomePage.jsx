@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { useState } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import {
@@ -12,6 +11,7 @@ import {
   FaHotel,
   FaMapMarkerAlt,
   FaRoute,
+  FaStar,
   FaUsers,
   FaGlobe
 } from 'react-icons/fa'
@@ -22,8 +22,6 @@ const stats = [
   { value: '4.9/5', label: 'Traveler rating' },
   { value: '24/7', label: 'Trip support' }
 ]
-
-const searchFilters = ['Colombo', 'Ella', 'Kandy', 'Mirissa']
 
 const services = [
   {
@@ -59,22 +57,12 @@ const highlights = [
 
 
 const HomePage = () => {
-  const [activeTab, setActiveTab] = useState('guides')
-
-  const tabs = [
-    { id: 'guides', label: 'Tour Guides', icon: FaRoute },
-    { id: 'transport', label: 'Transport', icon: FaCarSide },
-    { id: 'stays', label: 'Stays', icon: FaHotel },
-    { id: 'packages', label: 'Packages', icon: FaCalendarAlt },
-    { id: 'support', label: 'Support', icon: FaHeadset }
-  ]
-
   return (
     <div className="min-h-screen bg-white text-slate-900">
       {/* Hero Section with Integrated Navbar */}
       <section className="relative min-h-screen overflow-hidden">
         <img
-          src="/hero-bg.webp"
+          src="/3558308.jpg"
           alt="Sri Lankan travel"
           className="absolute inset-0 h-full w-full object-cover"
         />
@@ -96,62 +84,18 @@ const HomePage = () => {
               Compare and book guides, transport, stays, and travel packages from trusted providers across Sri Lanka.
             </p>
 
-            {/* Search Card */}
-            <div className="mt-12 bg-white rounded-2xl shadow-2xl overflow-hidden">
-              {/* Category Tabs */}
-              <div className="flex items-center gap-2 px-6 py-5 border-b border-slate-200 overflow-x-auto">
-                {tabs.map((tab) => {
-                  const Icon = tab.icon
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`flex flex-col items-center gap-2 px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
-                        activeTab === tab.id
-                          ? 'bg-primary text-white'
-                          : 'text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      <Icon className="text-xl" />
-                      <span className="text-xs font-semibold">{tab.label}</span>
-                    </button>
-                  )
-                })}
-              </div>
-
-              {/* Search Form */}
-              <div className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">From</label>
-                    <input type="text" placeholder="Colombo" className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">To</label>
-                    <input type="text" placeholder="Enter destination" className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Date</label>
-                    <input type="date" className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Travelers</label>
-                    <select className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
-                      <option>1 person</option>
-                      <option>2 people</option>
-                      <option>3-4 people</option>
-                      <option>5+ people</option>
-                    </select>
-                  </div>
-                </div>
-                <button className="w-full bg-primary text-white font-bold py-3 rounded-lg hover:bg-primary-dark transition-colors">Search</button>
-              </div>
+            <div className="mt-10 flex flex-col sm:flex-row gap-4">
+              <Link to="/services" className="inline-flex items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-slate-950/10 transition hover:bg-slate-100">
+                Explore collection
+              </Link>
+              <Link to="/register" className="inline-flex items-center justify-center rounded-full border border-white/25 bg-white/10 px-7 py-3 text-sm font-semibold text-white transition hover:bg-white/20">
+                Book your stay
+              </Link>
             </div>
 
-            {/* Stats Row */}
-            <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-6">
               {stats.map((stat) => (
-                <div key={stat.label}>
+                <div key={stat.label} className="rounded-3xl bg-white/10 border border-white/10 p-5 backdrop-blur-xl">
                   <div className="text-3xl md:text-4xl font-extrabold text-cyan-300">{stat.value}</div>
                   <p className="mt-2 text-white/80 font-medium">{stat.label}</p>
                 </div>
@@ -161,40 +105,92 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Travel Deals Section - card style */}
+      {/* Our collection section */}
       <section className="py-24 bg-slate-50">
         <div className="container mx-auto px-6">
-          <div className="mb-12 flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-1">Travel deals under $367</h2>
-              <p className="text-slate-600">Curated trips and popular destinations</p>
+          <div className="grid gap-8 lg:grid-cols-[0.95fr_0.85fr] items-start mb-14">
+            <div className="max-w-2xl">
+              <p className="text-sm uppercase tracking-[0.32em] text-cyan-500 font-semibold">Our collection</p>
+              <h2 className="mt-4 text-4xl md:text-5xl font-extrabold text-slate-950 leading-tight">Stylish stays across Sri Lanka</h2>
+              <p className="mt-5 text-lg text-slate-600 leading-relaxed">
+                Discover thoughtfully selected accommodations for every style of travel. Each stay is verified, locally supported, and built for a seamless experience.
+              </p>
+              <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {['Beach escapes', 'Hill country', 'City stays', 'Eco retreats'].map((pill) => (
+                  <button key={pill} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-cyan-300 hover:text-cyan-700">
+                    {pill}
+                  </button>
+                ))}
+              </div>
             </div>
-            <Link to="/services" className="inline-flex items-center gap-2 font-semibold text-primary hover:text-primary-dark transition-colors">
-              Explore more <FaArrowRight />
-            </Link>
+
+            <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-lg shadow-slate-900/5">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.35em] text-cyan-500">Featured</p>
+                  <h3 className="mt-3 text-2xl font-semibold text-slate-950">Stay with confidence</h3>
+                </div>
+                <span className="inline-flex rounded-full bg-cyan-500/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-cyan-700">
+                  Verified
+                </span>
+              </div>
+              <p className="mt-5 text-slate-600 leading-7">
+                Explore premium properties with high guest ratings, streamlined booking support, and proximity to Sri Lanka’s top destinations.
+              </p>
+              <div className="mt-8 grid gap-4">
+                {[
+                  { label: '24/7 support', value: 'Live assistance available for every booking.' },
+                  { label: 'Flexible check-in', value: 'Arrive on your schedule with ease.' }
+                ].map((item) => (
+                  <div key={item.label} className="rounded-[28px] border border-slate-200 bg-slate-50 p-5">
+                    <p className="text-sm font-semibold text-slate-900">{item.label}</p>
+                    <p className="mt-2 text-sm text-slate-600">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link to="/services" className="inline-flex items-center justify-center rounded-full bg-cyan-500 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-cyan-400">
+                  Browse all stays
+                </Link>
+                <Link to="/register" className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100">
+                  Become a host
+                </Link>
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             {[
-              { title: 'Kandy', image: '/1.webp', duration: '1h 25m, non-stop', dates: 'Fri 7/17  ›  Fri 7/24', price: '$202' },
-              { title: 'Mirissa', image: '/2.webp', duration: '2h 50m, non-stop', dates: 'Wed 7/1  ›  Sat 7/4', price: '$264' },
-              { title: '9 Arch', image: '/3.webp', duration: '1h 10m, non-stop', dates: 'Thu 7/9  ›  Sun 7/12', price: '$276' },
-              { title: 'Trinco', image: '/4.webp', duration: '2h, non-stop', dates: 'Fri 7/17  ›  Fri 7/24', price: '$282' }
+              { title: 'Kandy', location: 'Tea Country', image: '/1.webp', description: 'A serene hillside retreat with lush green views.', price: 'From $68/night' },
+              { title: 'Mirissa', location: 'South Coast', image: '/2.webp', description: 'A beachside escape with sunset sea views.', price: 'From $74/night' },
+              { title: '9 Arch', location: 'Ella', image: '/3.webp', description: 'A dramatic railway arch surrounded by rolling hills.', price: 'From $81/night' },
+              { title: 'Trinco', location: 'East Coast', image: '/4.webp', description: 'A coastal hideaway beside turquoise waters.', price: 'From $79/night' }
             ].map((deal) => (
-              <article
-                key={deal.title}
-                className="rounded-2xl bg-white shadow-sm hover:shadow-md border border-slate-100 overflow-hidden transition-shadow duration-200"
-              >
-                <img src={deal.image} alt={deal.title} className="w-full h-44 md:h-52 object-cover rounded-t-2xl" />
-
-                <div className="p-6">
-                  <h3 className="text-lg md:text-xl font-semibold text-slate-900 mb-2">{deal.title}</h3>
-                  <div className="text-sm text-slate-600 mb-2">{deal.duration}</div>
-                  <div className="text-sm text-slate-500 mb-4">{deal.dates}</div>
-
-                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <div className="text-sm text-slate-600">from</div>
-                    <div className="text-xl md:text-2xl font-extrabold text-slate-900">{deal.price}</div>
+              <article key={deal.title} className="group overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_20px_50px_-20px_rgba(15,23,42,0.15)] transition hover:-translate-y-1 hover:shadow-[0_24px_64px_-24px_rgba(15,23,42,0.18)]">
+                <div className="relative h-72 overflow-hidden">
+                  <img src={deal.image} alt={deal.title} className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-transparent" />
+                  <div className="absolute left-4 top-4 inline-flex items-center rounded-full bg-white/95 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 shadow-sm">
+                    {deal.location}
+                  </div>
+                </div>
+                <div className="space-y-4 p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-xl font-semibold text-slate-950">{deal.title}</h3>
+                      <p className="mt-2 text-sm text-slate-500 leading-relaxed">{deal.description}</p>
+                    </div>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700">{deal.price}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-slate-500">
+                    <FaStar className="text-amber-400" />
+                    <span>4.9 · 38 reviews</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Link to="/services" className="text-sm font-semibold text-cyan-600 transition hover:text-cyan-500">View details</Link>
+                    <button className="ml-auto rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
+                      Book now
+                    </button>
                   </div>
                 </div>
               </article>
@@ -203,24 +199,82 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Services Section */}
-      <section id="services" className="py-24 bg-white">
+      <section className="py-24 bg-slate-50">
         <div className="container mx-auto px-6">
-          <div className="mb-20 max-w-3xl">
-            <div className="section-eyebrow mb-4">What We Offer</div>
-            <h2 className="section-title">Complete travel solutions</h2>
-            <p className="section-copy mt-4">Everything you need to plan, book, and enjoy an authentic travel experience across Sri Lanka.</p>
+          <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] items-center">
+            <div>
+              <p className="text-sm uppercase tracking-[0.3em] text-cyan-500">Explore Sri Lanka</p>
+              <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mt-4">Plan your journey with a beautiful island travel map</h2>
+              <p className="mt-6 text-lg text-slate-600 max-w-2xl leading-relaxed">
+                Discover key destinations, regional highlights, and route ideas for an unforgettable Sri Lankan adventure. Use the map to compare cultural hubs, coastline escapes, and hill country retreats.
+              </p>
+
+              <div className="mt-10 grid gap-4 sm:grid-cols-2">
+                {[
+                  { icon: FaMapMarkerAlt, label: 'Top destinations' },
+                  { icon: FaGlobe, label: 'Island-wide travel coverage' },
+                  { icon: FaClock, label: 'Flexible itineraries' },
+                  { icon: FaCheckCircle, label: 'Trusted local experts' }
+                ].map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <div key={item.label} className="flex items-start gap-3 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm">
+                      <div className="rounded-2xl bg-cyan-500/10 p-3 text-cyan-600">
+                        <Icon className="text-xl" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-900">{item.label}</p>
+                        <p className="text-sm text-slate-500 mt-1">Curated travel insights for every trip.</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="mx-auto w-full max-w-[420px] overflow-hidden rounded-[36px] bg-slate-900 shadow-2xl shadow-slate-900/10">
+              <img src="/image.png" alt="Sri Lanka travel map" className="w-full h-auto object-contain" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="services" className="py-24 bg-slate-100">
+        <div className="container mx-auto px-6">
+          <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] items-center mb-16">
+            <div className="space-y-6">
+              <div className="inline-flex items-center rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-semibold uppercase tracking-[0.35em] text-slate-700 shadow-sm">
+                What We Offer
+              </div>
+              <div>
+                <h2 className="text-4xl font-extrabold text-slate-950">Complete travel solutions</h2>
+                <p className="mt-4 text-lg text-slate-600 max-w-2xl leading-relaxed">
+                  Everything you need to plan, book, and enjoy an authentic travel experience across Sri Lanka.
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {[
+                { title: 'Built for travelers', description: 'A clean, easy-to-use booking experience designed for modern explorers.' },
+                { title: 'Trusted local providers', description: 'Verified listings paired with clear pricing and fast support.' }
+              ].map((item) => (
+                <div key={item.title} className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+                  <h3 className="text-lg font-semibold text-slate-900">{item.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-slate-600">{item.description}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-4">
             {services.map((service) => {
               const Icon = service.icon
               return (
-                <div key={service.title} className="group">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15 text-primary text-3xl transition-all duration-300 group-hover:bg-primary group-hover:text-white group-hover:scale-110">
+                <div key={service.title} className="group rounded-[32px] border border-slate-200 bg-white p-8 shadow-[0_30px_60px_-30px_rgba(15,23,42,0.2)] transition hover:-translate-y-1 hover:shadow-[0_32px_64px_-28px_rgba(15,23,42,0.18)]">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-cyan-500/10 text-cyan-600 text-2xl transition duration-300 group-hover:bg-cyan-500 group-hover:text-white">
                     <Icon />
                   </div>
-                  <h3 className="mt-6 text-lg font-bold text-slate-900">{service.title}</h3>
+                  <h3 className="mt-6 text-xl font-semibold text-slate-950">{service.title}</h3>
                   <p className="mt-3 text-slate-600 leading-relaxed">{service.description}</p>
                 </div>
               )

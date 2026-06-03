@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
-import { FaMapMarkerAlt, FaEnvelope } from 'react-icons/fa'
+import { FaEnvelope } from 'react-icons/fa'
+import Logo from '../components/Logo'
 import { authAPI } from '../api'
 
 const ForgotPasswordPage = () => {
@@ -27,15 +28,8 @@ const ForgotPasswordPage = () => {
   return (
     <div className="page-shell flex items-center justify-center px-4 py-10">
       <div className="max-w-lg w-full relative z-10">
-        {/* Logo */}
         <div className="flex items-center justify-center mb-8">
-          <div className="bg-gradient-to-br from-primary to-primary-dark p-3 rounded-2xl shadow-lg shadow-primary/20">
-            <FaMapMarkerAlt className="text-white text-2xl" />
-          </div>
-          <div className="ml-3">
-            <h1 className="text-3xl font-extrabold text-slate-900">TourMate</h1>
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Account recovery</p>
-          </div>
+          <Logo />
         </div>
 
         <div className="premium-panel p-8 md:p-10">

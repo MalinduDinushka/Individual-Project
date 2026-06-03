@@ -1,8 +1,9 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { FaMapMarkerAlt, FaPhoneAlt, FaSignOutAlt, FaCalendarAlt, FaBars, FaTimes } from 'react-icons/fa'
+import { FaPhoneAlt, FaSignOutAlt, FaCalendarAlt, FaBars, FaTimes } from 'react-icons/fa'
 import { MdDashboard, MdExplore, MdMessage, MdFavorite, MdSettings, MdWork, MdInbox, MdAttachMoney, MdPeople, MdVerifiedUser, MdWarning, MdBarChart } from 'react-icons/md'
 import { useAuthStore } from '../store/authStore'
 import { useState } from 'react'
+import Logo from './Logo'
 import SOSModal from './SOSModal'
 import NotificationDropdown from './NotificationDropdown'
 
@@ -55,17 +56,17 @@ const DashboardLayout = ({ children, navItems, userRole }) => {
       <aside className={`w-72 bg-slate-950 text-white fixed inset-y-0 left-0 z-40 border-r border-white/10 shadow-[8px_0_40px_rgba(15,23,42,0.15)] transition-transform duration-200 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-6 border-b border-white/10">
           <div className="flex items-center justify-between gap-4">
-          <Link to="/" className="flex items-center space-x-3">
-            <div className="bg-gradient-to-br from-cyan-400 to-primary p-2 rounded-lg shadow-lg shadow-cyan-500/20">
-              <FaMapMarkerAlt className="text-white text-xl" />
-            </div>
-            <div>
-              <h1 className="text-xl font-extrabold text-white">TourMate</h1>
+            <div className="flex items-center gap-3">
+              <Logo
+                to="/"
+                className="flex-1"
+                textClassName="text-white"
+                iconContainerClassName="bg-white/10"
+              />
               <span className="text-xs px-2.5 py-1 rounded-full bg-white/10 text-white/80 inline-flex mt-1">
                 {roleLabels[userRole]}
               </span>
             </div>
-          </Link>
             <button type="button" onClick={() => setSidebarOpen(false)} className="p-2 rounded-lg hover:bg-white/10 lg:hidden" aria-label="Close sidebar">
               <FaTimes />
             </button>

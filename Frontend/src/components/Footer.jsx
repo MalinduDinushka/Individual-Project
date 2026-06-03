@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { FaMapMarkerAlt, FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa'
+import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa'
+import Logo from './Logo'
 
 const Footer = () => {
   return (
@@ -8,14 +9,8 @@ const Footer = () => {
       <div className="container mx-auto px-6 py-16 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           <div>
-            <div className="flex items-center space-x-3 mb-5">
-              <div className="bg-white/10 backdrop-blur p-2.5 rounded-lg border border-white/10">
-                <FaMapMarkerAlt className="text-primary text-xl" />
-              </div>
-              <div>
-                <h1 className="text-xl font-extrabold">TourMate</h1>
-                <p className="text-xs text-white/70 uppercase tracking-[0.18em]">Travel made simple</p>
-              </div>
+            <div className="mb-5">
+              <Logo className="text-white" textClassName="text-white" iconContainerClassName="bg-white/10" />
             </div>
             <p className="text-sm text-white/70 leading-7 max-w-sm">
               A clean booking platform for transport, stays, guides, and travel support across Sri Lanka.

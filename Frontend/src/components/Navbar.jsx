@@ -1,9 +1,11 @@
 import { Link, useLocation } from 'react-router-dom'
-import { FaMapMarkerAlt, FaStar } from 'react-icons/fa'
+import { FaStar } from 'react-icons/fa'
 import { MdArrowForward } from 'react-icons/md'
+import Logo from './Logo'
 
 const Navbar = ({ variant = 'light' }) => {
   const isLight = variant === 'light'
+  const isHero = variant === 'hero'
   const location = useLocation()
   const isHomePage = location.pathname === '/'
 
@@ -20,27 +22,14 @@ const Navbar = ({ variant = 'light' }) => {
   }
 
   return (
-    <nav className={`${isLight ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200/70 shadow-sm' : 'backdrop-blur-xl  shadow-[0_12px_40px_rgba(15,23,42,0)]'} sticky top-0 z-50`}>
+    <nav className={`${isHero ? 'bg-slate-950/20 border-white/10' : isLight ? 'bg-white/90 border-slate-200/70 shadow-sm' : 'bg-slate-900/50 border-white/5'} backdrop-blur-2xl sticky top-0 z-50 border-b`}>
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between gap-6">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 group">
-            <div className={`${isLight ? 'bg-primary' : 'bg-white'} p-2.5 rounded-xl shadow-sm group-hover:scale-105 transition-transform duration-200`}>
-              <FaMapMarkerAlt className={`${isLight ? 'text-white' : 'text-primary'} text-xl`} />
-            </div>
-            <div>
-              <h1 className={`${isLight ? 'text-slate-900' : 'text-white'} text-2xl font-extrabold tracking-tight`}>
-                TourMate
-              </h1>
-              <p className={`${isLight ? 'text-slate-500' : 'text-white/70'} text-xs font-medium flex items-center space-x-1`}>
-                <FaStar className="text-amber-400 text-[10px]" />
-                <span>Travel booking platform</span>
-              </p>
-            </div>
-          </Link>
+          <Logo compact={isHero} className="group" />
 
           {/* Navigation Links */}
-          <div className={`${isLight ? 'bg-slate-100/80' : 'bg-white/10'} hidden md:flex items-center space-x-1 rounded-full px-2 py-1`}>
+          <div className={`${isHero ? 'hidden' : isLight ? 'bg-slate-100/80' : 'bg-white/10'} ${isHero ? '' : 'hidden md:flex'} items-center space-x-1 rounded-full px-2 py-1`}>
             <a
               href="#features"
               onClick={(e) => handleScroll(e, 'features')}
@@ -73,18 +62,20 @@ const Navbar = ({ variant = 'light' }) => {
 
           {/* CTA Buttons */}
           <div className="flex items-center space-x-3">
-            <Link 
-              to="/login" 
-              className={`hidden sm:flex items-center space-x-2 ${isLight ? 'text-slate-700 hover:text-slate-900' : 'text-white/80 hover:text-white'} font-semibold transition-colors duration-200`}
-            >
-              <span>Sign In</span>
-            </Link>
+            {!isHero && (
+              <Link 
+                to="/login" 
+                className={`hidden sm:flex items-center space-x-2 ${isLight ? 'text-slate-700 hover:text-slate-900' : 'text-white/80 hover:text-white'} font-semibold transition-colors duration-200`}
+              >
+                <span>Sign In</span>
+              </Link>
+            )}
             <Link 
               to="/register" 
-              className="flex items-center space-x-2 bg-primary text-white px-5 py-2.5 rounded-xl font-semibold shadow-sm hover:bg-primary-dark hover:-translate-y-0.5 transition-all duration-200"
+              className={`${isHero ? 'text-white/90 bg-white/10 border border-white/20 hover:bg-white/15' : 'text-white bg-primary hover:bg-primary-dark'} flex items-center space-x-2 px-5 py-2.5 rounded-full font-semibold shadow-sm transition-all duration-200 ${!isHero ? 'hover:-translate-y-0.5' : ''}`}
             >
-              <span>Join Now</span>
-              <MdArrowForward className="text-lg" />
+              <span>{isHero ? 'BOOK' : 'Join Now'}</span>
+              {!isHero && <MdArrowForward className="text-lg" />}
             </Link>
           </div>
         </div>

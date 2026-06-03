@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
-import { FaMapMarkerAlt, FaGoogle } from 'react-icons/fa'
+import { FaGoogle } from 'react-icons/fa'
 import GoogleSignIn from '../components/GoogleSignIn'
+import Logo from '../components/Logo'
 import { authAPI } from '../api'
 import { useAuthStore } from '../store/authStore'
 
@@ -80,13 +81,7 @@ const LoginPage = () => {
         <div className="max-w-lg w-full">
           {/* Logo for mobile */}
           <div className="lg:hidden flex items-center justify-center mb-8">
-            <div className="bg-gradient-to-br from-primary to-primary-dark p-3 rounded-2xl shadow-lg shadow-primary/20">
-              <FaMapMarkerAlt className="text-white text-2xl" />
-            </div>
-            <div className="ml-3">
-              <h1 className="text-2xl font-extrabold text-slate-900">TourMate</h1>
-              <p className="text-xs text-slate-500 uppercase tracking-[0.18em]">Premium travel platform</p>
-            </div>
+            <Logo />
           </div>
 
           {/* Role Tabs */}

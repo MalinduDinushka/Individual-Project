@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
-import { FaGoogle } from 'react-icons/fa'
+import { FaGoogle, FaMapMarkerAlt } from 'react-icons/fa'
 import GoogleSignIn from '../components/GoogleSignIn'
 import Logo from '../components/Logo'
 import { authAPI } from '../api'

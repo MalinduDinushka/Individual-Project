@@ -62,11 +62,11 @@ const HomePage = () => {
       {/* Hero Section with Integrated Navbar */}
       <section className="relative min-h-screen overflow-hidden">
         <img
-          src="/3558308.jpg"
-          alt="Sri Lankan travel"
+          src="/7397594.jpg"
+          alt="Kalkudah beach scenery"
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/75 via-slate-900/55 to-slate-900/30" />
+        <div className="absolute inset-0 bg-slate-950/70" />
 
         {/* Navbar */}
         <nav className="absolute top-0 left-0 right-0 z-50">
@@ -74,41 +74,41 @@ const HomePage = () => {
         </nav>
 
         {/* Hero Content */}
-        <div className="relative z-10 container mx-auto px-6 pt-32 pb-20">
-          <div className="max-w-5xl">
-            <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
-              Find the right travel experience for you
-            </h1>
-            
-            <p className="mt-6 text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl">
-              Compare and book guides, transport, stays, and travel packages from trusted providers across Sri Lanka.
-            </p>
-
-            <div className="mt-10 flex flex-col sm:flex-row gap-4">
-              <Link to="/services" className="inline-flex items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-slate-950/10 transition hover:bg-slate-100">
-                Explore collection
-              </Link>
-              <Link to="/register" className="inline-flex items-center justify-center rounded-full border border-white/25 bg-white/10 px-7 py-3 text-sm font-semibold text-white transition hover:bg-white/20">
-                Book your stay
-              </Link>
-            </div>
-
-            <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-6">
-              {stats.map((stat) => (
-                <div key={stat.label} className="rounded-3xl bg-white/10 border border-white/10 p-5 backdrop-blur-xl">
-                  <div className="text-3xl md:text-4xl font-extrabold text-cyan-300">{stat.value}</div>
-                  <p className="mt-2 text-white/80 font-medium">{stat.label}</p>
-                </div>
-              ))}
+        <div className="relative z-10 flex min-h-screen items-center">
+          <div className="container mx-auto px-6">
+            <div className="max-w-4xl text-center mx-auto">
+              <p className="text-sm uppercase tracking-[0.55em] text-white/70 mb-6"></p>
+              <h1 className="font-serif text-5xl md:text-[5.75rem] leading-[0.92] text-white drop-shadow-lg">Embrace<br />Barefoot Luxury</h1>
+              <p className="mx-auto mt-8 max-w-2xl text-base md:text-lg text-white/80 leading-relaxed">
+                Experience Sri Lanka’s coastline with tasteful stays, seamless local support, and a travel journey designed around your comfort.
+              </p>
+              <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                <Link
+                  to="/services"
+                  className="inline-flex items-center justify-center rounded-full bg-white px-8 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-slate-950/20 transition hover:bg-slate-100"
+                >
+                  Explore Kalkudah
+                </Link>
+                <Link
+                  to="/register"
+                  className="inline-flex items-center justify-center rounded-full border border-white/25 bg-white/10 px-8 py-3 text-sm font-semibold text-white transition hover:bg-white/20"
+                >
+                  Book your stay
+                </Link>
+              </div>
             </div>
           </div>
+        </div>
+
+        <div className="pointer-events-none absolute bottom-10 left-6 text-xs uppercase tracking-[0.35em] text-white/60">
+          
         </div>
       </section>
 
       {/* Our collection section */}
       <section className="py-24 bg-slate-50">
         <div className="container mx-auto px-6">
-          <div className="grid gap-8 lg:grid-cols-[0.95fr_0.85fr] items-start mb-14">
+          <div className="grid gap-5 lg:grid-cols-[1fr_0.75fr] items-start mb-10">
             <div className="max-w-2xl">
               <p className="text-sm uppercase tracking-[0.32em] text-cyan-500 font-semibold">Our collection</p>
               <h2 className="mt-4 text-4xl md:text-5xl font-extrabold text-slate-950 leading-tight">Stylish stays across Sri Lanka</h2>
@@ -124,8 +124,8 @@ const HomePage = () => {
               </div>
             </div>
 
-            <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-lg shadow-slate-900/5">
-              <div className="flex items-center justify-between gap-4">
+            <div className="rounded-[32px] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-900/5">
+              <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-[0.35em] text-cyan-500">Featured</p>
                   <h3 className="mt-3 text-2xl font-semibold text-slate-950">Stay with confidence</h3>
@@ -134,25 +134,20 @@ const HomePage = () => {
                   Verified
                 </span>
               </div>
-              <p className="mt-5 text-slate-600 leading-7">
+              <p className="mt-4 text-sm text-slate-600 leading-7">
                 Explore premium properties with high guest ratings, streamlined booking support, and proximity to Sri Lanka’s top destinations.
               </p>
-              <div className="mt-8 grid gap-4">
-                {[
-                  { label: '24/7 support', value: 'Live assistance available for every booking.' },
-                  { label: 'Flexible check-in', value: 'Arrive on your schedule with ease.' }
-                ].map((item) => (
-                  <div key={item.label} className="rounded-[28px] border border-slate-200 bg-slate-50 p-5">
-                    <p className="text-sm font-semibold text-slate-900">{item.label}</p>
-                    <p className="mt-2 text-sm text-slate-600">{item.value}</p>
-                  </div>
-                ))}
+              <div className="mt-5">
+                <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-sm font-semibold text-slate-900">24/7 support</p>
+                  <p className="mt-2 text-sm text-slate-600">Live assistance available for every booking.</p>
+                </div>
               </div>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link to="/services" className="inline-flex items-center justify-center rounded-full bg-cyan-500 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-cyan-400">
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link to="/services" className="inline-flex items-center justify-center rounded-full bg-cyan-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-cyan-400">
                   Browse all stays
                 </Link>
-                <Link to="/register" className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100">
+                <Link to="/register" className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100">
                   Become a host
                 </Link>
               </div>

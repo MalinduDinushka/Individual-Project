@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FaBus, FaCalendarAlt, FaCar, FaChild, FaFemale, FaMapMarkerAlt, FaMale, FaRoute, FaUsers } from 'react-icons/fa'
-import { tourAPI, userAPI } from '../../api'
+import { tourAPI } from '../../api'
 import { toast } from 'react-hot-toast'
 import SriLankaDistrictPicker from '../../components/tourist/SriLankaDistrictPicker'
 import { districtLookup } from '../../data/sriLankaTour'
@@ -51,8 +51,6 @@ const TourRequestCreate = () => {
   const [form, setForm] = useState(defaultForm)
   const [selectedDistricts, setSelectedDistricts] = useState([])
   const [selectedLocationsByDistrict, setSelectedLocationsByDistrict] = useState({})
-  const [packageSuggestions, setPackageSuggestions] = useState([])
-  const [loadingPackages, setLoadingPackages] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   const stayLength = useMemo(() => {
@@ -74,27 +72,7 @@ const TourRequestCreate = () => {
     [selectedDistricts]
   )
 
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (selectedDistrictNames.length === 0) {
-        setPackageSuggestions([])
-        return
-      }
-
-      try {
-        setLoadingPackages(true)
-        const res = await userAPI.getPackageSuggestions(selectedDistrictNames)
-        setPackageSuggestions(res.data.data.suggestions || [])
-      } catch (error) {
-        console.error('Fetch package suggestions error:', error)
-        setPackageSuggestions([])
-      } finally {
-        setLoadingPackages(false)
-      }
-    }
-
-    fetchSuggestions()
-  }, [selectedDistrictNames])
+  // package suggestions removed — using full-width form for a simpler flow
 
   const selectedLocations = useMemo(
     () => Object.values(selectedLocationsByDistrict).flat(),
@@ -324,93 +302,89 @@ const TourRequestCreate = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-1.5">
       <div>
-        <h1 className="text-3xl font-bold text-gray-800">Create Tour Request</h1>
-        <p className="text-gray-600 mt-1">Choose districts first, then pick the best places to visit inside each district.</p>
+        <h1 className="text-lg font-bold text-gray-800">Create Tour Request</h1>
+        <p className="text-xs text-gray-600 mt-0">Tell us where & when you'd like to travel.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border p-6 space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-6">
-          <div className="space-y-6">
-            <section className="rounded-3xl border bg-slate-50/80 p-5 space-y-4">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">Trip basics</h2>
-                <p className="text-sm text-gray-500">Start with the trip title, dates, budget, and where you want to go.</p>
-              </div>
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border p-1 space-y-1">
+        <div className="space-y-1">
+          <section className="rounded-lg border bg-slate-50/80 p-1 space-y-1">
+            <h2 className="text-xs font-bold text-gray-900">Basics</h2>
 
-              <label className="space-y-2 block">
-                <span className="font-medium text-gray-700">Trip title</span>
-                <input
-                  type="text"
-                  value={form.title}
-                  onChange={(e) => updateField('title', e.target.value)}
-                  placeholder="e.g. 7-day Sri Lanka south coast and hill country trip"
-                  className="input input-bordered w-full"
-                />
+            <label className="space-y-0.5 block">
+              <span className="text-xs font-medium text-gray-700">Title *</span>
+              <input
+                type="text"
+                value={form.title}
+                onChange={(e) => updateField('title', e.target.value)}
+                placeholder="7-day trip"
+                className="input input-bordered w-full input-sm text-xs"
+              />
               </label>
 
-              <label className="space-y-2 block">
-                <span className="font-medium text-gray-700 flex items-center gap-2"><FaMapMarkerAlt /> Additional places to visit</span>
+              <label className="space-y-1 block">
+                <span className="text-xs font-medium text-gray-700 flex items-center gap-1"><FaMapMarkerAlt /> Additional places</span>
                 <textarea
                   value={form.extraDestinationsText}
                   onChange={(e) => updateField('extraDestinationsText', e.target.value)}
-                  placeholder="Optional: add any extra places not listed in the district picker, separated by commas"
-                  rows="3"
-                  className="input input-bordered w-full min-h-[96px]"
+                  placeholder="Extra places, separated by commas"
+                  rows="2"
+                  className="input input-bordered w-full min-h-[48px] text-xs"
                 />
               </label>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label className="space-y-2 block">
-                  <span className="font-medium text-gray-700 flex items-center gap-2"><FaCalendarAlt /> Start date</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
+                <label className="space-y-1 block">
+                  <span className="text-xs font-medium text-gray-700 flex items-center gap-1"><FaCalendarAlt /> Start</span>
                   <input
                     type="date"
                     value={form.startDate}
                     onChange={(e) => updateField('startDate', e.target.value)}
-                    className="input input-bordered w-full"
+                    className="input input-bordered w-full input-sm"
                   />
                 </label>
 
-                <label className="space-y-2 block">
-                  <span className="font-medium text-gray-700 flex items-center gap-2"><FaCalendarAlt /> End date</span>
+                <label className="space-y-1 block">
+                  <span className="text-xs font-medium text-gray-700 flex items-center gap-1"><FaCalendarAlt /> End</span>
                   <input
                     type="date"
                     value={form.endDate}
                     onChange={(e) => updateField('endDate', e.target.value)}
-                    className="input input-bordered w-full"
+                    className="input input-bordered w-full input-sm"
                   />
                 </label>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <label className="space-y-2 block">
-                  <span className="font-medium text-gray-700">Budget minimum</span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
+                <label className="space-y-1 block">
+                  <span className="text-xs font-medium text-gray-700">Min</span>
                   <input
                     type="number"
                     min="0"
                     value={form.budgetMin}
                     onChange={(e) => updateField('budgetMin', e.target.value)}
                     placeholder="500"
-                    className="input input-bordered w-full"
+                    className="input input-bordered w-full input-sm text-xs"
                   />
                 </label>
 
-                <label className="space-y-2 block">
-                  <span className="font-medium text-gray-700">Budget maximum</span>
+                <label className="space-y-1 block">
+                  <span className="text-xs font-medium text-gray-700">Max</span>
                   <input
                     type="number"
                     min="0"
                     value={form.budgetMax}
                     onChange={(e) => updateField('budgetMax', e.target.value)}
                     placeholder="1200"
-                    className="input input-bordered w-full"
+                    className="input input-bordered w-full input-sm text-xs"
                   />
                 </label>
 
-                <label className="space-y-2 block">
-                  <span className="font-medium text-gray-700">Currency</span>
-                  <select value={form.budgetCurrency} onChange={(e) => updateField('budgetCurrency', e.target.value)} className="input input-bordered w-full">
+                <label className="space-y-1 block">
+                  <span className="text-xs font-medium text-gray-700">Currency</span>
+                  <select value={form.budgetCurrency} onChange={(e) => updateField('budgetCurrency', e.target.value)} className="input input-bordered w-full input-sm text-xs">
                     <option value="USD">USD</option>
                     <option value="LKR">LKR</option>
                     <option value="EUR">EUR</option>
@@ -420,21 +394,21 @@ const TourRequestCreate = () => {
               </div>
             </section>
 
-            <section className="rounded-3xl border bg-white p-5 space-y-4">
+            <section className="rounded-lg border bg-white p-1.5 space-y-1.5">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Who is traveling</h2>
-                <p className="text-sm text-gray-500">Tell providers the group makeup so they can suggest the right vehicle and plan.</p>
+                <h2 className="text-sm font-bold text-gray-900">Who is traveling</h2>
+                <p className="text-xs text-gray-500">Group makeup for vehicle and planning.</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
                 {genderBreakdownCards.map((card) => {
                   const Icon = card.icon
                   const value = form[`${card.key}Visitors`]
                   return (
-                    <label key={card.key} className="rounded-2xl border bg-slate-50 p-4 space-y-3 block">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2 text-gray-700 font-medium">
-                          <Icon />
+                    <label key={card.key} className="rounded-lg border bg-slate-50 p-1 space-y-1 block">
+                      <div className="flex items-center justify-between gap-1.5">
+                        <div className="flex items-center gap-1 text-gray-700 text-xs font-medium">
+                          <Icon className="text-sm" />
                           {card.label}
                         </div>
                         <span className="text-xs text-gray-400">Count</span>
@@ -444,26 +418,26 @@ const TourRequestCreate = () => {
                         min="0"
                         value={value}
                         onChange={(e) => updateVisitorCount(`${card.key}Visitors`, e.target.value)}
-                        className="input input-bordered w-full"
+                        className="input input-bordered w-full input-sm text-xs"
                       />
                     </label>
                   )
                 })}
 
-                <div className="rounded-2xl border border-primary/10 bg-primary/5 p-4 flex flex-col justify-between">
+                <div className="rounded-lg border border-primary/10 bg-primary/5 p-1 flex flex-col justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">Total visitors</p>
-                    <p className="mt-2 text-3xl font-bold text-gray-900">{form.travelers}</p>
+                    <p className="text-xs text-gray-500">Total</p>
+                    <p className="mt-0.5 text-xl font-bold text-gray-900">{form.travelers}</p>
                   </div>
-                  <p className="mt-3 text-xs text-gray-500">This updates automatically from the male and female counts.</p>
+                  <p className="mt-0.5 text-xs text-gray-500">Auto-updates.</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label className="space-y-2 block">
-                  <span className="font-medium text-gray-700 flex items-center gap-2"><FaRoute /> Mode of travel</span>
-                  <select value={form.transportation} onChange={(e) => updateField('transportation', e.target.value)} className="input input-bordered w-full">
-                    <option value="">Select travel mode</option>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
+                <label className="space-y-1 block">
+                  <span className="text-xs font-medium text-gray-700 flex items-center gap-1"><FaRoute /> Travel</span>
+                  <select value={form.transportation} onChange={(e) => updateField('transportation', e.target.value)} className="input input-bordered w-full input-sm text-xs">
+                    <option value="">Select mode</option>
                     {travelModes.map((mode) => (
                       <option key={mode.value} value={mode.value}>
                         {mode.label}
@@ -472,9 +446,9 @@ const TourRequestCreate = () => {
                   </select>
                 </label>
 
-                <label className="space-y-2 block">
-                  <span className="font-medium text-gray-700 flex items-center gap-2"><FaUsers /> Accommodation</span>
-                  <select value={form.accommodation} onChange={(e) => updateField('accommodation', e.target.value)} className="input input-bordered w-full">
+                <label className="space-y-1 block">
+                  <span className="text-xs font-medium text-gray-700 flex items-center gap-1"><FaUsers /> Accommodation</span>
+                  <select value={form.accommodation} onChange={(e) => updateField('accommodation', e.target.value)} className="input input-bordered w-full input-sm text-xs">
                     <option value="">Select accommodation</option>
                     <option value="hotel">Hotel</option>
                     <option value="guesthouse">Guest house</option>
@@ -486,13 +460,13 @@ const TourRequestCreate = () => {
               </div>
             </section>
 
-            <section className="rounded-3xl border bg-white p-5 space-y-4">
+            <section className="rounded-lg border bg-white p-1.5 space-y-1.5">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Services needed</h2>
-                <p className="text-sm text-gray-500">Only providers offering these services will quickly understand your request.</p>
+                <h2 className="text-sm font-bold text-gray-900">Services needed</h2>
+                <p className="text-xs text-gray-500">Select services relevant to your request.</p>
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1">
                 {serviceOptions.map((service) => {
                   const selected = form.serviceNeeds.includes(service.id)
                   return (
@@ -500,7 +474,7 @@ const TourRequestCreate = () => {
                       key={service.id}
                       type="button"
                       onClick={() => toggleServiceNeed(service.id)}
-                      className={`rounded-full border px-4 py-2 text-sm font-medium transition ${selected ? 'bg-primary text-white border-primary shadow-sm' : 'bg-slate-50 text-gray-700 border-gray-200 hover:border-primary hover:text-primary'}`}
+                      className={`rounded-full border px-2.5 py-1 text-xs font-medium transition ${selected ? 'bg-primary text-white border-primary shadow-sm' : 'bg-slate-50 text-gray-700 border-gray-200 hover:border-primary hover:text-primary'}`}
                     >
                       {service.label}
                     </button>
@@ -508,36 +482,36 @@ const TourRequestCreate = () => {
                 })}
               </div>
 
-              <label className="space-y-2 block">
-                <span className="font-medium text-gray-700">Activities / experiences</span>
+              <label className="space-y-1 block">
+                <span className="text-xs font-medium text-gray-700">Activities</span>
                 <textarea
                   value={form.activitiesText}
                   onChange={(e) => updateField('activitiesText', e.target.value)}
-                  placeholder="Temple visit, waterfall hike, wildlife safari"
-                  rows="3"
-                  className="input input-bordered w-full min-h-[96px]"
+                  placeholder="Temple, waterfall, safari"
+                  rows="2"
+                  className="input input-bordered w-full min-h-[48px] text-xs"
                 />
               </label>
 
-              <label className="space-y-2 block">
-                <span className="font-medium text-gray-700">Dietary needs</span>
+              <label className="space-y-1 block">
+                <span className="text-xs font-medium text-gray-700">Dietary needs</span>
                 <input
                   type="text"
                   value={form.dietary}
                   onChange={(e) => updateField('dietary', e.target.value)}
-                  placeholder="Vegetarian, halal, no seafood, etc."
-                  className="input input-bordered w-full"
+                  placeholder="Vegetarian, halal, etc."
+                  className="input input-bordered w-full input-sm text-xs"
                 />
               </label>
 
-              <label className="space-y-2 block">
-                <span className="font-medium text-gray-700">Special requirements</span>
+              <label className="space-y-1 block">
+                <span className="text-xs font-medium text-gray-700">Special requirements</span>
                 <textarea
                   value={form.specialRequirements}
                   onChange={(e) => updateField('specialRequirements', e.target.value)}
-                  placeholder="Airport pickup, elderly-friendly pace, child seats, photography stops..."
-                  rows="4"
-                  className="input input-bordered w-full min-h-[112px]"
+                  placeholder="Pickup, pace, seats, stops..."
+                  rows="2"
+                  className="input input-bordered w-full min-h-[48px] text-xs"
                 />
               </label>
             </section>
@@ -552,210 +526,62 @@ const TourRequestCreate = () => {
               onClearAll={clearAllDistrictSelection}
               onSelectDistricts={setDistrictSelection}
             />
-          </div>
 
-          <aside className="space-y-4 lg:sticky lg:top-4 self-start">
-            <div className="rounded-3xl border bg-white p-5 space-y-4">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="font-semibold text-gray-800">Request summary</h3>
-                <span className="text-xs text-gray-500">What providers will see</span>
+            <section className="rounded-lg border bg-white p-1 space-y-1">
+              <div>
+                <h3 className="text-xs font-semibold text-gray-800">Map</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Route preview</p>
               </div>
 
-              <div className="space-y-4 text-sm">
-                <div>
-                  <p className="text-gray-500 mb-1">Districts</p>
-                  {selectedDistrictNames.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {selectedDistrictNames.map((district) => (
-                        <span key={district} className="rounded-full bg-primary/10 text-primary px-3 py-1">
-                          {district}
-                        </span>
+              <div className="rounded-lg border bg-slate-50 p-1">
+                {routeStops.length > 0 ? (
+                  <div className="space-y-0.5">
+                    <div className="max-h-16 overflow-y-auto space-y-0.5 pr-1">
+                      {routeStops.slice(0, 10).map((stop) => (
+                        <div key={`${stop.index}-${stop.location}`} className="flex items-start gap-0.5 rounded-md bg-white border px-1 py-0.5 text-xs">
+                          <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                            {stop.index}
+                          </span>
+                          <span className="text-gray-700 leading-5 text-xs">{stop.location}</span>
+                        </div>
                       ))}
                     </div>
-                  ) : (
-                    <p className="text-gray-400">No districts selected yet.</p>
-                  )}
-                </div>
-
-                <div>
-                  <p className="text-gray-500 mb-1">Selected places</p>
-                  {selectedLocations.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {selectedLocations.slice(0, 8).map((location) => (
-                        <span key={location} className="rounded-full bg-emerald-50 text-emerald-700 px-3 py-1">
-                          {location}
-                        </span>
-                      ))}
-                      {selectedLocations.length > 8 && (
-                        <span className="rounded-full bg-gray-100 text-gray-600 px-3 py-1">
-                          +{selectedLocations.length - 8} more
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-gray-400">No popular places selected yet.</p>
-                  )}
-                </div>
-
-                <div className="rounded-2xl border bg-slate-50 p-4">
-                  <div className="flex items-center justify-between gap-3 mb-3">
-                    <div>
-                      <p className="font-medium text-gray-800">Route plan</p>
-                      <p className="text-xs text-gray-500">Selected famous places are ordered into a route automatically.</p>
-                    </div>
-                    <span className="text-xs text-gray-500">{routeStops.length} stop{routeStops.length === 1 ? '' : 's'}</span>
+                    {routeStops.length > 10 && (
+                      <p className="text-xs text-gray-500">+{routeStops.length - 10} more stops</p>
+                    )}
                   </div>
-
-                  {routeStops.length > 0 ? (
-                    <div className="space-y-2">
-                      <div className="max-h-44 overflow-y-auto space-y-2 pr-1">
-                        {routeStops.slice(0, 10).map((stop) => (
-                          <div key={`${stop.index}-${stop.location}`} className="flex items-start gap-3 rounded-xl bg-white border px-3 py-2 text-sm">
-                            <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                              {stop.index}
-                            </span>
-                            <span className="text-gray-700 leading-6">{stop.location}</span>
-                          </div>
-                        ))}
-                      </div>
-                      {routeStops.length > 10 && (
-                        <p className="text-xs text-gray-500">+{routeStops.length - 10} more stops included in the route.</p>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-400">Pick districts and famous places to auto-build the route.</p>
-                  )}
-                </div>
-
-                <div>
-                  <p className="text-gray-500 mb-1">Services needed</p>
-                  {form.serviceNeeds.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {form.serviceNeeds.map((serviceId) => (
-                        <span key={serviceId} className="rounded-full bg-slate-100 text-slate-700 px-3 py-1">
-                          {serviceOptions.find((service) => service.id === serviceId)?.label || serviceId}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-400">No services selected yet.</p>
-                  )}
-                </div>
-
-                <div>
-                  <p className="text-gray-500 mb-1">Visitor split</p>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="rounded-2xl bg-slate-50 p-3">
-                      <p className="text-gray-500 text-xs">Male</p>
-                      <p className="mt-1 font-semibold text-gray-900">{form.maleVisitors}</p>
-                    </div>
-                    <div className="rounded-2xl bg-slate-50 p-3">
-                      <p className="text-gray-500 text-xs">Female</p>
-                      <p className="mt-1 font-semibold text-gray-900">{form.femaleVisitors}</p>
-                    </div>
-                    <div className="rounded-2xl bg-slate-50 p-3">
-                      <p className="text-gray-500 text-xs">Kids</p>
-                      <p className="mt-1 font-semibold text-gray-900">{form.kidsVisitors}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {googleMapsRouteUrl && (
-                  <a
-                    href={googleMapsRouteUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex w-full items-center justify-center rounded-full bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-primary/90"
-                  >
-                    Open Google Maps route
-                  </a>
+                ) : (
+                  <p className="text-xs text-gray-400">Pick districts to auto-build route.</p>
                 )}
               </div>
 
-              {selectedDistrictNames.length === 0 && (
-                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
-                  Tip: choose districts first to make your request more useful to providers.
-                </p>
+              {googleMapsRouteUrl && (
+                <a
+                  href={googleMapsRouteUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex w-full items-center justify-center rounded-full bg-primary px-2 py-1 text-xs font-semibold text-white transition hover:bg-primary/90"
+                >
+                  Google Maps Route
+                </a>
               )}
-            </div>
+            </section>
+          </div>
 
-            <div className="rounded-3xl border bg-white p-5 space-y-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <h3 className="font-semibold text-gray-800">Recommended packages</h3>
-                  <p className="text-xs text-gray-500 mt-1">Matches from provider packages in your chosen districts</p>
-                </div>
-                <span className="text-xs text-gray-500">{selectedDistrictNames.length} district{selectedDistrictNames.length === 1 ? '' : 's'}</span>
-              </div>
-
-              {loadingPackages ? (
-                <div className="text-sm text-gray-500 bg-gray-50 border rounded-xl p-4">Searching packages...</div>
-              ) : packageSuggestions.length === 0 ? (
-                <div className="text-sm text-gray-500 bg-gray-50 border rounded-xl p-4">
-                  Select districts to see matching travel packages from providers.
-                </div>
-              ) : (
-                <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
-                  {packageSuggestions.slice(0, 6).map((item) => (
-                    <div key={item.id} className="rounded-2xl border bg-slate-50 p-4 space-y-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <h4 className="font-semibold text-gray-900 leading-5">{item.package?.title || 'Travel package'}</h4>
-                          <p className="text-xs text-gray-500 mt-1">{item.provider?.name || 'Provider'}</p>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <div className="text-sm font-bold text-primary">
-                            {item.package?.price?.currency || 'USD'} {item.package?.price?.amount ?? 'N/A'}
-                          </div>
-                          <div className="text-[11px] text-gray-500">{item.package?.duration || 'Flexible duration'}</div>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 leading-6">{item.package?.description || 'No description provided.'}</p>
-                      {Array.isArray(item.package?.highlights) && item.package.highlights.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {item.package.highlights.slice(0, 3).map((highlight) => (
-                            <span key={highlight} className="rounded-full bg-white border px-3 py-1 text-xs text-gray-600">
-                              {highlight}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      {Array.isArray(item.matchedDistricts) && item.matchedDistricts.length > 0 && (
-                        <div className="text-xs text-gray-500">
-                          Matches: {item.matchedDistricts.join(', ')}
-                        </div>
-                      )}
-                      {item.provider?.id && (
-                        <button
-                          type="button"
-                          onClick={() => navigate(`/tourist/provider/${item.provider.id}`)}
-                          className="text-sm font-medium text-primary hover:underline"
-                        >
-                          View provider
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </aside>
-        </div>
-
-        <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 text-sm text-gray-700">
+        <div className="bg-primary/5 border border-primary/10 rounded-lg p-1 text-xs text-gray-700\">
           {stayLength ? (
-            <span>Planned stay: <strong>{stayLength} day{stayLength > 1 ? 's' : ''}</strong></span>
+            <span>Stay: <strong>{stayLength}d</strong></span>
           ) : (
-            <span>Choose your dates to calculate stay length.</span>
+            <span>Select dates.</span>
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-3">
-          <button type="button" onClick={() => navigate('/tourist')} className="btn btn-secondary">
+        <div className="flex items-center justify-end gap-2">
+          <button type="button" onClick={() => navigate('/tourist')} className="btn btn-secondary btn-sm text-xs">
             Cancel
           </button>
-          <button type="submit" disabled={submitting} className="btn btn-primary">
-            {submitting ? 'Creating...' : 'Create Request'}
+          <button type="submit" disabled={submitting} className="btn btn-primary btn-sm text-xs">
+            {submitting ? 'Creating...' : 'Create'}
           </button>
         </div>
       </form>

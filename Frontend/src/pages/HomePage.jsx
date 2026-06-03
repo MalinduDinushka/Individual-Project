@@ -176,20 +176,25 @@ const HomePage = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { title: 'Chennai', image: '/1.webp', duration: '1h 25m, non-stop', dates: 'Fri 7/17  ›  Fri 7/24', price: '$202' },
-              { title: 'Mumbai', image: '/2.webp', duration: '2h 50m, non-stop', dates: 'Wed 7/1  ›  Sat 7/4', price: '$264' },
-              { title: 'Kochi', image: '/3.webp', duration: '1h 10m, non-stop', dates: 'Thu 7/9  ›  Sun 7/12', price: '$276' },
-              { title: 'Hyderabad', image: '/4.webp', duration: '2h, non-stop', dates: 'Fri 7/17  ›  Fri 7/24', price: '$282' }
+              { title: 'Kandy', image: '/1.webp', duration: '1h 25m, non-stop', dates: 'Fri 7/17  ›  Fri 7/24', price: '$202' },
+              { title: 'Mirissa', image: '/2.webp', duration: '2h 50m, non-stop', dates: 'Wed 7/1  ›  Sat 7/4', price: '$264' },
+              { title: '9 Arch', image: '/3.webp', duration: '1h 10m, non-stop', dates: 'Thu 7/9  ›  Sun 7/12', price: '$276' },
+              { title: 'Trinco', image: '/4.webp', duration: '2h, non-stop', dates: 'Fri 7/17  ›  Fri 7/24', price: '$282' }
             ].map((deal) => (
-              <article key={deal.title} className="rounded-2xl bg-white shadow-md border border-slate-200 overflow-hidden">
-                <div className="h-40 md:h-44 bg-cover bg-center" style={{ backgroundImage: `url(${deal.image})` }} />
-                <div className="p-5">
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">{deal.title}</h3>
-                  <div className="text-sm text-slate-600 mb-3">{deal.duration}</div>
+              <article
+                key={deal.title}
+                className="rounded-2xl bg-white shadow-sm hover:shadow-md border border-slate-100 overflow-hidden transition-shadow duration-200"
+              >
+                <img src={deal.image} alt={deal.title} className="w-full h-44 md:h-52 object-cover rounded-t-2xl" />
+
+                <div className="p-6">
+                  <h3 className="text-lg md:text-xl font-semibold text-slate-900 mb-2">{deal.title}</h3>
+                  <div className="text-sm text-slate-600 mb-2">{deal.duration}</div>
                   <div className="text-sm text-slate-500 mb-4">{deal.dates}</div>
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+
+                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                     <div className="text-sm text-slate-600">from</div>
-                    <div className="text-2xl font-extrabold text-slate-900">{deal.price}</div>
+                    <div className="text-xl md:text-2xl font-extrabold text-slate-900">{deal.price}</div>
                   </div>
                 </div>
               </article>
@@ -228,15 +233,27 @@ const HomePage = () => {
 
       {/* Testimonials removed per request */}
 
-      {/* Final CTA */}
-      <section className="py-24 bg-gradient-to-br from-primary via-primary/95 to-primary/85">
+      {/* Final CTA (system UI friendly) */}
+      <section className="py-20 bg-gradient-to-br from-primary/85 to-primary/65">
         <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto text-center text-white">
-            <h2 className="text-5xl font-extrabold mb-6">Ready to explore?</h2>
-            <p className="text-xl text-white/90 mb-10 leading-relaxed">Start planning your Sri Lankan adventure today. Whether you're looking for guides, transport, or places to stay, we've got you covered.</p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/services" className="btn bg-white text-primary hover:bg-slate-100 px-8 py-3 font-semibold">Browse Services</Link>
-              <Link to="/register" className="btn border-2 border-white text-white hover:bg-white/10 px-8 py-3 font-semibold">Sign Up Now</Link>
+          <div className="max-w-2xl mx-auto text-center text-white">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 leading-tight">Ready to explore?</h2>
+            <p className="text-base md:text-lg text-white/95 mb-6 leading-relaxed">Start planning your Sri Lankan adventure today. Whether you're looking for guides, transport, or places to stay, we've got you covered.</p>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                to="/services"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-md bg-white text-primary font-medium shadow-sm hover:shadow transition-shadow"
+              >
+                Browse Services
+              </Link>
+
+              <Link
+                to="/register"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-md border border-white bg-transparent text-white font-medium hover:bg-white/10"
+              >
+                Sign Up Now
+              </Link>
             </div>
           </div>
         </div>

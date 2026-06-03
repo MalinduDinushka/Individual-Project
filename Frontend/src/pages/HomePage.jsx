@@ -87,7 +87,7 @@ const HomePage = () => {
                   to="/services"
                   className="inline-flex items-center justify-center rounded-full bg-white px-8 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-slate-950/20 transition hover:bg-slate-100"
                 >
-                  Explore Kalkudah
+                  Explore 
                 </Link>
                 <Link
                   to="/register"

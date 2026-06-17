@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { FaSearch, FaTrash, FaToggleOn, FaToggleOff, FaUserShield } from 'react-icons/fa'
 import { adminAPI } from '../../api'
 import { toast } from 'react-hot-toast'
+import { connectSocket } from '../../utils/socket'
+import { useAuthStore } from '../../store/authStore'
 
 const roleOptions = [
   { value: '', label: 'All Roles' },
@@ -41,6 +43,19 @@ const AdminUsersPage = () => {
   useEffect(() => {
     fetchUsers()
   }, [])
+
+  const token = useAuthStore(state => state.token)
+  useEffect(() => {
+    if (!token) return
+    const socket = connectSocket(token)
+    const handleVerificationUpdated = (payload) => {
+      // Refresh users list when a verification status changes
+      fetchUsers()
+    }
+
+    socket.on('verification:updated', handleVerificationUpdated)
+    return () => socket.off('verification:updated', handleVerificationUpdated)
+  }, [token])
 
   const filteredUsers = useMemo(() => users, [users])
 

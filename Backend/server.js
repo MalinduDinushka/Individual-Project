@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+const fs = require('fs');
 const connectDB = require('./config/db');
 const User = require('./models/User');
 const Booking = require('./models/Booking');
@@ -28,6 +29,65 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Serve uploaded files when Cloudinary isn't configured
+// Custom handler to serve uploads inline and handle files saved without extensions
+app.get('/uploads/*', (req, res, next) => {
+  try {
+    const uploadsDir = path.join(__dirname, 'uploads');
+    const relPath = req.params[0] || '';
+
+    // Prevent path traversal
+    if (relPath.includes('..')) return res.status(400).end();
+
+    const candidate = path.join(uploadsDir, relPath);
+
+    if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+      // Set content-type based on extension to encourage inline display
+      const ext = path.extname(candidate).toLowerCase();
+      const typeMap = {
+        '.pdf': 'application/pdf',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.gif': 'image/gif',
+        '.webp': 'image/webp',
+        '.txt': 'text/plain'
+      };
+      const contentType = typeMap[ext] || 'application/octet-stream';
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `inline; filename="${path.basename(candidate)}"`);
+      return res.sendFile(candidate);
+    }
+
+    // If exact file not found, try to find a file with same basename and any extension
+    const base = path.basename(relPath, path.extname(relPath));
+    const files = fs.existsSync(uploadsDir) ? fs.readdirSync(uploadsDir) : [];
+    const match = files.find(f => f.startsWith(base + '.'));
+
+    if (match) {
+      const matchedPath = path.join(uploadsDir, match);
+      const ext = path.extname(matchedPath).toLowerCase();
+      const typeMap = {
+        '.pdf': 'application/pdf',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.gif': 'image/gif',
+        '.webp': 'image/webp',
+        '.txt': 'text/plain'
+      };
+      const contentType = typeMap[ext] || 'application/octet-stream';
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `inline; filename="${path.basename(matchedPath)}"`);
+      return res.sendFile(matchedPath);
+    }
+
+    return res.status(404).end();
+  } catch (err) {
+    console.error('Error serving upload:', err);
+    return res.status(500).end();
+  }
+});
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes

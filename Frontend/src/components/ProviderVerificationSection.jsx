@@ -3,6 +3,8 @@ import { toast } from 'react-hot-toast'
 import VerificationDocumentUpload from '../components/VerificationDocumentUpload'
 import VerifiedBadge from '../components/VerifiedBadge'
 import { authAPI } from '../api'
+import { connectSocket } from '../utils/socket'
+import { useAuthStore } from '../store/authStore'
 
 const ProviderVerificationSection = ({ user, onUpdate }) => {
   const [submitting, setSubmitting] = useState(false)
@@ -32,6 +34,25 @@ const ProviderVerificationSection = ({ user, onUpdate }) => {
   const isVerified = user?.isVerified && user?.verificationStatus === 'verified'
   const isRejected = user?.verificationStatus === 'rejected'
 
+  const token = useAuthStore(state => state.token)
+  const updateUser = useAuthStore(state => state.updateUser)
+
+  useEffect(() => {
+    if (!token) return
+    const socket = connectSocket(token)
+    const handleVerificationUpdated = (payload) => {
+      if (!payload || !payload.userId) return
+      if (String(payload.userId) !== String(user?._id)) return
+      // Update auth store so UI reflects verified status
+      updateUser({ isVerified: payload.isVerified, verificationStatus: payload.verificationStatus })
+      toast.success('Your verification status has been updated')
+      if (onUpdate) onUpdate()
+    }
+
+    socket.on('verification:updated', handleVerificationUpdated)
+    return () => socket.off('verification:updated', handleVerificationUpdated)
+  }, [token, user?._id])
+
   return (
     <div className="space-y-6">
       {/* Verification Status Display */}
@@ -39,7 +60,7 @@ const ProviderVerificationSection = ({ user, onUpdate }) => {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
             Verification Status
-            {isVerified && <VerifiedBadge isVerified={true} verificationStatus="verified" />}
+            {isVerified && <VerifiedBadge isVerified={true} verificationStatus="verified" size="md" />}
           </h3>
           {isVerified && <span className="badge bg-green-100 text-green-800">Verified</span>}
           {isPending && <span className="badge bg-amber-100 text-amber-800">Pending Review</span>}

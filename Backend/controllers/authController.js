@@ -4,6 +4,9 @@ const generateToken = require('../utils/generateToken');
 const crypto = require('crypto');
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
+const path = require('path');
+const { createNotification } = require('../utils/notificationService');
+const { getIo } = require('../socket');
 
 const parseTravelPackages = (travelPackages) => {
   if (!travelPackages) return undefined
@@ -704,10 +707,24 @@ exports.uploadVerificationDocument = async (req, res) => {
         if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       } catch (cloudinaryErr) {
         console.error('Cloudinary upload failed, using local path', cloudinaryErr);
-        documentUrl = `/uploads/${file.filename}`;
+        documentUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
       }
     } else {
-      documentUrl = `/uploads/${file.filename}`;
+      // Ensure file on disk has proper extension so browser can preview inline
+      try {
+        const ext = path.extname(file.originalname) || '';
+        if (ext && !file.filename.endsWith(ext)) {
+          const newName = file.filename + ext;
+          const newPath = path.join(path.dirname(file.path), newName);
+          fs.renameSync(file.path, newPath);
+          documentUrl = `${req.protocol}://${req.get('host')}/uploads/${newName}`;
+        } else {
+          documentUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+        }
+      } catch (renameErr) {
+        console.error('Failed to rename uploaded file to include extension', renameErr);
+        documentUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+      }
     }
 
     // Find or add document to user's verificationDocuments
@@ -784,7 +801,30 @@ exports.getPendingVerifications = async (req, res) => {
       .select('_id name email role verificationStatus verificationRequestedAt verificationDocuments')
       .sort({ verificationRequestedAt: -1 });
 
-    res.json({ success: true, data: { pending, total: pending.length } });
+    // Ensure verification document URLs are absolute so frontend opens backend files
+    const hostPrefix = `${req.protocol}://${req.get('host')}`;
+    const transformed = pending.map((u) => {
+      const obj = u.toObject ? u.toObject() : u;
+      if (Array.isArray(obj.verificationDocuments)) {
+        obj.verificationDocuments = obj.verificationDocuments.map((doc) => {
+          if (!doc || !doc.url) return doc;
+          const url = String(doc.url || '');
+          if (url.startsWith('http://') || url.startsWith('https://')) return doc;
+          if (url.startsWith('/')) {
+            return { ...doc, url: hostPrefix + url };
+          }
+          // If it's a relative filename (no leading slash), assume uploads path
+          if (!url.startsWith('http')) {
+            return { ...doc, url: hostPrefix + '/uploads/' + url };
+          }
+          return doc;
+        });
+      }
+
+      return obj;
+    });
+
+    res.json({ success: true, data: { pending: transformed, total: transformed.length } });
   } catch (error) {
     console.error('Get pending verifications error:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch pending verifications', error: error.message });
@@ -818,6 +858,33 @@ exports.approveVerification = async (req, res) => {
     });
 
     await user.save();
+
+    // Create a notification for the user
+    try {
+      await createNotification({
+        recipient: user._id,
+        title: 'Verification Approved',
+        message: 'Your account verification has been approved by an admin',
+        actionUrl: '/profile',
+        metadata: { verificationStatus: user.verificationStatus }
+      });
+    } catch (notifErr) {
+      console.error('Failed to create verification notification:', notifErr);
+    }
+
+    // Emit socket event directly as well
+    try {
+      const io = getIo();
+      if (io) {
+        io.to(String(user._id)).emit('verification:updated', {
+          userId: String(user._id),
+          verificationStatus: user.verificationStatus,
+          isVerified: user.isVerified
+        });
+      }
+    } catch (emitErr) {
+      console.error('Failed to emit verification update via socket:', emitErr);
+    }
 
     res.json({
       success: true,
@@ -867,6 +934,33 @@ exports.rejectVerification = async (req, res) => {
     });
 
     await user.save();
+
+    // Notify user
+    try {
+      await createNotification({
+        recipient: user._id,
+        title: 'Verification Rejected',
+        message: 'Your account verification was rejected by an admin',
+        actionUrl: '/profile',
+        metadata: { verificationStatus: user.verificationStatus }
+      });
+    } catch (notifErr) {
+      console.error('Failed to create rejection notification:', notifErr);
+    }
+
+    // Emit socket event
+    try {
+      const io = getIo();
+      if (io) {
+        io.to(String(user._id)).emit('verification:updated', {
+          userId: String(user._id),
+          verificationStatus: user.verificationStatus,
+          isVerified: user.isVerified
+        });
+      }
+    } catch (emitErr) {
+      console.error('Failed to emit verification rejection via socket:', emitErr);
+    }
 
     res.json({
       success: true,
@@ -1157,7 +1251,20 @@ exports.uploadAvatar = async (req, res) => {
       fs.unlink(req.file.path, () => {})
     } else {
       // fallback: expose local uploads path (ensure static hosting configured)
-      avatarUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+      try {
+        const ext = path.extname(req.file.originalname) || '';
+        if (ext && !req.file.filename.endsWith(ext)) {
+          const newName = req.file.filename + ext;
+          const newPath = path.join(path.dirname(req.file.path), newName);
+          fs.renameSync(req.file.path, newPath);
+          avatarUrl = `${req.protocol}://${req.get('host')}/uploads/${newName}`;
+        } else {
+          avatarUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        }
+      } catch (renameErr) {
+        console.error('Failed to rename avatar uploaded file to include extension', renameErr);
+        avatarUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+      }
     }
 
     if (req.user && req.user._id) {

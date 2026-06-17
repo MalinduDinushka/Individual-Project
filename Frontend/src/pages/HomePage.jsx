@@ -58,7 +58,7 @@ const highlights = [
 
 const HomePage = () => {
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="min-h-screen bg-amber-50 text-slate-900">
       {/* Hero Section with Integrated Navbar */}
       <section className="relative min-h-screen overflow-hidden">
         <img
@@ -105,8 +105,8 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Our collection section */}
-      <section className="py-24 bg-slate-50">
+      {/* Our collection section with beige background */}
+      <section className="py-24 bg-gradient-to-b from-orange-50/40 via-amber-50 to-orange-50/40">
         <div className="container mx-auto px-6">
           <div className="grid gap-5 lg:grid-cols-[1fr_0.75fr] items-start mb-10">
             <div className="max-w-2xl">
@@ -234,7 +234,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section id="services" className="py-24 bg-slate-100">
+      <section id="services" className="py-24 bg-gradient-to-b from-amber-50 via-orange-50/30 to-amber-50">
         <div className="container mx-auto px-6">
           <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] items-center mb-16">
             <div className="space-y-6">

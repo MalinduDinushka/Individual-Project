@@ -34,7 +34,7 @@
     },
     {
       "name": "Payments",
-      "description": "Payment and PayHere checkout endpoints"
+      "description": "Payment endpoints"
     },
     {
       "name": "Messages",
@@ -532,22 +532,6 @@
         }
       }
     },
-    "/payments/payhere/config": {
-      "get": {
-        "tags": ["Payments"],
-        "summary": "Check whether PayHere is configured",
-        "responses": {
-          "200": {
-            "description": "PayHere configuration status",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/PayHereConfigStatus" }
-              }
-            }
-          }
-        }
-      }
-    },
     "/payments": {
       "post": {
         "tags": ["Payments"],
@@ -567,77 +551,6 @@
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
           "500": { "$ref": "#/components/responses/ServerError" }
-        }
-      }
-    },
-    "/payments/payhere/checkout-data": {
-      "post": {
-        "tags": ["Payments"],
-        "summary": "Generate PayHere checkout data for booking or tour-request advance payment",
-        "security": [{ "bearerAuth": [] }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/PayHereCheckoutDataRequest" }
-            }
-          }
-        },
-        "responses": {
-          "201": { "$ref": "#/components/responses/SuccessPayHereCheckout" },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/ServerError" }
-        }
-      }
-    },
-    "/payments/payhere/notify": {
-      "post": {
-        "tags": ["Payments"],
-        "summary": "PayHere server-to-server payment notification webhook",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": { "$ref": "#/components/schemas/PayHereNotifyRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Webhook processed successfully",
-            "content": {
-              "text/plain": {
-                "schema": { "type": "string", "example": "OK" }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid signature",
-            "content": {
-              "text/plain": {
-                "schema": { "type": "string", "example": "Invalid signature" }
-              }
-            }
-          },
-          "404": {
-            "description": "Payment not found",
-            "content": {
-              "text/plain": {
-                "schema": { "type": "string", "example": "Payment not found" }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "text/plain": {
-                "schema": { "type": "string", "example": "Server error" }
-              }
-            }
-          }
         }
       }
     },
@@ -1053,14 +966,6 @@
           }
         }
       },
-      "SuccessPayHereCheckout": {
-        "description": "PayHere checkout response",
-        "content": {
-          "application/json": {
-            "schema": { "$ref": "#/components/schemas/PayHereCheckoutResponse" }
-          }
-        }
-      },
       "SuccessConversationList": {
         "description": "Conversation list response",
         "content": {
@@ -1292,27 +1197,11 @@
         "type": "object",
         "properties": {
           "success": { "type": "boolean", "example": true },
-          "message": { "type": "string", "example": "PayHere checkout created" },
+          "message": { "type": "string", "example": "Payment created" },
           "data": {
             "type": "object",
             "properties": {
-              "payment": { "$ref": "#/components/schemas/Payment" },
-              "checkout": { "$ref": "#/components/schemas/PayHereCheckoutData" },
-              "gateway": { "type": "string", "example": "payhere" }
-            }
-          }
-        }
-      },
-      "PayHereCheckoutResponse": {
-        "type": "object",
-        "properties": {
-          "success": { "type": "boolean", "example": true },
-          "data": {
-            "type": "object",
-            "properties": {
-              "checkout": { "$ref": "#/components/schemas/PayHereCheckoutData" },
-              "payment": { "$ref": "#/components/schemas/Payment" },
-              "tourRequestId": { "type": "string" }
+              "payment": { "$ref": "#/components/schemas/Payment" }
             }
           }
         }
@@ -1376,56 +1265,6 @@
             "additionalProperties": true
           }
         }
-      },
-      "PayHereConfigStatus": {
-        "type": "object",
-        "properties": {
-          "success": { "type": "boolean", "example": true },
-          "data": {
-            "type": "object",
-            "properties": {
-              "configured": { "type": "boolean", "example": false },
-              "gateway": { "type": "string", "example": "payhere" },
-              "returnUrl": { "type": "string" },
-              "cancelUrl": { "type": "string" }
-            }
-          }
-        }
-      },
-      "PayHereCheckoutData": {
-        "type": "object",
-        "properties": {
-          "merchant_id": { "type": "string" },
-          "return_url": { "type": "string" },
-          "cancel_url": { "type": "string" },
-          "notify_url": { "type": "string" },
-          "order_id": { "type": "string" },
-          "items": { "type": "string" },
-          "amount": { "type": "string" },
-          "currency": { "type": "string", "example": "LKR" },
-          "hash": { "type": "string" },
-          "first_name": { "type": "string" },
-          "last_name": { "type": "string" },
-          "email": { "type": "string", "format": "email" },
-          "phone": { "type": "string" },
-          "address": { "type": "string" },
-          "city": { "type": "string" },
-          "country": { "type": "string" },
-          "sandboxUrl": { "type": "string", "example": "https://sandbox.payhere.lk/pay/checkout" }
-        },
-        "required": ["merchant_id", "return_url", "cancel_url", "notify_url", "order_id", "items", "amount", "currency", "hash"]
-      },
-      "PayHereNotifyRequest": {
-        "type": "object",
-        "properties": {
-          "merchant_id": { "type": "string" },
-          "order_id": { "type": "string" },
-          "payhere_amount": { "type": "string" },
-          "payhere_currency": { "type": "string" },
-          "status_code": { "type": "string" },
-          "md5sig": { "type": "string" }
-        },
-        "additionalProperties": true
       },
       "RegisterRequest": {
         "type": "object",
@@ -1577,22 +1416,8 @@
         "required": ["bookingId"],
         "properties": {
           "bookingId": { "type": "string", "format": "objectId" },
-          "paymentMethod": { "type": "string", "enum": ["stripe", "payhere", "card", "bank-transfer"] },
+          "paymentMethod": { "type": "string", "enum": ["stripe", "card", "bank-transfer", "manual"] },
           "paymentDetails": { "type": "object", "additionalProperties": true }
-        }
-      },
-      "PayHereCheckoutDataRequest": {
-        "type": "object",
-        "required": ["paymentType"],
-        "properties": {
-          "paymentType": { "type": "string", "enum": ["booking", "tour-request-advance"] },
-          "bookingId": { "type": "string", "format": "objectId" },
-          "tourRequestId": { "type": "string", "format": "objectId" },
-          "bidId": { "type": "string", "format": "objectId" },
-          "items": { "type": "string" },
-          "amount": { "type": "number" },
-          "currency": { "type": "string", "example": "LKR" },
-          "customer": { "type": "object", "additionalProperties": true }
         }
       },
       "MessageCreate": {
@@ -1783,7 +1608,7 @@
           "gatewayOrderId": { "type": "string" },
           "gatewayStatusCode": { "type": "string" },
           "gatewaySignature": { "type": "string" },
-          "paymentMethod": { "type": "string", "enum": ["stripe", "payhere", "card", "bank-transfer"] },
+          "paymentMethod": { "type": "string", "enum": ["stripe", "card", "bank-transfer", "manual"] },
           "purpose": { "type": "string", "enum": ["booking", "tour-request-advance"] },
           "transactionId": { "type": "string" },
           "status": { "type": "string", "enum": ["pending", "processing", "completed", "failed", "refunded"] },

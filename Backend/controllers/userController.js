@@ -4,7 +4,7 @@ const normalizeDistrictName = (value) => String(value || '').trim().toLowerCase(
 
 exports.getProviderProfile = async (req, res) => {
   try {
-    const provider = await User.findById(req.params.id).select('name email role phone avatar photos isVerified isActive businessInfo createdAt');
+    const provider = await User.findById(req.params.id).select('name email role phone avatar photos isVerified verificationStatus businessInfo createdAt');
 
     if (!provider) {
       return res.status(404).json({ success: false, message: 'Provider not found' });
@@ -39,7 +39,7 @@ exports.getPackageSuggestions = async (req, res) => {
       isActive: true,
       'businessInfo.travelPackages.0': { $exists: true }
     })
-      .select('name avatar phone businessInfo')
+      .select('name avatar phone businessInfo isVerified verificationStatus')
       .lean()
 
     const suggestions = providers.flatMap((provider) => {
@@ -63,7 +63,9 @@ exports.getPackageSuggestions = async (req, res) => {
               id: provider._id,
               name: provider.businessInfo?.businessName || provider.name,
               avatar: provider.avatar,
-              phone: provider.phone
+              phone: provider.phone,
+              isVerified: provider.isVerified,
+              verificationStatus: provider.verificationStatus
             },
             package: travelPackage,
             matchedDistricts

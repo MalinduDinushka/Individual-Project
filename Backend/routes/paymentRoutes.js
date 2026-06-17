@@ -2,14 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const { protect } = require('../middleware/auth');
-const { createPayment, createPayHereCheckoutData, payhereNotify, getPaymentStatus, getPayHereConfigStatus, payHereTestComputeHash, payHereValidateSecret } = require('../controllers/paymentController');
-const { debugPayHereForPayment } = require('../controllers/paymentController');
-
-router.get('/payhere/config', getPayHereConfigStatus);
-
-// Test helpers: compute hash and validate secret
-router.post('/payhere/test/hash', payHereTestComputeHash);
-router.get('/payhere/test/validate-secret', payHereValidateSecret);
+const { createPayment, createAdvancePayment, getPaymentStatus, createPayHereCheckout, handlePayHereWebhook, getPayHereConfigInfo, simulatePayHerePayment } = require('../controllers/paymentController');
 
 router.post(
   '/',
@@ -22,18 +15,21 @@ router.post(
 );
 
 router.post(
-  '/payhere/checkout-data',
+  '/advance',
   protect,
   [
-    body('paymentType').isIn(['booking', 'tour-request-advance']).withMessage('Valid paymentType is required')
+    body('tourRequestId').isMongoId().withMessage('Valid tourRequestId is required'),
+    body('bidId').isMongoId().withMessage('Valid bidId is required'),
+    body('paymentMethod').optional().isString()
   ],
-  createPayHereCheckoutData
+  createAdvancePayment
 );
 
-router.post('/payhere/notify', express.urlencoded({ extended: true }), payhereNotify);
-
-router.get('/payhere/debug/:id', protect, debugPayHereForPayment);
-
+router.get('/debug', getPayHereConfigInfo);
+router.post('/checkout', protect, createPayHereCheckout);
+router.post('/webhook', handlePayHereWebhook);
+// Dev-only simulation endpoint (enabled via PAYHERE_LOCAL_SIMULATE=true)
+router.post('/simulate', protect, simulatePayHerePayment);
 router.get('/:id', protect, getPaymentStatus);
 
 module.exports = router;

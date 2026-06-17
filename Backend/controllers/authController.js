@@ -397,6 +397,9 @@ exports.googleAuth = async (req, res) => {
     const finalEmail = (payload && payload.email) || email
     const finalName = (payload && payload.name) || name
     const finalAvatar = (payload && payload.picture) || avatar
+    // Role must be supplied by client (tourist or provider); default to tourist
+    const requestedRole = String(req.body.role || 'tourist').toLowerCase()
+    const role = ['tourist', 'provider'].includes(requestedRole) ? requestedRole : 'tourist'
 
     if (!finalEmail) {
       return res.status(400).json({ success: false, message: 'Email is required from Google' })
@@ -406,6 +409,11 @@ exports.googleAuth = async (req, res) => {
     let user = await User.findOne({ $or: [{ googleId: finalGoogleId }, { email: finalEmail }] })
 
     if (user) {
+      // Prevent role switching on existing accounts via OAuth: if client requests a different role, reject
+      if (role && user.role && user.role !== role) {
+        return res.status(400).json({ success: false, message: 'Account role mismatch. Please login using your existing account or contact support to change your role.' })
+      }
+
       // Update Google ID if provided and not set (use raw update to avoid validation errors on existing accounts)
       if (finalGoogleId && !user.googleId) {
         try {
@@ -423,15 +431,15 @@ exports.googleAuth = async (req, res) => {
         email: finalEmail,
         googleId: finalGoogleId,
         avatar: finalAvatar || undefined,
-        isVerified: true,
-        role: 'tourist',
+        isVerified: role === 'tourist',
+        role,
         createdAt: new Date(),
         updatedAt: new Date()
       }
       try {
         await User.collection.insertOne(raw)
       } catch (insertErr) {
-        console.error('googleExchange: raw insert failed', insertErr && insertErr.message)
+        console.error('googleAuth: raw insert failed', insertErr && insertErr.message)
         return res.status(500).json({ success: false, message: 'Failed to create user' })
       }
       user = await User.findOne({ email: finalEmail })
@@ -448,7 +456,8 @@ exports.googleAuth = async (req, res) => {
           name: user.name,
           email: user.email,
           role: user.role,
-          avatar: user.avatar
+          avatar: user.avatar,
+          isVerified: user.isVerified
         },
         token
       }
@@ -497,10 +506,18 @@ exports.googleExchange = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Email is required from Google' })
     }
 
+    const requestedRole = String(req.body.role || 'tourist').toLowerCase()
+    const role = ['tourist', 'provider'].includes(requestedRole) ? requestedRole : 'tourist'
+
     // Find or create user
     let user = await User.findOne({ $or: [{ googleId: finalGoogleId }, { email: finalEmail }] })
 
     if (user) {
+      // Prevent role switching via OAuth
+      if (role && user.role && user.role !== role) {
+        return res.status(400).json({ success: false, message: 'Account role mismatch. Please login using your existing account or contact support to change your role.' })
+      }
+
       if (finalGoogleId && !user.googleId) {
         try {
           await User.collection.updateOne({ _id: user._id }, { $set: { googleId: finalGoogleId } })
@@ -515,8 +532,8 @@ exports.googleExchange = async (req, res) => {
         email: finalEmail,
         googleId: finalGoogleId,
         avatar: finalAvatar || undefined,
-        isVerified: true,
-        role: 'tourist',
+        isVerified: role === 'tourist',
+        role,
         nationality: 'local'
       })
     }
@@ -627,6 +644,248 @@ exports.resetPassword = async (req, res) => {
       message: 'Password reset failed',
       error: error.message
     });
+  }
+};
+
+// @desc    Verify provider account (admin only)
+// @route   PUT /api/auth/verify-provider/:id
+// @access  Private (admin)
+exports.verifyProvider = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    if (user.role !== 'provider') return res.status(400).json({ success: false, message: 'User is not a provider' });
+
+    user.isVerified = true;
+    // Optionally update any provider documents status here
+    await user.save();
+
+    res.json({ success: true, message: 'Provider account verified', data: { user: { id: user._id, isVerified: user.isVerified } } });
+  } catch (error) {
+    console.error('Verify provider error:', error);
+    res.status(500).json({ success: false, message: 'Failed to verify provider', error: error.message });
+  }
+};
+
+// @desc    Upload verification document (tourist or provider)
+// @route   POST /api/auth/verification-documents
+// @access  Private
+exports.uploadVerificationDocument = async (req, res) => {
+  try {
+    const { documentType } = req.body;
+    const file = req.file;
+
+    if (!file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+    if (!documentType || !['passport', 'nic', 'business_registration', 'tax_id'].includes(documentType)) {
+      return res.status(400).json({ success: false, message: 'Invalid documentType' });
+    }
+
+    // Validate document type matches user role
+    if (req.user.role === 'tourist' && documentType !== 'passport') {
+      return res.status(400).json({ success: false, message: 'Tourists must upload passport documents' });
+    }
+    if (req.user.role === 'provider' && documentType !== 'nic') {
+      return res.status(400).json({ success: false, message: 'Providers must upload NIC documents' });
+    }
+
+    let documentUrl = '';
+
+    // Try to upload to Cloudinary if configured
+    if (useCloudinary) {
+      try {
+        const result = await cloudinary.uploader.upload(file.path, {
+          folder: 'tourmate/verifications',
+          resource_type: 'auto',
+          public_id: `${req.user._id}_${documentType}_${Date.now()}`
+        });
+        documentUrl = result.secure_url;
+        // Remove temp file
+        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+      } catch (cloudinaryErr) {
+        console.error('Cloudinary upload failed, using local path', cloudinaryErr);
+        documentUrl = `/uploads/${file.filename}`;
+      }
+    } else {
+      documentUrl = `/uploads/${file.filename}`;
+    }
+
+    // Find or add document to user's verificationDocuments
+    const user = await User.findById(req.user._id);
+    const existingDocIndex = user.verificationDocuments.findIndex(d => d.documentType === documentType);
+
+    if (existingDocIndex >= 0) {
+      user.verificationDocuments[existingDocIndex] = {
+        documentType,
+        url: documentUrl,
+        status: 'pending',
+        uploadedAt: new Date()
+      };
+    } else {
+      user.verificationDocuments.push({
+        documentType,
+        url: documentUrl,
+        status: 'pending',
+        uploadedAt: new Date()
+      });
+    }
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Document uploaded successfully',
+      data: { document: { documentType, url: documentUrl, status: 'pending' } }
+    });
+  } catch (error) {
+    console.error('Upload verification document error:', error);
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    res.status(500).json({ success: false, message: 'Failed to upload document', error: error.message });
+  }
+};
+
+// @desc    Request verification (tourist or provider submits for admin review)
+// @route   POST /api/auth/request-verification
+// @access  Private
+exports.requestVerification = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    // Check if user has uploaded required documents
+    const requiredType = user.role === 'tourist' ? 'passport' : 'nic';
+    const hasRequiredDoc = user.verificationDocuments.some(d => d.documentType === requiredType && d.url);
+
+    if (!hasRequiredDoc) {
+      return res.status(400).json({ success: false, message: `Please upload your ${requiredType} first` });
+    }
+
+    // Mark as pending verification
+    user.verificationStatus = 'pending';
+    user.verificationRequestedAt = new Date();
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Verification request submitted. Admin will review your documents.',
+      data: { verificationStatus: user.verificationStatus, requestedAt: user.verificationRequestedAt }
+    });
+  } catch (error) {
+    console.error('Request verification error:', error);
+    res.status(500).json({ success: false, message: 'Failed to request verification', error: error.message });
+  }
+};
+
+// @desc    Get pending verifications (admin only)
+// @route   GET /api/admin/verification-requests
+// @access  Private (admin)
+exports.getPendingVerifications = async (req, res) => {
+  try {
+    const pending = await User.find({ verificationStatus: 'pending' })
+      .select('_id name email role verificationStatus verificationRequestedAt verificationDocuments')
+      .sort({ verificationRequestedAt: -1 });
+
+    res.json({ success: true, data: { pending, total: pending.length } });
+  } catch (error) {
+    console.error('Get pending verifications error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch pending verifications', error: error.message });
+  }
+};
+
+// @desc    Approve user verification (admin only)
+// @route   PUT /api/admin/verification-requests/:id/approve
+// @access  Private (admin)
+exports.approveVerification = async (req, res) => {
+  try {
+    const { notes } = req.body;
+    const user = await User.findById(req.params.id);
+
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    if (user.verificationStatus !== 'pending') {
+      return res.status(400).json({ success: false, message: 'Only pending verifications can be approved' });
+    }
+
+    user.verificationStatus = 'verified';
+    user.isVerified = true;
+    user.verificationReviewedAt = new Date();
+    user.verificationReviewer = req.user._id;
+    user.verificationNotes = notes || 'Approved by admin';
+
+    // Mark all documents as approved
+    user.verificationDocuments.forEach(doc => {
+      doc.status = 'approved';
+      doc.reviewedAt = new Date();
+      doc.reviewedBy = req.user._id;
+    });
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'User verification approved',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          verificationStatus: user.verificationStatus,
+          isVerified: user.isVerified
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Approve verification error:', error);
+    res.status(500).json({ success: false, message: 'Failed to approve verification', error: error.message });
+  }
+};
+
+// @desc    Reject user verification (admin only)
+// @route   PUT /api/admin/verification-requests/:id/reject
+// @access  Private (admin)
+exports.rejectVerification = async (req, res) => {
+  try {
+    const { notes } = req.body;
+    const user = await User.findById(req.params.id);
+
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    if (user.verificationStatus !== 'pending') {
+      return res.status(400).json({ success: false, message: 'Only pending verifications can be rejected' });
+    }
+
+    user.verificationStatus = 'rejected';
+    user.isVerified = false;
+    user.verificationReviewedAt = new Date();
+    user.verificationReviewer = req.user._id;
+    user.verificationNotes = notes || 'Rejected by admin';
+
+    // Mark documents as rejected
+    user.verificationDocuments.forEach(doc => {
+      doc.status = 'rejected';
+      doc.reviewedAt = new Date();
+      doc.reviewedBy = req.user._id;
+      doc.notes = notes || 'Document rejected';
+    });
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'User verification rejected',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          verificationStatus: user.verificationStatus,
+          isVerified: user.isVerified,
+          verificationNotes: user.verificationNotes
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Reject verification error:', error);
+    res.status(500).json({ success: false, message: 'Failed to reject verification', error: error.message });
   }
 };
 

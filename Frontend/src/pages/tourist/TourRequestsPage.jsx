@@ -128,33 +128,18 @@ const TourRequestsPage = () => {
                     {request.bids?.length ? (
                       <div className="space-y-3">
                         {request.status === 'awaiting-payment' && request.advancePayment?.status === 'pending' && (
-                          <div className="bg-amber-50 border-2 border-amber-300 shadow-sm rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                            <div>
-                              <div className="font-semibold text-amber-900">Advance payment required</div>
-                              <div className="text-sm text-amber-800">
-                                Pay {request.advancePayment.amount} {request.advancePayment.currency} to confirm the approved bid.
-                              </div>
-                              <div className="text-xs text-amber-700 mt-1">
-                                If the button is disabled, PayHere credentials are not configured yet.
-                              </div>
+                          <div className="bg-amber-50 border-2 border-amber-300 shadow-sm rounded-xl p-4">
+                            <div className="font-semibold text-amber-900">Advance payment required</div>
+                            <div className="text-sm text-amber-800">
+                              {`Pay ${request.advancePayment.amount} ${request.advancePayment.currency} to confirm the approved bid.`}
                             </div>
-                            {(() => {
-                              const acceptedBid = request.bids.find((bid) => bid.status === 'accepted')
-                              return acceptedBid ? (
-                                <PayHereCheckoutButton
-                                  paymentType="tour-request-advance"
-                                  tourRequestId={request._id}
-                                  bidId={acceptedBid._id}
-                                  amount={request.advancePayment.amount || acceptedBid.proposedPrice}
-                                  items={`Advance payment for ${request.title}`}
-                                  className="btn btn-primary"
-                                  onCreated={() => toast.success('Redirecting to PayHere sandbox...')}
-                                  onError={(error) => toast.error(error.response?.data?.message || 'Failed to start PayHere checkout')}
-                                >
-                                  Pay with PayHere
-                                </PayHereCheckoutButton>
-                              ) : null
-                            })()}
+                            <div className="mt-3 flex flex-col sm:flex-row items-start gap-3">
+                              <PayHereCheckoutButton
+                                tourRequestId={request._id}
+                                label="Pay with PayHere"
+                              />
+                              <span className="text-sm text-gray-700">Secure sandbox checkout powered by PayHere.</span>
+                            </div>
                           </div>
                         )}
 

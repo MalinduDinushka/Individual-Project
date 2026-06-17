@@ -25,11 +25,11 @@ const paymentSchema = new mongoose.Schema({
   },
   currency: {
     type: String,
-    default: 'USD'
+    default: 'LKR'
   },
   gateway: {
     type: String,
-    default: 'payhere'
+    default: 'manual'
   },
   gatewayOrderId: {
     type: String
@@ -42,7 +42,7 @@ const paymentSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['stripe', 'payhere', 'card', 'bank-transfer'],
+    enum: ['stripe', 'card', 'bank-transfer', 'manual', 'payhere'],
     required: true
   },
   purpose: {

@@ -9,6 +9,11 @@ export const authAPI = {
   resetPassword: (token, data) => apiClient.put(`/auth/reset-password/${token}`, data),
   getMe: () => apiClient.get('/auth/me'),
   updateProfile: (data) => apiClient.put('/auth/update-profile', data),
+  // Verification endpoints
+  requestVerification: () => apiClient.post('/auth/request-verification'),
+  getPendingVerifications: () => apiClient.get('/auth/verification-requests'),
+  approveVerification: (id, data) => apiClient.put(`/auth/verification-requests/${id}/approve`, data),
+  rejectVerification: (id, data) => apiClient.put(`/auth/verification-requests/${id}/reject`, data),
   uploadAvatar: (file) => {
     const form = new FormData()
     form.append('avatar', file)
@@ -68,8 +73,7 @@ export const bookingAPI = {
 
 export const paymentAPI = {
   createPayment: (data) => apiClient.post('/payments', data),
-  getPayHereConfigStatus: () => apiClient.get('/payments/payhere/config'),
-  createPayHereCheckoutData: (data) => apiClient.post('/payments/payhere/checkout-data', data),
+  checkoutPayment: (data) => apiClient.post('/payments/checkout', data),
   getPaymentStatus: (id) => apiClient.get(`/payments/${id}`)
 }
 

@@ -286,7 +286,7 @@ exports.acceptBid = async (req, res) => {
     tourRequest.advancePayment = {
       status: 'pending',
       amount: getAdvanceAmount(bid.proposedPrice),
-      // Use LKR by default to match PayHere currency expectations in this app
+      // Use LKR by default for advance payments when no specific currency is set
       currency: tourRequest.budget?.currency || 'LKR'
     };
 

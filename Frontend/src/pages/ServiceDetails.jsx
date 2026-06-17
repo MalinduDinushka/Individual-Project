@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast'
 import { FaCalendarAlt, FaCheckCircle, FaMapMarkerAlt, FaStar, FaUsers } from 'react-icons/fa'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import VerifiedBadge from '../components/VerifiedBadge'
 import { serviceAPI, bookingAPI } from '../api'
 
 const getServiceImage = (service) => {
@@ -139,6 +140,20 @@ const ServiceDetails = () => {
               <p className="mt-6 text-slate-600 leading-8">
                 {service.description || 'Explore this service and book directly through TourMate.'}
               </p>
+
+              {service.provider && (
+                <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <div className="text-sm text-slate-600 mb-1">
+                    <span className="font-semibold text-slate-900">Service Provider:</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-900 font-semibold">
+                      {service.provider.businessInfo?.businessName || service.provider.name}
+                    </span>
+                    <VerifiedBadge isVerified={service.provider.isVerified} verificationStatus={service.provider.verificationStatus} size="sm" />
+                  </div>
+                </div>
+              )}
 
               <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {['Verified provider', 'Clear booking dates', 'Support available'].map((item) => (

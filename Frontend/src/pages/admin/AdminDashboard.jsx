@@ -4,6 +4,7 @@ import DashboardLayout from '../../components/DashboardLayout'
 import AdminDashboardHome from './AdminDashboardHome'
 import AdminUsersPage from './AdminUsersPage'
 import AdminSOSPage from './AdminSOSPage'
+import AdminVerificationsPage from '../AdminVerificationsPage'
 import { adminAPI } from '../../api'
 import { useAuthStore } from '../../store/authStore'
 import { connectSocket } from '../../utils/socket'
@@ -62,7 +63,7 @@ const AdminDashboard = () => {
       <Routes>
         <Route path="/" element={<AdminDashboardHome />} />
         <Route path="/users" element={<AdminUsersPage />} />
-        <Route path="/verifications" element={<div>Verifications - Coming Soon</div>} />
+        <Route path="/verifications" element={<AdminVerificationsPage />} />
         <Route path="/sos" element={<AdminSOSPage />} />
         <Route path="/reports" element={<div>Reports - Coming Soon</div>} />
       </Routes>

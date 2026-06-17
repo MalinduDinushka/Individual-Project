@@ -70,7 +70,7 @@ const tourRequestSchema = new mongoose.Schema({
     },
     currency: {
       type: String,
-      default: 'USD'
+      default: 'LKR'
     }
   },
   preferences: {
@@ -118,10 +118,10 @@ const tourRequestSchema = new mongoose.Schema({
       type: Number,
       default: 0
     },
-    currency: {
-      type: String,
-      default: 'USD'
-    },
+      currency: {
+        type: String,
+        default: 'LKR'
+      },
     paymentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Payment'

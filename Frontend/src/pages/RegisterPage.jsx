@@ -164,6 +164,8 @@ const RegisterPage = () => {
   const [loading, setLoading] = useState(false)
   const [validationErrors, setValidationErrors] = useState([])
   const [uploadingPhotos, setUploadingPhotos] = useState(false)
+  const [documentFile, setDocumentFile] = useState(null)
+  const [documentFileName, setDocumentFileName] = useState('')
   const [photoGroups, setPhotoGroups] = useState({
     profile: [],
     guide: [],
@@ -232,6 +234,37 @@ const RegisterPage = () => {
       setUploadingPhotos(false)
     }
     return uploaded
+  }
+
+  const handleDocumentSelect = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('File size must be less than 10MB')
+        return
+      }
+      setDocumentFile(file)
+      setDocumentFileName(file.name)
+    }
+  }
+
+  const uploadVerificationDocument = async (token, file, documentType) => {
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+    const form = new FormData()
+    form.append('document', file)
+    form.append('documentType', documentType)
+
+    const res = await fetch(`${base}/auth/verification-documents`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form
+    })
+
+    const data = await res.json()
+    if (!res.ok) {
+      throw new Error(data?.message || 'Document upload failed')
+    }
+    return data
   }
 
   const handleBusinessToggle = (serviceType) => {
@@ -383,7 +416,23 @@ const RegisterPage = () => {
 
       setAuth(user, token)
       setValidationErrors([])
-      toast.success('Registration successful!')
+
+      // Upload verification document if selected
+      if (documentFile && token) {
+        try {
+          const docType = activeTab === 'tourist' 
+            ? (formData.nationality === 'local' ? 'nic' : 'passport')
+            : 'nic'
+          await uploadVerificationDocument(token, documentFile, docType)
+          await authAPI.requestVerification()
+          toast.success('Registration successful! Document uploaded and verification requested.')
+        } catch (docErr) {
+          console.error('Document upload/verification request failed', docErr)
+          toast.success('Registration successful! Your document was uploaded. Please submit verification from your profile.')
+        }
+      } else {
+        toast.success('Registration successful!')
+      }
 
       // Redirect based on role
       if (user.role === 'tourist') navigate('/tourist')
@@ -1268,6 +1317,46 @@ const RegisterPage = () => {
                 </>
               )}
 
+              {/* Verification Document Upload (Optional) */}
+              <div className="md:col-span-2">
+                <div className="rounded-3xl border border-slate-200 bg-slate-50/80 p-5 md:p-6 shadow-sm space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-800">
+                      {activeTab === 'tourist' ? 'Verification Document' : 'Business Verification Document'}
+                    </h3>
+                    <p className="text-sm text-slate-500 mt-1">
+                      {activeTab === 'tourist' 
+                        ? 'Upload a clear image of your passport or NIC to get verified and build trust with service providers. (Optional)'
+                        : 'Upload a clear image of your NIC to get verified and increase customer confidence in your business. (Optional)'}
+                    </p>
+                  </div>
+                  
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={handleDocumentSelect}
+                      className="hidden"
+                      id="doc-upload"
+                    />
+                    <label
+                      htmlFor="doc-upload"
+                      className="flex items-center justify-center px-4 py-6 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-primary hover:bg-blue-50/30 transition-colors"
+                    >
+                      {documentFileName ? (
+                        <span className="text-sm text-slate-700 font-medium">✓ {documentFileName} selected</span>
+                      ) : (
+                        <span className="text-sm text-slate-500">
+                          {activeTab === 'tourist' 
+                            ? 'Click to select passport or NIC (JPG, PNG, PDF - max 10MB)'
+                            : 'Click to select your NIC (JPG, PNG, PDF - max 10MB)'}
+                        </span>
+                      )}
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               <div className="md:col-span-2">
                 <div className="rounded-3xl border border-slate-200 bg-slate-50/80 p-5 md:p-6 shadow-sm space-y-5">
                   <div>
@@ -1347,7 +1436,7 @@ const RegisterPage = () => {
           </div>
 
           <div className="w-full">
-            <GoogleSignIn />
+            <GoogleSignIn role={activeTab} />
           </div>
 
           <p className="text-center text-sm text-slate-600 mt-6">

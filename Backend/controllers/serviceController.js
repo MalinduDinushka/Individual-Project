@@ -31,7 +31,7 @@ const sampleServices = [
 // Get all services (with simple pagination)
 exports.getAllServices = async (req, res) => {
   try {
-    const services = await Service.find({ isActive: true }).limit(50).populate('provider', 'name businessInfo');
+    const services = await Service.find({ isActive: true }).limit(50).populate('provider', 'name businessInfo isVerified verificationStatus');
 
     if (!services || services.length === 0) {
       return res.json({ success: true, data: { services: sampleServices, count: sampleServices.length } });
@@ -55,7 +55,7 @@ exports.getServiceById = async (req, res) => {
       return res.json({ success: true, data: { service: sample } });
     }
 
-    const service = await Service.findById(id).populate('provider', 'name businessInfo');
+    const service = await Service.findById(id).populate('provider', 'name businessInfo isVerified verificationStatus');
     if (!service) return res.status(404).json({ success: false, message: 'Service not found' });
 
     res.json({ success: true, data: { service } });
@@ -68,6 +68,14 @@ exports.getServiceById = async (req, res) => {
 // Create service (provider)
 exports.createService = async (req, res) => {
   try {
+    // Verify provider is verified before allowing service creation
+    if (req.user.role !== 'provider') {
+      return res.status(403).json({ success: false, message: 'Only providers can create services' });
+    }
+    if (!req.user.isVerified || req.user.verificationStatus !== 'verified') {
+      return res.status(403).json({ success: false, message: 'Your account must be verified before creating services. Please submit your NIC for verification.' });
+    }
+
     const payload = { ...req.body, provider: req.user._id };
     const service = await Service.create(payload);
     res.status(201).json({ success: true, message: 'Service created', data: { service } });

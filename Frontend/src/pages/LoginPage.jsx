@@ -178,7 +178,7 @@ const LoginPage = () => {
               <div className="flex-1 border-t border-slate-200"></div>
             </div>
 
-            <div className="w-full"><GoogleSignIn /></div>
+            <div className="w-full"><GoogleSignIn role={activeTab} /></div>
 
             <p className="text-center text-sm text-slate-600 mt-6">
               Don't have an account?{' '}

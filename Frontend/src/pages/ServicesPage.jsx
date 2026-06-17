@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import VerifiedBadge from '../components/VerifiedBadge'
 import { serviceAPI } from '../api'
 import { FaMapMarkerAlt, FaSearch, FaSlidersH, FaStar } from 'react-icons/fa'
 
@@ -170,9 +171,18 @@ const ServicesPage = () => {
                   <div className="p-6 space-y-4">
                     <div>
                       <h3 className="text-xl font-extrabold text-slate-950 leading-snug">{service.name}</h3>
-                      <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
-                        <FaMapMarkerAlt className="text-primary" />
-                        <span>{location}</span>
+                      <div className="mt-2 flex flex-col gap-2">
+                        <div className="flex items-center gap-2 text-sm text-slate-500">
+                          <FaMapMarkerAlt className="text-primary" />
+                          <span>{location}</span>
+                        </div>
+                        {service.provider && (
+                          <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
+                            <span className="text-primary">Provider:</span>
+                            <span>{service.provider.businessInfo?.businessName || service.provider.name}</span>
+                            <VerifiedBadge isVerified={service.provider.isVerified} verificationStatus={service.provider.verificationStatus} size="xs" />
+                          </div>
+                        )}
                       </div>
                     </div>
                     <p className="text-slate-600 text-sm leading-6 line-clamp-3">{description}</p>

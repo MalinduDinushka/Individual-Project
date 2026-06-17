@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { bookingAPI, tourAPI } from '../../api'
-import PayHereCheckoutButton from '../../components/payments/PayHereCheckoutButton'
 import { toast } from 'react-hot-toast'
 import FeedbackForm from '../../components/feedback/FeedbackForm'
+import PayHereCheckoutButton from '../../components/payments/PayHereCheckoutButton'
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([])
@@ -131,17 +131,12 @@ const MyBookings = () => {
                   </>
                 )}
                 {b.paymentStatus === 'pending' && (
-                  <PayHereCheckoutButton
-                    paymentType="booking"
-                    bookingId={b._id}
-                    items={b.serviceSnapshot?.name || b.service?.name || 'TourMate booking'}
-                    amount={b.pricing?.totalAmount}
-                    className="btn btn-primary mt-2"
-                    onCreated={() => toast.success('Redirecting to PayHere sandbox...')}
-                    onError={(error) => toast.error(error.response?.data?.message || 'Failed to start PayHere checkout')}
-                  >
-                    Pay Now
-                  </PayHereCheckoutButton>
+                  <div className="mt-2 flex flex-col gap-2">
+                    <PayHereCheckoutButton bookingId={b._id} label="Pay with PayHere" />
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                      PayHere sandbox checkout is enabled for this booking.
+                    </div>
+                  </div>
                 )}
               </div>
             </div>

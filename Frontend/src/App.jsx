@@ -9,6 +9,8 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import GoogleCallback from './pages/GoogleCallback'
+import PaymentSuccessPage from './pages/PaymentSuccessPage'
+import PaymentCancelPage from './pages/PaymentCancelPage'
 import TouristDashboard from './pages/tourist/TouristDashboard'
 import ProviderDashboard from './pages/provider/ProviderDashboard'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -79,6 +81,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/payment/success" element={<PaymentSuccessPage />} />
+        <Route path="/payment/cancel" element={<PaymentCancelPage />} />
 
         {/* 404 */}
         <Route path="*" element={<Navigate to="/" replace />} />

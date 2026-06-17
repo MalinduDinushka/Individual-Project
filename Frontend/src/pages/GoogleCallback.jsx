@@ -23,7 +23,19 @@ const GoogleCallback = () => {
         // Use the current full callback path as redirectUri so it matches Google console
         const redirectUri = window.location.origin + window.location.pathname
 
-        const res = await authAPI.googleExchange({ code, redirectUri })
+        // Extract role from state if provided
+        let role = 'tourist'
+        try {
+          const state = params.get('state')
+          if (state) {
+            const parsed = JSON.parse(decodeURIComponent(state))
+            if (parsed && parsed.role) role = parsed.role
+          }
+        } catch (e) {
+          // ignore parse errors and default to tourist
+        }
+
+        const res = await authAPI.googleExchange({ code, redirectUri, role })
         const { user, token } = res.data.data
         setAuth(user, token)
         toast.success('Signed in with Google')

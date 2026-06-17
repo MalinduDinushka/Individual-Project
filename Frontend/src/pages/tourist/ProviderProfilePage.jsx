@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { FaStar, FaCheckCircle, FaCommentDots, FaPhoneAlt, FaMapMarkerAlt, FaCamera, FaRoute } from 'react-icons/fa'
 import { messageAPI, userAPI } from '../../api'
+import VerifiedBadge from '../../components/VerifiedBadge'
 import { toast } from 'react-hot-toast'
 
 const buildGoogleMapsEmbedUrl = (location) => {
@@ -93,11 +94,7 @@ const ProviderProfilePage = () => {
             <div>
               <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-3xl font-bold text-gray-900">{provider.businessInfo?.businessName || provider.name}</h1>
-                {provider.isVerified && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium">
-                    <FaCheckCircle /> Verified
-                  </span>
-                )}
+                <VerifiedBadge isVerified={provider.isVerified} verificationStatus={provider.verificationStatus} size="md" />
               </div>
               <p className="text-gray-600 mt-2">{provider.businessInfo?.description || 'Professional provider'}</p>
               <div className="flex items-center gap-3 mt-3 text-sm text-gray-600 flex-wrap">

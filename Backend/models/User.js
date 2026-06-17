@@ -77,6 +77,36 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  // Verification workflow fields
+  verificationStatus: {
+    type: String,
+    enum: ['unverified', 'pending', 'verified', 'rejected'],
+    default: 'unverified'
+  },
+  verificationDocuments: [{
+    documentType: {
+      type: String,
+      enum: ['passport', 'nic', 'business_registration', 'tax_id'],
+      required: true
+    },
+    url: String,
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending'
+    },
+    uploadedAt: {
+      type: Date,
+      default: Date.now
+    },
+    reviewedAt: Date,
+    reviewedBy: mongoose.Schema.Types.ObjectId,
+    notes: String
+  }],
+  verificationRequestedAt: Date,
+  verificationReviewedAt: Date,
+  verificationReviewer: mongoose.Schema.Types.ObjectId,
+  verificationNotes: String,
   // Tourist-specific fields
   // Languages user can speak (shared by tourists and providers)
   languages: [String],

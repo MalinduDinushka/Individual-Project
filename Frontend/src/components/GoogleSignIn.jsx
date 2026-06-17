@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast'
 
 const isPlaceholderClientId = (value) => !value || value.includes('your_google_client_id') || value.includes('your-google-client')
 
-const GoogleSignIn = () => {
+const GoogleSignIn = ({ role = 'tourist' }) => {
   const btnRef = useRef(null)
   const setAuth = useAuthStore(state => state.setAuth)
 
@@ -60,18 +60,18 @@ const GoogleSignIn = () => {
     return () => {
       // cleanup not required for global script
     }
-  }, [])
+  }, [role])
 
   const navigate = useNavigate()
 
-  async function handleCredentialResponse(response) {
+    async function handleCredentialResponse(response) {
     if (!response || !response.credential) {
       toast.error('Google sign-in failed')
       return
     }
 
     try {
-      const res = await authAPI.googleAuth({ idToken: response.credential })
+      const res = await authAPI.googleAuth({ idToken: response.credential, role })
       const { user, token } = res.data.data
       setAuth(user, token)
       toast.success('Signed in with Google')
@@ -97,7 +97,8 @@ const GoogleSignIn = () => {
               const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
               const redirect = window.location.origin + '/auth/google/callback'
               const scope = encodeURIComponent('openid email profile')
-              return `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirect)}&scope=${scope}&access_type=offline&prompt=consent`
+              const state = encodeURIComponent(JSON.stringify({ role }))
+              return `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirect)}&scope=${scope}&access_type=offline&prompt=consent&state=${state}`
             })()}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50"
           >

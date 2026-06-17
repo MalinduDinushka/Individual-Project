@@ -18,11 +18,11 @@ import { useAuthStore } from '../store/authStore'
 const emergencyOptions = [
   { value: 'medical', label: 'Medical', helper: 'Injury, illness, urgent treatment', icon: FaAmbulance },
   { value: 'accident', label: 'Accident', helper: 'Road accident, fall, unsafe incident', icon: FaExclamationTriangle },
-  { value: 'theft', label: 'Theft / threat', helper: 'Robbery, stolen items, intimidation', icon: FaShieldAlt },
   { value: 'harassment', label: 'Harassment', helper: 'Unsafe behavior, assault, stalking', icon: FaUserShield },
+  { value: 'theft', label: 'Theft / threat', helper: 'Robbery, stolen items, intimidation', icon: FaShieldAlt },
   { value: 'lost', label: 'Lost / stranded', helper: 'Lost route, no transport, separated', icon: FaMapMarkerAlt },
-  { value: 'natural-disaster', label: 'Disaster', helper: 'Flood, landslide, severe weather', icon: FaBolt },
   { value: 'fire', label: 'Fire', helper: 'Fire, smoke, rescue needed', icon: FaFire },
+  { value: 'natural-disaster', label: 'Disaster', helper: 'Flood, landslide, severe weather', icon: FaBolt },
   { value: 'other', label: 'Other', helper: 'Another emergency situation', icon: FaPhoneAlt }
 ]
 
@@ -177,9 +177,9 @@ const SOSModal = ({ open, onClose }) => {
   const SelectedIcon = selectedEmergency.icon
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 px-3 py-3 backdrop-blur-sm">
-      <div className="w-full max-w-5xl max-h-[calc(100vh-1.5rem)] overflow-hidden rounded-lg bg-white shadow-2xl flex flex-col">
-        <div className="shrink-0 bg-gradient-to-r from-rose-700 to-red-600 px-5 py-4 text-white">
+    <div className="fixed inset-0 z-[9999] overflow-y-auto bg-slate-950/65 px-3 py-8 backdrop-blur-sm">
+      <div className="mx-auto flex w-full max-w-5xl flex-col rounded-lg bg-white shadow-2xl" style={{ marginTop: '40px', marginBottom: '40px' }}>
+        <div className="shrink-0 rounded-t-lg bg-gradient-to-r from-rose-700 to-red-600 px-5 py-4 text-white" style={{ position: 'sticky', top: 0, zIndex: 10 }}>
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white/15">
@@ -203,7 +203,25 @@ const SOSModal = ({ open, onClose }) => {
             <div className="space-y-4">
               <div>
                 <label className="mb-2 block text-sm font-bold text-slate-800">Select emergency situation</label>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-3 lg:grid-cols-[1fr_auto]">
+                  <select
+                    value={emergencyType}
+                    onChange={(e) => setEmergencyType(e.target.value)}
+                    className="input w-full border-slate-200 bg-slate-50 text-slate-900"
+                  >
+                    {emergencyOptions.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setEmergencyType(emergencyOptions[0].value)}
+                    className="btn btn-secondary whitespace-nowrap"
+                  >
+                    Quick choose
+                  </button>
+                </div>
+                <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
                   {emergencyOptions.map((option) => {
                     const Icon = option.icon
                     const selected = emergencyType === option.value

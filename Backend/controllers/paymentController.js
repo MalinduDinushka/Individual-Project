@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const Payment = require('../models/Payment');
 const Booking = require('../models/Booking');
 const TourRequest = require('../models/TourRequest');
+const { createNotification } = require('../utils/notificationService');
 
 const ADVANCE_PAYMENT_PERCENTAGE = Number(process.env.TOUR_ADVANCE_PAYMENT_PERCENTAGE || 20);
 
@@ -37,17 +38,43 @@ const buildPayHerePayload = (payment, user) => {
   const city = String(user.city || 'Colombo').trim();
   const country = String(user.country || 'Sri Lanka').trim();
 
-  const { merchantId, notifyUrl, returnUrl, cancelUrl } = getPayHereConfig();
+  const { merchantId, merchantSecret, notifyUrl, returnUrl, cancelUrl } = getPayHereConfig();
+
+  const appendParam = (url, key, value) => {
+    if (!url) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`;
+  };
+
+  const returnUrlWithId = appendParam(returnUrl, 'paymentId', payment._id);
+  const cancelUrlWithId = appendParam(cancelUrl, 'paymentId', payment._id);
+
+  // --- GENERATE THE REQUIRED CHECKOUT INITIALIZATION HASH ---
+  const hashedSecret = crypto
+    .createHash('md5')
+    .update(merchantSecret)
+    .digest('hex')
+    .toUpperCase();
+
+  const mainString = merchantId + payment.transactionId + amount + currency + hashedSecret;
+
+  const finalHash = crypto
+    .createHash('md5')
+    .update(mainString)
+    .digest('hex')
+    .toUpperCase();
+  // ---------------------------------------------------------
 
   return {
     merchant_id: merchantId,
-    return_url: returnUrl,
-    cancel_url: cancelUrl,
+    return_url: returnUrlWithId,
+    cancel_url: cancelUrlWithId,
     notify_url: notifyUrl,
     order_id: payment.transactionId,
     items: payment.purpose === 'tour-request-advance' ? 'Tour Request Advance Payment' : 'Tour Booking Payment',
     currency,
     amount,
+    hash: finalHash,
     first_name,
     last_name,
     email: user.email,
@@ -111,7 +138,6 @@ exports.createPayment = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized to pay for this booking' });
     }
 
-    // Enforce LKR-only payments
     if (booking.pricing && booking.pricing.currency && String(booking.pricing.currency).toUpperCase() !== 'LKR') {
       return res.status(400).json({ success: false, message: 'Payments are only accepted in LKR (Sri Lankan Rupee)' });
     }
@@ -166,7 +192,6 @@ exports.createAdvancePayment = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Accepted bid not found for this tour request' });
     }
 
-    // Enforce LKR-only advance payments
     const targetCurrency = tourRequest.advancePayment?.currency || tourRequest.budget?.currency || 'LKR';
     if (String(targetCurrency).toUpperCase() !== 'LKR') {
       return res.status(400).json({ success: false, message: 'Advance payments are only accepted in LKR (Sri Lankan Rupee)' });
@@ -220,7 +245,6 @@ exports.createPayHereCheckout = async (req, res) => {
         return res.status(403).json({ success: false, message: 'Not authorized to pay for this booking' });
       }
 
-      // Ensure booking currency is LKR
       if (booking.pricing && booking.pricing.currency && String(booking.pricing.currency).toUpperCase() !== 'LKR') {
         return res.status(400).json({ success: false, message: 'Payments for bookings are only accepted in LKR' });
       }
@@ -261,7 +285,6 @@ exports.createPayHereCheckout = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Advance payment is only available after a bid is approved' });
       }
 
-      // Ensure advance payment currency is LKR
       const trCurrency = tourRequest.advancePayment?.currency || tourRequest.budget?.currency || 'LKR';
       if (String(trCurrency).toUpperCase() !== 'LKR') {
         return res.status(400).json({ success: false, message: 'Advance payments are only accepted in LKR' });
@@ -299,23 +322,6 @@ exports.createPayHereCheckout = async (req, res) => {
     }
 
     const payload = buildPayHerePayload(payment, req.user);
-
-    console.log('PayHere checkout payload:', {
-      merchant_id: payload.merchant_id,
-      order_id: payload.order_id,
-      amount: payload.amount,
-      currency: payload.currency,
-      return_url: payload.return_url,
-      cancel_url: payload.cancel_url,
-      notify_url: payload.notify_url,
-      first_name: payload.first_name,
-      last_name: payload.last_name,
-      email: payload.email,
-      phone: payload.phone,
-      address: payload.address,
-      city: payload.city,
-      country: payload.country
-    });
 
     res.status(201).json({
       success: true,
@@ -374,13 +380,21 @@ exports.handlePayHereWebhook = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid PayHere merchant ID' });
     }
 
-    const expectedMd5 = crypto
-      .createHash('md5')
-      .update(`${merchantSecret}${merchant_id}${order_id}${payhere_amount}${payhere_currency}${status_code}`)
-      .digest('hex')
-      .toUpperCase();
+    const normalizedAmount = (payhere_amount === undefined || payhere_amount === null)
+      ? '0.00'
+      : (Number(String(payhere_amount).replace(/[^0-9.\-]/g, '')) || 0).toFixed(2);
+    const normalizedCurrency = String(payhere_currency || '').trim().toUpperCase();
+    const normalizedStatus = String(status_code || '').trim();
 
-    if (expectedMd5 !== md5sig.toUpperCase()) {
+    const dataToHash = `${merchantId}${order_id}${normalizedAmount}${normalizedCurrency}${normalizedStatus}${crypto.createHash('md5').update(merchantSecret).digest('hex').toUpperCase()}`;
+    const expectedMd5 = crypto.createHash('md5').update(dataToHash, 'utf8').digest('hex').toUpperCase();
+
+    if (expectedMd5 !== String(md5sig || '').toUpperCase()) {
+      console.warn('PayHere signature mismatch', {
+        receivedMd5: md5sig,
+        expectedMd5,
+        dataToHash
+      });
       return res.status(400).json({ success: false, message: 'Invalid PayHere signature' });
     }
 
@@ -429,6 +443,15 @@ exports.handlePayHereWebhook = async (req, res) => {
       }
     }
 
+    // Notify the tourist (non-blocking)
+    try {
+      const notifTitle = completed ? 'Payment received' : 'Payment failed';
+      const notifMessage = completed ? 'Your payment was received and your trip is now in progress.' : 'Your payment failed. Please contact support.';
+      await createNotification({ recipient: payment.tourist, type: 'payment-completed', title: notifTitle, message: notifMessage, actionUrl: '/tourist/trips' });
+    } catch (nerr) {
+      console.warn('Failed to create payment notification:', nerr);
+    }
+
     res.json({ success: true, message: 'PayHere notification processed' });
   } catch (error) {
     console.error('PayHere webhook error:', error);
@@ -454,7 +477,6 @@ exports.getPaymentStatus = async (req, res) => {
   }
 };
 
-// Development-only: simulate a PayHere notification (useful when sandbox merchant rejects requests)
 exports.simulatePayHerePayment = async (req, res) => {
   try {
     if (String(process.env.PAYHERE_LOCAL_SIMULATE || 'false') !== 'true') {
@@ -507,5 +529,49 @@ exports.simulatePayHerePayment = async (req, res) => {
   } catch (error) {
     console.error('Simulate PayHere error:', error);
     res.status(500).json({ success: false, message: 'Failed to simulate PayHere notification', error: error.message });
+  }
+};
+
+// Dev-only: simulate PayHere by bookingId (convenience for manual testing)
+exports.simulatePayHereByBooking = async (req, res) => {
+  try {
+    if (String(process.env.PAYHERE_LOCAL_SIMULATE || 'false') !== 'true') {
+      return res.status(403).json({ success: false, message: 'Simulation disabled' });
+    }
+
+    const { bookingId, statusCode = '2', payhereAmount, payhereCurrency } = req.body;
+    if (!bookingId) return res.status(400).json({ success: false, message: 'bookingId is required' });
+
+    const payment = await Payment.findOne({ booking: bookingId, gateway: 'payhere' });
+    if (!payment) return res.status(404).json({ success: false, message: 'Pending payhere payment not found for booking' });
+
+    const completed = String(statusCode) === '2';
+    payment.status = completed ? 'completed' : 'failed';
+    payment.gateway = 'payhere';
+    payment.paymentMethod = 'payhere';
+    payment.gatewayOrderId = payment.transactionId;
+    payment.gatewayStatusCode = String(statusCode);
+    payment.gatewaySignature = 'SIMULATED_BY_BOOKING';
+    payment.paymentDetails = {
+      payherePaymentId: `SIM_${Date.now()}`,
+      payhereStatus: completed ? 'COMPLETED' : 'FAILED',
+      payhereStatusMessage: completed ? 'Simulated success' : 'Simulated failure',
+      payhereAmount: payhereAmount || payment.amount,
+      payhereCurrency: payhereCurrency || payment.currency || 'LKR'
+    };
+    await payment.save();
+
+    const booking = await Booking.findById(bookingId);
+    if (booking) {
+      booking.paymentStatus = completed ? 'paid' : 'failed';
+      if (completed && booking.status === 'pending') booking.status = 'confirmed';
+      booking.paymentId = payment._id;
+      await booking.save();
+    }
+
+    res.json({ success: true, message: 'Simulated PayHere by booking processed', data: { payment } });
+  } catch (error) {
+    console.error('Simulate PayHere by booking error:', error);
+    res.status(500).json({ success: false, message: 'Failed to simulate PayHere by booking', error: error.message });
   }
 };

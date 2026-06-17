@@ -79,9 +79,16 @@ const ProfilePage = () => {
 
   const groupedPhotos = useMemo(() => groupPhotosByCategory(user?.photos || []), [user?.photos])
   const isProvider = user?.role === 'provider'
-  const nationalityLabel = user?.nationality ? (user.nationality === 'local' ? 'Local' : 'Foreign') : '—'
+  const nationalityLabel = user?.nationality ? (user.nationality === 'local' ? 'Local' : 'Foreign') : 'Not provided'
   const idLabel = user?.nationality === 'foreign' ? 'Passport' : 'NIC'
   const idValue = user?.nationality === 'foreign' ? user?.passport : user?.nic
+  const avatarUrl = previewUrl || user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'TourMate')}`
+
+  const displayValue = (value) => {
+    if (value === undefined || value === null || value === '') return 'Not provided'
+    if (Array.isArray(value) && value.length === 0) return 'Not provided'
+    return String(value)
+  }
 
   useEffect(() => {
     if (user) {
@@ -114,11 +121,12 @@ const ProfilePage = () => {
 
   const handleAvatar = (e) => {
     const file = e.target.files[0]
-    if (file) setAvatarFile(file)
     if (file) {
+      setAvatarFile(file)
       const url = URL.createObjectURL(file)
       setPreviewUrl(url)
     } else {
+      setAvatarFile(null)
       setPreviewUrl(null)
     }
   }
@@ -210,12 +218,14 @@ const ProfilePage = () => {
   )
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <div className="bg-white rounded-2xl shadow-sm border p-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="rounded-[32px] border border-slate-200 bg-slate-50 p-6 shadow-sm shadow-slate-200/60">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900">Profile</h2>
-            <p className="text-sm text-gray-500">View the details you registered with, then edit the fields you need.</p>
+            <h2 className="text-3xl font-semibold text-slate-900">Profile</h2>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">
+              Manage your account details, registration data, and business profile from one polished dashboard.
+            </p>
           </div>
           <button
             type="button"
@@ -227,16 +237,16 @@ const ProfilePage = () => {
                 setIsEditing(true)
               }
             }}
-            className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+            className="inline-flex items-center justify-center rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition hover:bg-primary-dark"
           >
             {isEditing ? 'Cancel editing' : 'Edit details'}
           </button>
         </div>
 
         {validationErrors.length > 0 && (
-          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="mt-6 rounded-3xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
             <p className="font-semibold">Please fix the following errors:</p>
-            <ul className="mt-2 space-y-1">
+            <ul className="mt-3 space-y-1">
               {validationErrors.map((error, index) => (
                 <li key={`${error.field || 'error'}-${index}`}>
                   {error.field ? `${formatValidationField(error.field)}: ` : ''}{error.message}
@@ -247,26 +257,57 @@ const ProfilePage = () => {
         )}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[320px,1fr]">
-        <div className="bg-white rounded-2xl shadow-sm border p-6">
-          <div className="flex items-center gap-4">
-            <img src={previewUrl || user?.avatar} alt={user?.name} className="w-24 h-24 rounded-2xl object-cover border" />
-            <div className="min-w-0">
-              <p className="text-sm text-gray-500">Profile photo</p>
-              <p className="font-semibold text-gray-900 truncate">{user?.name || 'Your account'}</p>
-              <p className="text-xs text-gray-500 capitalize">{user?.role || 'user'}</p>
+      <div className="mt-8 grid gap-6 xl:grid-cols-[360px,1fr]">
+        <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="relative">
+              <img src={avatarUrl} alt={user?.name || 'TourMate user'} className="h-28 w-28 rounded-[28px] border border-slate-200 object-cover shadow-sm" />
+              <span className="absolute -bottom-1 -right-1 inline-flex items-center justify-center rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                {user?.role === 'provider' ? 'Provider' : 'Traveler'}
+              </span>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500">Profile</p>
+              <p className="text-xl font-semibold text-slate-900">{user?.name || 'Guest user'}</p>
             </div>
           </div>
 
-          <div className="mt-4 space-y-3">
-            <label className="block text-sm font-medium text-gray-700">Change photo</label>
-            <input type="file" accept="image/*" onChange={handleAvatar} className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-gray-700 hover:file:bg-gray-200" />
+          <div className="mt-6 space-y-4">
+            <div>
+              <p className="text-sm font-medium text-slate-600">Member since</p>
+              <p className="mt-2 text-sm text-slate-800">{user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Not available'}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-600">Email</p>
+              <p className="mt-2 text-sm text-slate-800 break-all">{user?.email || 'Not provided'}</p>
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-[24px] border border-slate-100 bg-slate-50 p-4">
+            <p className="text-sm font-semibold text-slate-900">Change photo</p>
+            <p className="mt-1 text-sm text-slate-500">Upload a new profile image to keep your dashboard fresh.</p>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleAvatar}
+              className="mt-4 block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm file:mr-4 file:rounded-full file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-primary-dark"
+            />
             {avatarFile && (
-              <div className="flex items-center gap-2">
-                <button onClick={handleUploadAvatar} disabled={uploading} className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
-                  {uploading ? 'Uploading...' : 'Upload'}
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                <button
+                  onClick={handleUploadAvatar}
+                  disabled={uploading}
+                  className="inline-flex items-center justify-center rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {uploading ? 'Uploading...' : 'Upload photo'}
                 </button>
-                <button onClick={() => setAvatarFile(null)} className="rounded-xl border px-4 py-2 text-sm font-semibold text-gray-700">
+                <button
+                  onClick={() => {
+                    setAvatarFile(null)
+                    setPreviewUrl(null)
+                  }}
+                  className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+                >
                   Cancel
                 </button>
               </div>
@@ -275,11 +316,11 @@ const ProfilePage = () => {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl shadow-sm border p-6">
+          <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Registration details</h3>
-                <p className="text-sm text-gray-500">The information saved when you registered.</p>
+                <h3 className="text-xl font-semibold text-slate-900">Registration details</h3>
+                <p className="text-sm text-slate-500">The information saved when you registered.</p>
               </div>
               {!isEditing && (
                 <button type="button" onClick={() => setIsEditing(true)} className="text-sm font-semibold text-primary hover:underline">
@@ -289,30 +330,30 @@ const ProfilePage = () => {
             </div>
 
             {!isEditing ? (
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                {renderField('Full name', user?.name)}
-                {renderField('Email', user?.email)}
-                {renderField('Phone', user?.phone)}
-                {renderField('Gender', user?.gender)}
-                {renderField('Languages', formatList(user?.languages))}
-                {renderField('Role', user?.role)}
-                {renderField('Nationality', nationalityLabel)}
-                {renderField(idLabel, idValue)}
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                {renderField('Full name', displayValue(user?.name))}
+                {renderField('Email', displayValue(user?.email))}
+                {renderField('Phone', displayValue(user?.phone))}
+                {renderField('Gender', displayValue(user?.gender))}
+                {renderField('Languages', displayValue(formatList(user?.languages)))}
+                {renderField('Role', displayValue(user?.role))}
+                {renderField('Nationality', displayValue(nationalityLabel))}
+                {renderField(displayValue(idLabel), displayValue(idValue))}
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="mt-6 space-y-5">
                 <div className="grid gap-5 md:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Full name</label>
-                    <input name="name" value={form.name} onChange={handleChange} className="input w-full mt-1" />
+                    <label className="block text-sm font-medium text-slate-700">Full name</label>
+                    <input name="name" value={form.name} onChange={handleChange} className="input w-full mt-1 border-slate-200 bg-slate-50 text-slate-900" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Phone</label>
-                    <input name="phone" value={form.phone} onChange={handleChange} className="input w-full mt-1" />
+                    <label className="block text-sm font-medium text-slate-700">Phone</label>
+                    <input name="phone" value={form.phone} onChange={handleChange} className="input w-full mt-1 border-slate-200 bg-slate-50 text-slate-900" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Gender</label>
-                    <select name="gender" value={form.gender || ''} onChange={handleChange} className="input w-full mt-1">
+                    <label className="block text-sm font-medium text-slate-700">Gender</label>
+                    <select name="gender" value={form.gender || ''} onChange={handleChange} className="input w-full mt-1 border-slate-200 bg-slate-50 text-slate-900">
                       <option value="">Select gender</option>
                       <option value="male">Male</option>
                       <option value="female">Female</option>
@@ -322,43 +363,43 @@ const ProfilePage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Languages</label>
+                    <label className="block text-sm font-medium text-slate-700">Languages</label>
                     <input
                       name="languages"
                       value={form.languages}
                       onChange={handleChange}
                       placeholder="English, Sinhala, Tamil"
-                      className="input w-full mt-1"
+                      className="input w-full mt-1 border-slate-200 bg-slate-50 text-slate-900"
                     />
                   </div>
                 </div>
 
                 <div className="grid gap-5 md:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Email</label>
-                    <input value={user?.email || ''} disabled className="input w-full mt-1 bg-gray-100 text-gray-500" />
+                    <label className="block text-sm font-medium text-slate-700">Email</label>
+                    <input value={user?.email || ''} disabled className="input w-full mt-1 border-slate-200 bg-slate-100 text-slate-500" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">{idLabel}</label>
-                    <input value={idValue || ''} disabled className="input w-full mt-1 bg-gray-100 text-gray-500" />
+                    <label className="block text-sm font-medium text-slate-700">{idLabel}</label>
+                    <input value={idValue || ''} disabled className="input w-full mt-1 border-slate-200 bg-slate-100 text-slate-500" />
                   </div>
                 </div>
 
                 {isProvider && (
-                  <div className="rounded-2xl border bg-gray-50 p-5 space-y-5">
+                  <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-5 space-y-5">
                     <div>
-                      <h4 className="font-semibold text-gray-900">Business details</h4>
-                      <p className="text-sm text-gray-500">Update the provider information you entered during registration.</p>
+                      <h4 className="font-semibold text-slate-900">Business details</h4>
+                      <p className="text-sm text-slate-500">Update the information you entered during registration.</p>
                     </div>
 
                     <div className="grid gap-5 md:grid-cols-2">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Business name</label>
-                        <input name="businessInfo.businessName" value={form.businessInfo.businessName} onChange={handleChange} className="input w-full mt-1" />
+                        <label className="block text-sm font-medium text-slate-700">Business name</label>
+                        <input name="businessInfo.businessName" value={form.businessInfo.businessName} onChange={handleChange} className="input w-full mt-1 border-slate-200 bg-white text-slate-900" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Service type</label>
-                        <select name="businessInfo.serviceType" value={form.businessInfo.serviceType} onChange={handleChange} className="input w-full mt-1">
+                        <label className="block text-sm font-medium text-slate-700">Service type</label>
+                        <select name="businessInfo.serviceType" value={form.businessInfo.serviceType} onChange={handleChange} className="input w-full mt-1 border-slate-200 bg-white text-slate-900">
                           <option value="">Select service type</option>
                           {providerServiceOptions.map((option) => (
                             <option key={option.value} value={option.value}>{option.label}</option>
@@ -366,27 +407,27 @@ const ProfilePage = () => {
                         </select>
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700">Description</label>
-                        <textarea name="businessInfo.description" value={form.businessInfo.description} onChange={handleChange} rows="4" className="input w-full mt-1" />
+                        <label className="block text-sm font-medium text-slate-700">Description</label>
+                        <textarea name="businessInfo.description" value={form.businessInfo.description} onChange={handleChange} rows="4" className="input w-full mt-1 border-slate-200 bg-white text-slate-900" />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700">Location</label>
-                        <input name="businessInfo.location" value={form.businessInfo.location} onChange={handleChange} className="input w-full mt-1" />
+                        <label className="block text-sm font-medium text-slate-700">Location</label>
+                        <input name="businessInfo.location" value={form.businessInfo.location} onChange={handleChange} className="input w-full mt-1 border-slate-200 bg-white text-slate-900" />
                       </div>
                     </div>
 
                     {form.businessInfo.location && (
-                      <div className="rounded-xl border overflow-hidden bg-white">
-                        <div className="flex items-center justify-between gap-3 px-4 py-3 border-b bg-white">
+                      <div className="rounded-[24px] border border-slate-200 bg-white overflow-hidden">
+                        <div className="flex items-center justify-between gap-3 px-4 py-3 border-b bg-slate-50">
                           <div>
-                            <p className="font-medium text-gray-800">Map preview</p>
-                            <p className="text-xs text-gray-500">Preview from your saved business location</p>
+                            <p className="font-medium text-slate-900">Map preview</p>
+                            <p className="text-xs text-slate-500">Preview from your saved business location.</p>
                           </div>
                           <a
                             href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(form.businessInfo.location)}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-sm font-medium text-primary hover:underline"
+                            className="text-sm font-semibold text-primary hover:underline"
                           >
                             Open in Google Maps
                           </a>
@@ -404,7 +445,7 @@ const ProfilePage = () => {
                 )}
 
                 <div className="flex flex-wrap gap-3">
-                  <button type="submit" disabled={saving} className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
+                  <button type="submit" disabled={saving} className="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/15 disabled:cursor-not-allowed disabled:opacity-70">
                     {saving ? 'Saving...' : 'Save changes'}
                   </button>
                   <button
@@ -413,7 +454,7 @@ const ProfilePage = () => {
                       resetForm()
                       setIsEditing(false)
                     }}
-                    className="rounded-xl border px-5 py-2.5 text-sm font-semibold text-gray-700"
+                    className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
                   >
                     Cancel
                   </button>
@@ -423,32 +464,32 @@ const ProfilePage = () => {
           </div>
 
           {isProvider && (
-            <div className="bg-white rounded-2xl shadow-sm border p-6 space-y-4">
+            <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Business photos</h3>
-                  <p className="text-sm text-gray-500">Uploaded images grouped by category.</p>
+                  <h3 className="text-lg font-semibold text-slate-900">Business photos</h3>
+                  <p className="text-sm text-slate-500">Uploaded images grouped by category.</p>
                 </div>
-                <span className="text-sm text-gray-500">{(user.photos || []).length} uploaded</span>
+                <span className="text-sm text-slate-500">{(user.photos || []).length} uploaded</span>
               </div>
 
               {Object.keys(groupedPhotos).length === 0 ? (
-                <div className="text-sm text-gray-600 bg-gray-50 border rounded-xl p-4">
+                <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
                   No business photos uploaded yet.
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="mt-5 space-y-6">
                   {Object.entries(groupedPhotos).map(([category, photos]) => (
                     <div key={category}>
                       <div className="flex items-center justify-between gap-3 mb-3">
-                        <h4 className="text-sm font-semibold text-gray-800">{photoCategoryLabels[category] || category}</h4>
-                        <span className="text-xs text-gray-500 uppercase tracking-wide">{photos.length} item{photos.length === 1 ? '' : 's'}</span>
+                        <h4 className="text-sm font-semibold text-slate-900">{photoCategoryLabels[category] || category}</h4>
+                        <span className="text-xs uppercase tracking-wide text-slate-500">{photos.length} item{photos.length === 1 ? '' : 's'}</span>
                       </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                         {photos.map((photo) => (
-                          <div key={photo._id || photo.url} className="rounded-xl overflow-hidden border bg-white">
-                            <img src={photo.url} alt={photo.caption || category} className="w-full h-36 object-cover" />
-                            {photo.caption && <div className="px-3 py-2 text-xs text-gray-600">{photo.caption}</div>}
+                          <div key={photo._id || photo.url} className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 shadow-sm">
+                            <img src={photo.url} alt={photo.caption || category} className="h-36 w-full object-cover" />
+                            {photo.caption && <div className="px-3 py-2 text-xs text-slate-600">{photo.caption}</div>}
                           </div>
                         ))}
                       </div>

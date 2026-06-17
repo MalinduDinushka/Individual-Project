@@ -116,9 +116,8 @@ const DashboardLayout = ({ children, navItems, userRole }) => {
             </div>
 
             <div className="flex items-center space-x-2 md:space-x-4">
-              <SOSModal open={showSOS} onClose={() => setShowSOS(false)} />
               {userRole === 'tourist' && (
-                <button onClick={() => setShowSOS(true)} className="flex items-center space-x-2 bg-gradient-to-r from-rose-600 to-red-600 text-white px-3 md:px-4 py-2.5 rounded-lg font-bold shadow-md shadow-rose-500/20 ring-2 ring-rose-100 hover:shadow-lg hover:shadow-rose-500/25 transition-all duration-200">
+                <button type="button" onClick={() => setShowSOS(true)} className="flex items-center space-x-2 bg-gradient-to-r from-rose-600 to-red-600 text-white px-3 md:px-4 py-2.5 rounded-lg font-bold shadow-md shadow-rose-500/20 ring-2 ring-rose-100 hover:shadow-lg hover:shadow-rose-500/25 transition-all duration-200">
                   <FaPhoneAlt />
                   <span className="hidden sm:inline">Emergency SOS</span>
                   <span className="sm:hidden">SOS</span>
@@ -151,6 +150,7 @@ const DashboardLayout = ({ children, navItems, userRole }) => {
         <main className="p-4 md:p-8 lg:p-10">
           {children}
         </main>
+        <SOSModal open={showSOS} onClose={() => setShowSOS(false)} />
       </div>
     </div>
   )

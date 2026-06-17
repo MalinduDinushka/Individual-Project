@@ -250,8 +250,11 @@ exports.register = async (req, res) => {
       await User.collection.updateOne(
         { _id: user._id },
         { $set: { photos: nextPhotos } }
-      )
+      );
     }
+
+    // Fetch full user without password for response
+    const finalUser = await User.findById(user._id).select('-password');
 
     // Generate token
     const token = generateToken(user._id);
@@ -260,13 +263,7 @@ exports.register = async (req, res) => {
       success: true,
       message: 'Registration successful',
       data: {
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          avatar: user.avatar
-        },
+        user: finalUser,
         token
       }
     });
@@ -340,18 +337,14 @@ exports.login = async (req, res) => {
     // Generate token
     const token = generateToken(user._id);
 
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
     res.json({
       success: true,
       message: 'Login successful',
       data: {
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          avatar: user.avatar,
-          isVerified: user.isVerified
-        },
+        user: userResponse,
         token
       }
     });
@@ -449,19 +442,14 @@ exports.googleAuth = async (req, res) => {
     }
 
     const token = generateToken(user._id)
+    const userResponse = user.toObject()
+    delete userResponse.password
 
     res.json({
       success: true,
       message: 'Google authentication successful',
       data: {
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          avatar: user.avatar,
-          isVerified: user.isVerified
-        },
+        user: userResponse,
         token
       }
     })
@@ -542,18 +530,14 @@ exports.googleExchange = async (req, res) => {
     }
 
     const token = generateToken(user._id)
+    const userResponse = user.toObject()
+    delete userResponse.password
 
     res.json({
       success: true,
       message: 'Google exchange successful',
       data: {
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          avatar: user.avatar
-        },
+        user: userResponse,
         token
       }
     })

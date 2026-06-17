@@ -8,12 +8,32 @@
  */
 
 const crypto = require('crypto')
+const fs = require('fs')
+const path = require('path')
 
-// Import from .env
-require('dotenv').config()
+// Import from Backend/.env without requiring root-level dependencies.
+const envPath = path.join(__dirname, 'Backend', '.env')
+if (fs.existsSync(envPath)) {
+  fs.readFileSync(envPath, 'utf8')
+    .split(/\r?\n/)
+    .forEach((line) => {
+      const trimmed = line.trim()
+      if (!trimmed || trimmed.startsWith('#')) return
+
+      const separatorIndex = trimmed.indexOf('=')
+      if (separatorIndex === -1) return
+
+      const key = trimmed.slice(0, separatorIndex).trim()
+      const value = trimmed.slice(separatorIndex + 1).trim().replace(/^["']|["']$/g, '')
+      if (!process.env[key]) {
+        process.env[key] = value
+      }
+    })
+}
 
 const PAYHERE_MERCHANT_ID = process.env.PAYHERE_MERCHANT_ID
 const PAYHERE_MERCHANT_SECRET = process.env.PAYHERE_MERCHANT_SECRET
+const PAYHERE_MERCHANT_SECRET_ENCODING = String(process.env.PAYHERE_MERCHANT_SECRET_ENCODING || 'plain').toLowerCase()
 const PAYHERE_CHECKOUT_URL = process.env.PAYHERE_CHECKOUT_URL
 const PAYHERE_NOTIFY_URL = process.env.PAYHERE_NOTIFY_URL
 const PAYHERE_RETURN_URL = process.env.PAYHERE_RETURN_URL
@@ -64,15 +84,26 @@ const testAmount = '1000.00'
 const testCurrency = 'LKR'
 
 const upperMd5 = (value) => crypto.createHash('md5').update(String(value)).digest('hex').toUpperCase()
-const secretValue = String(PAYHERE_MERCHANT_SECRET || '').trim()
-const hashInput = `${PAYHERE_MERCHANT_ID}${testOrderId}${testAmount}${testCurrency}${secretValue}`
+const resolveSecret = (secret) => {
+  if (PAYHERE_MERCHANT_SECRET_ENCODING !== 'base64') {
+    return String(secret || '').trim()
+  }
+
+  try {
+    return Buffer.from(String(secret || '').trim(), 'base64').toString('utf8').trim()
+  } catch (error) {
+    return String(secret || '').trim()
+  }
+}
+const secretValue = resolveSecret(PAYHERE_MERCHANT_SECRET)
+const secretHash = upperMd5(secretValue)
+const hashInput = `${PAYHERE_MERCHANT_ID}${testOrderId}${testAmount}${testCurrency}${secretHash}`
 const testHash = upperMd5(hashInput)
 
 console.log(`Order ID: ${testOrderId}`)
 console.log(`Amount: ${testAmount}`)
 console.log(`Currency: ${testCurrency}`)
-console.log(`Merchant Secret: ${secretValue ? '***' : '(missing)'}`)
-console.log(`Hash Input: ${hashInput}`)
+console.log(`Merchant Secret: ${secretValue ? `*** (${PAYHERE_MERCHANT_SECRET_ENCODING})` : '(missing)'}`)
 console.log(`Final Hash: ${testHash}`)
 console.log('✅ Hash generation working correctly')
 

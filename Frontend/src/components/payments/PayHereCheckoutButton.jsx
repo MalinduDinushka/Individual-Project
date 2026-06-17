@@ -77,6 +77,24 @@ const PayHereCheckoutButton = ({
 
       setLoading(true)
 
+      // Debug: check if user is authenticated
+      const auth = JSON.parse(localStorage.getItem('tourmate-auth'))
+      if (!auth?.state?.token) {
+        console.error('🔴 No auth token found! User must be logged in for payment.')
+        const error = new Error('You must be logged in to make a payment.')
+        if (onError) onError(error)
+        return
+      }
+
+      console.log('📤 Sending checkout request with:', {
+        paymentType,
+        bookingId,
+        tourRequestId,
+        bidId,
+        amount,
+        currency
+      })
+
       const customer = buildCustomerFallback(user)
       const response = await paymentAPI.createPayHereCheckoutData({
         paymentType,
@@ -89,12 +107,18 @@ const PayHereCheckoutButton = ({
         customer
       })
 
+      console.log('✅ Checkout response received:', response.data)
+
       const checkout = response.data.data.checkout
+      if (!checkout) {
+        throw new Error('No checkout data in response')
+      }
+
       const checkoutAction = checkout?.checkoutUrl || defaultCheckoutAction
 
       // Debug: log checkout payload before submitting to PayHere
       try {
-        console.log('PayHere checkout (client):', checkout)
+        console.log('🔷 PayHere checkout (client):', checkout)
       } catch (e) {}
       if (onCreated) {
         onCreated(checkout)
@@ -104,8 +128,10 @@ const PayHereCheckoutButton = ({
       form.method = 'POST'
       form.action = checkoutAction
 
+      console.log('📋 Form fields being sent:')
       Object.entries(checkout).forEach(([name, value]) => {
         if (name === 'checkoutUrl' || name.startsWith('_')) return
+        console.log(`  ${name}: ${String(value).substring(0, 50)}${String(value).length > 50 ? '...' : ''}`)
         const input = document.createElement('input')
         input.type = 'hidden'
         input.name = name
@@ -114,9 +140,11 @@ const PayHereCheckoutButton = ({
       })
 
       document.body.appendChild(form)
+      console.log('🚀 Submitting form to PayHere:', checkoutAction)
       form.submit()
     } catch (error) {
-      console.error('PayHere checkout error:', error)
+      console.error('❌ PayHere checkout error:', error)
+      console.error('Error details:', error.response?.data || error.message)
       if (onError) onError(error)
     } finally {
       setLoading(false)

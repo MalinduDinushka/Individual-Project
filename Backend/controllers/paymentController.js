@@ -37,7 +37,7 @@ const isSandboxMode = () => {
          String(PAYHERE_CHECKOUT_URL || '').includes('sandbox');
 };
 
-// Log PayHere config on startup
+// Log PayHere config on startup for debugging (avoid logging secrets)
 if (PAYHERE_MERCHANT_ID && PAYHERE_MERCHANT_SECRET) {
   console.log('✅ PayHere Configured:', {
     merchantId: PAYHERE_MERCHANT_ID,

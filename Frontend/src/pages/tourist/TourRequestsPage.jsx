@@ -91,13 +91,16 @@ const TourRequestsPage = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {requests.map((request) => (
+          {requests.map((request) => {
+            const isAdvancePaid = request.advancePayment?.status === 'paid'
+            const displayStatus = request.status === 'awaiting-payment' && isAdvancePaid ? 'in-progress' : request.status
+            return (
             <div key={request._id} className="bg-white rounded-2xl shadow-sm border p-6">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <h2 className="text-xl font-semibold text-gray-900">{request.title}</h2>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getStatusStyles(request.status)}`}>{request.status.replace('-', ' ')}</span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getStatusStyles(displayStatus)}`}>{displayStatus.replace('-', ' ')}</span>
                   </div>
 
                   <div className="text-sm text-gray-600 flex flex-wrap gap-4">
@@ -139,6 +142,14 @@ const TourRequestsPage = () => {
                                 label="Pay with PayHere"
                               />
                               <span className="text-sm text-gray-700">Secure sandbox checkout powered by PayHere.</span>
+                            </div>
+                          </div>
+                        )}
+                        {request.status === 'awaiting-payment' && request.advancePayment?.status === 'paid' && (
+                          <div className="bg-emerald-50 border-2 border-emerald-300 shadow-sm rounded-xl p-4">
+                            <div className="font-semibold text-emerald-900">Payment received</div>
+                            <div className="text-sm text-emerald-800">
+                              Your advance payment was received. Trip status will update shortly.
                             </div>
                           </div>
                         )}
@@ -233,7 +244,7 @@ const TourRequestsPage = () => {
                 </div>
               </div>
             </div>
-          ))}
+          )})}
         </div>
       )}
     </div>

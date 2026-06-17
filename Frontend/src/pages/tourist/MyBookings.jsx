@@ -59,8 +59,11 @@ const MyBookings = () => {
           <div className="grid grid-cols-1 gap-4">
             {confirmedRequests.map((request) => {
               const acceptedBid = request.bids?.find((bid) => bid.status === 'accepted')
+              const isAdvancePaid = request.advancePayment?.status === 'paid'
               const statusLabel = request.status === 'awaiting-payment'
-                ? 'Confirmed - awaiting payment'
+                ? isAdvancePaid
+                  ? 'Payment received'
+                  : 'Confirmed - awaiting payment'
                 : request.status === 'in-progress'
                   ? 'In progress'
                   : 'Completed'
@@ -86,10 +89,15 @@ const MyBookings = () => {
                     <div className="text-right shrink-0 space-y-2">
                       <div className="font-bold text-lg">{request.advancePayment?.currency || request.budget?.currency || 'USD'} {request.advancePayment?.amount || acceptedBid?.proposedPrice || request.budget?.max || '—'}</div>
                       <div className="text-sm text-gray-500">{statusLabel}</div>
-                      {request.status === 'awaiting-payment' && acceptedBid && (
+                      {request.status === 'awaiting-payment' && acceptedBid && request.advancePayment?.status !== 'paid' && (
                         <button onClick={() => navigate('/tourist/requests')} className="btn btn-primary mt-2">
                           Complete payment
                         </button>
+                      )}
+                      {request.status === 'awaiting-payment' && acceptedBid && request.advancePayment?.status === 'paid' && (
+                        <div className="mt-2 inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-800">
+                          Payment received, awaiting confirmation update
+                        </div>
                       )}
                       {acceptedBid && (
                         <button onClick={() => navigate(`/tourist/messages?request=${request._id}&provider=${acceptedBid.provider?._id || acceptedBid.provider?.id}`)} className="btn btn-secondary mt-2 ml-2">

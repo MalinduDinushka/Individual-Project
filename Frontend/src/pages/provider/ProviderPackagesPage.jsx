@@ -450,14 +450,6 @@ const ProviderPackagesPage = () => {
         }
       }
 
-      // Debug: print payload sent to server
-      try {
-        // Avoid logging very large payloads
-        console.log('savePackages payload', JSON.stringify(payload).slice(0, 2000))
-      } catch (e) {
-        console.warn('Could not stringify savePackages payload', e)
-      }
-
       const res = await authAPI.updateProfile(payload)
       updateUser(res.data.data.user)
       toast.success('Travel packages saved')

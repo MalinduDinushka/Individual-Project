@@ -147,10 +147,10 @@ const ServiceDetails = () => {
                     <span className="font-semibold text-slate-900">Service Provider:</span>
                   </div>
                   <div className="flex items-center gap-2">
+                    <VerifiedBadge isVerified={service.provider.isVerified} verificationStatus={service.provider.verificationStatus} size="sm" />
                     <span className="text-slate-900 font-semibold">
                       {service.provider.businessInfo?.businessName || service.provider.name}
                     </span>
-                    <VerifiedBadge isVerified={service.provider.isVerified} verificationStatus={service.provider.verificationStatus} size="sm" />
                   </div>
                 </div>
               )}

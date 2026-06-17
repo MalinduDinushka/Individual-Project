@@ -179,8 +179,8 @@ const ServicesPage = () => {
                         {service.provider && (
                           <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
                             <span className="text-primary">Provider:</span>
-                            <span>{service.provider.businessInfo?.businessName || service.provider.name}</span>
                             <VerifiedBadge isVerified={service.provider.isVerified} verificationStatus={service.provider.verificationStatus} size="xs" />
+                            <span>{service.provider.businessInfo?.businessName || service.provider.name}</span>
                           </div>
                         )}
                       </div>

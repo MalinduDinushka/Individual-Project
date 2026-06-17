@@ -93,8 +93,8 @@ const ProviderProfilePage = () => {
             />
             <div>
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-3xl font-bold text-gray-900">{provider.businessInfo?.businessName || provider.name}</h1>
                 <VerifiedBadge isVerified={provider.isVerified} verificationStatus={provider.verificationStatus} size="md" />
+                <h1 className="text-3xl font-bold text-gray-900">{provider.businessInfo?.businessName || provider.name}</h1>
               </div>
               <p className="text-gray-600 mt-2">{provider.businessInfo?.description || 'Professional provider'}</p>
               <div className="flex items-center gap-3 mt-3 text-sm text-gray-600 flex-wrap">

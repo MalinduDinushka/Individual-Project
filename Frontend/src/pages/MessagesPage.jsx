@@ -124,8 +124,30 @@ const MessagesPage = () => {
       fetchConversations(false)
     }
 
+    const handleBookingMessageDeleted = (payload) => {
+      if (payload.conversationId === selectedConversationId) {
+        setThread((current) => ({
+          ...current,
+          messages: (current?.messages || []).filter((item) => String(item._id) !== String(payload.messageId))
+        }))
+      }
+      fetchConversations(false)
+    }
+
+    const handleRequestMessageDeleted = (payload) => {
+      if (payload.conversationId === selectedConversationId) {
+        setThread((current) => ({
+          ...current,
+          messages: (current?.messages || []).filter((item) => String(item._id) !== String(payload.messageId))
+        }))
+      }
+      fetchConversations(false)
+    }
+
     socket.on('booking-message:new', handleBookingMessage)
     socket.on('request-message:new', handleRequestMessage)
+    socket.on('booking-message:deleted', handleBookingMessageDeleted)
+    socket.on('request-message:deleted', handleRequestMessageDeleted)
     socket.on('booking-error', (payload) => {
       if (payload?.message) toast.error(payload.message)
     })
@@ -215,6 +237,23 @@ const MessagesPage = () => {
       setSearchParams({ request: conversation.request.id, provider: providerId })
     } else if (conversation?.booking?.id) {
       setSearchParams({ booking: conversation.booking.id })
+    }
+  }
+
+  const handleDeleteMessage = async (item) => {
+    if (!item || !window.confirm('Delete this message?')) return
+
+    try {
+      await messageAPI.deleteMessage(item._id)
+      toast.success('Message deleted')
+      setThread((current) => ({
+        ...(current || {}),
+        messages: (current?.messages || []).filter((message) => String(message._id) !== String(item._id))
+      }))
+      fetchConversations(false)
+    } catch (error) {
+      console.error('Delete message error:', error)
+      toast.error(error.response?.data?.message || 'Failed to delete message')
     }
   }
 
@@ -390,8 +429,17 @@ const MessagesPage = () => {
                         }`}
                       >
                         <div className="text-sm">{item.message}</div>
-                        <div className={`text-[11px] mt-1 ${isMine ? 'text-white/80' : 'text-gray-500'}`}>
-                          {new Date(item.createdAt).toLocaleString()}
+                        <div className="mt-2 flex items-center justify-between gap-2 text-[11px] ${isMine ? 'text-white/80' : 'text-gray-500'}">
+                          <span className={isMine ? 'text-white/80' : 'text-gray-500'}>{new Date(item.createdAt).toLocaleString()}</span>
+                          {isMine && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteMessage(item)}
+                              className="text-xs text-red-100 hover:text-red-200"
+                            >
+                              Delete
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>

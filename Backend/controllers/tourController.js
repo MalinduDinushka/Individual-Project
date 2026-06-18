@@ -117,6 +117,13 @@ exports.updateTourRequest = async (req, res) => {
       });
     }
 
+    if (tourRequest.status !== 'open' || (tourRequest.bids || []).length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tour request cannot be edited after provider bids are submitted'
+      });
+    }
+
     tourRequest = await TourRequest.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -156,6 +163,13 @@ exports.deleteTourRequest = async (req, res) => {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this tour request'
+      });
+    }
+
+    if (tourRequest.status !== 'open' || (tourRequest.bids || []).length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tour request cannot be deleted after provider bids are submitted'
       });
     }
 

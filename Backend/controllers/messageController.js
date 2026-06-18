@@ -387,3 +387,50 @@ exports.sendRequestMessage = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to send message', error: error.message });
   }
 };
+
+exports.deleteMessage = async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+
+    if (message.sender.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized to delete this message' });
+    }
+
+    const conversationId = message.conversationId;
+    const chatType = message.chatType || 'booking';
+    const bookingId = message.booking;
+    const requestId = message.tourRequest;
+    const providerId = chatType === 'request' && typeof conversationId === 'string'
+      ? conversationId.split(':')[2]
+      : null;
+
+    await message.deleteOne();
+
+    const io = getIo();
+    if (io) {
+      if (chatType === 'request') {
+        io.to(conversationId).emit('request-message:deleted', {
+          conversationId,
+          requestId,
+          providerId,
+          messageId: req.params.messageId
+        });
+      } else {
+        io.to(conversationId).emit('booking-message:deleted', {
+          conversationId,
+          bookingId,
+          messageId: req.params.messageId
+        });
+      }
+    }
+
+    res.json({ success: true, message: 'Message deleted successfully', data: { messageId: req.params.messageId } });
+  } catch (error) {
+    console.error('Delete message error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete message', error: error.message });
+  }
+};

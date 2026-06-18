@@ -30,4 +30,6 @@ router.post(
   sendRequestMessage
 );
 
+router.delete('/:messageId', protect, deleteMessage);
+
 module.exports = router;

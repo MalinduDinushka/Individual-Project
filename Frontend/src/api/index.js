@@ -82,7 +82,8 @@ export const messageAPI = {
   getBookingMessages: (bookingId) => apiClient.get(`/messages/bookings/${bookingId}`),
   sendBookingMessage: (bookingId, data) => apiClient.post(`/messages/bookings/${bookingId}`, data),
   getRequestMessages: (requestId, providerId) => apiClient.get(`/messages/requests/${requestId}/providers/${providerId}`),
-  sendRequestMessage: (requestId, providerId, data) => apiClient.post(`/messages/requests/${requestId}/providers/${providerId}`, data)
+  sendRequestMessage: (requestId, providerId, data) => apiClient.post(`/messages/requests/${requestId}/providers/${providerId}`, data),
+  deleteMessage: (messageId) => apiClient.delete(`/messages/${messageId}`)
 }
 
 export const feedbackAPI = {

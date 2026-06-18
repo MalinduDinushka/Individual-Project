@@ -133,6 +133,14 @@ const server = app.listen(PORT, () => {
   console.log(`📍 Environment: ${process.env.NODE_ENV}`);
 });
 
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Stop the existing process or set PORT to a different value.`);
+  } else {
+    console.error('Server error:', err);
+  }
+});
+
 // Socket.IO for real-time features
 const io = require('socket.io')(server, {
   cors: {

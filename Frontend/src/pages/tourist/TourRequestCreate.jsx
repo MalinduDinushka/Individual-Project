@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { FaBus, FaCalendarAlt, FaCar, FaChild, FaFemale, FaMapMarkerAlt, FaMale, FaRoute, FaUsers } from 'react-icons/fa'
 import { tourAPI } from '../../api'
 import { toast } from 'react-hot-toast'
@@ -48,10 +48,20 @@ const defaultForm = {
 
 const TourRequestCreate = () => {
   const navigate = useNavigate()
+  const { requestId } = useParams()
   const [form, setForm] = useState(defaultForm)
   const [selectedDistricts, setSelectedDistricts] = useState([])
   const [selectedLocationsByDistrict, setSelectedLocationsByDistrict] = useState({})
   const [submitting, setSubmitting] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+
+  const districtNameToId = useMemo(
+    () => Object.values(districtLookup).reduce((acc, district) => {
+      if (district?.name) acc[district.name] = district.id
+      return acc
+    }, {}),
+    []
+  )
 
   const stayLength = useMemo(() => {
     if (!form.startDate || !form.endDate) return null
@@ -235,6 +245,59 @@ const TourRequestCreate = () => {
     setSelectedLocationsByDistrict({})
   }
 
+  useEffect(() => {
+    if (!requestId) return
+
+    const loadRequest = async () => {
+      try {
+        const res = await tourAPI.getTourRequestById(requestId)
+        const tourRequest = res.data.data.tourRequest
+        if (!tourRequest) return
+
+        const selectedIds = (tourRequest.districts || [])
+          .map((districtName) => districtNameToId[districtName])
+          .filter(Boolean)
+
+        const locationsByDistrict = (tourRequest.locationPlan || []).reduce((acc, item) => {
+          const districtId = districtNameToId[item.district]
+          if (!districtId) return acc
+          acc[districtId] = item.locations || []
+          return acc
+        }, {})
+
+        setForm({
+          title: tourRequest.title || '',
+          extraDestinationsText: (tourRequest.destinations || [])
+            .filter((destination) => !Object.values(locationsByDistrict).flat().includes(destination))
+            .join(', '),
+          startDate: tourRequest.startDate ? new Date(tourRequest.startDate).toISOString().slice(0, 10) : '',
+          endDate: tourRequest.endDate ? new Date(tourRequest.endDate).toISOString().slice(0, 10) : '',
+          travelers: tourRequest.travelers || 1,
+          maleVisitors: tourRequest.visitorBreakdown?.male || 0,
+          femaleVisitors: tourRequest.visitorBreakdown?.female || 0,
+          kidsVisitors: tourRequest.visitorBreakdown?.kids || 0,
+          budgetMin: tourRequest.budget?.min || '',
+          budgetMax: tourRequest.budget?.max || '',
+          budgetCurrency: tourRequest.budget?.currency || 'USD',
+          accommodation: tourRequest.preferences?.accommodation || '',
+          transportation: tourRequest.preferences?.transportation || '',
+          activitiesText: (tourRequest.preferences?.activities || []).join(', '),
+          serviceNeeds: tourRequest.preferences?.servicesNeeded || [],
+          dietary: tourRequest.preferences?.dietary || '',
+          specialRequirements: tourRequest.preferences?.specialRequirements || ''
+        })
+        setSelectedDistricts(selectedIds)
+        setSelectedLocationsByDistrict(locationsByDistrict)
+        setIsEditMode(true)
+      } catch (error) {
+        console.error('Load tour request error:', error)
+        toast.error(error.response?.data?.message || 'Failed to load tour request for editing')
+      }
+    }
+
+    loadRequest()
+  }, [requestId, districtNameToId])
+
   const handleSubmit = async (event) => {
     event.preventDefault()
 
@@ -263,7 +326,8 @@ const TourRequestCreate = () => {
 
     try {
       setSubmitting(true)
-      await tourAPI.createTourRequest({
+
+      const payload = {
         title: form.title.trim(),
         districts: selectedDistrictNames,
         locationPlan,
@@ -289,13 +353,20 @@ const TourRequestCreate = () => {
           dietary: form.dietary,
           specialRequirements: form.specialRequirements
         }
-      })
+      }
 
-      toast.success('Tour request created')
+      if (isEditMode && requestId) {
+        await tourAPI.updateTourRequest(requestId, payload)
+        toast.success('Tour request updated')
+      } else {
+        await tourAPI.createTourRequest(payload)
+        toast.success('Tour request created')
+      }
+
       navigate('/tourist/requests')
     } catch (error) {
-      console.error('Create tour request error:', error)
-      toast.error(error.response?.data?.message || 'Failed to create tour request')
+      console.error(isEditMode ? 'Update tour request error:' : 'Create tour request error:', error)
+      toast.error(error.response?.data?.message || (isEditMode ? 'Failed to update tour request' : 'Failed to create tour request'))
     } finally {
       setSubmitting(false)
     }

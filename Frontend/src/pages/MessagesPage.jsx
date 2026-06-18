@@ -155,6 +155,8 @@ const MessagesPage = () => {
     return () => {
       socket.off('booking-message:new', handleBookingMessage)
       socket.off('request-message:new', handleRequestMessage)
+      socket.off('booking-message:deleted', handleBookingMessageDeleted)
+      socket.off('request-message:deleted', handleRequestMessageDeleted)
       socket.off('booking-error')
     }
   }, [token, selectedConversationId])
@@ -429,7 +431,7 @@ const MessagesPage = () => {
                         }`}
                       >
                         <div className="text-sm">{item.message}</div>
-                        <div className="mt-2 flex items-center justify-between gap-2 text-[11px] ${isMine ? 'text-white/80' : 'text-gray-500'}">
+                        <div className={`mt-2 flex items-center justify-between gap-2 text-[11px] ${isMine ? 'text-white/80' : 'text-gray-500'}`}>
                           <span className={isMine ? 'text-white/80' : 'text-gray-500'}>{new Date(item.createdAt).toLocaleString()}</span>
                           {isMine && (
                             <button

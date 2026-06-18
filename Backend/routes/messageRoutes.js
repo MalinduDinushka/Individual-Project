@@ -7,7 +7,8 @@ const {
   getBookingMessages,
   getRequestMessages,
   sendBookingMessage,
-  sendRequestMessage
+  sendRequestMessage,
+  deleteMessage
 } = require('../controllers/messageController');
 
 router.get('/conversations', protect, getConversations);

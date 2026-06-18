@@ -51,6 +51,26 @@ const TourRequestsPage = () => {
     }
   }
 
+  const handleEditRequest = (requestId) => {
+    navigate(`/tourist/requests/${requestId}/edit`)
+  }
+
+  const handleDeleteRequest = async (requestId) => {
+    if (!window.confirm('Delete this request?')) return
+
+    try {
+      setBusyAction(`delete:${requestId}`)
+      await tourAPI.deleteTourRequest(requestId)
+      toast.success('Tour request deleted')
+      fetchRequests()
+    } catch (error) {
+      console.error('Delete request error:', error)
+      toast.error(error.response?.data?.message || 'Failed to delete request')
+    } finally {
+      setBusyAction('')
+    }
+  }
+
   const handleApproveBid = async (request, bidId) => {
     try {
       setBusyAction(`approve:${bidId}`)
@@ -240,6 +260,25 @@ const TourRequestsPage = () => {
 
                 <div className="text-right space-y-2 shrink-0">
                   <div className="text-sm text-gray-500">Created {new Date(request.createdAt).toLocaleDateString()}</div>
+                  {request.status === 'open' && (!request.bids || request.bids.length === 0) && (
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleEditRequest(request._id)}
+                        className="btn btn-secondary btn-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteRequest(request._id)}
+                        disabled={busyAction === `delete:${request._id}`}
+                        className="btn btn-secondary btn-sm"
+                      >
+                        {busyAction === `delete:${request._id}` ? 'Deleting...' : 'Delete'}
+                      </button>
+                    </div>
+                  )}
                   <span className="inline-flex px-3 py-2 rounded-lg text-sm bg-gray-100 text-gray-500">Bids from providers will appear here</span>
                 </div>
               </div>

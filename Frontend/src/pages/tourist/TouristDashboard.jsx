@@ -27,6 +27,7 @@ const TouristDashboard = () => {
         <Route path="/trips" element={<MyBookings />} />
         <Route path="/requests" element={<TourRequestsPage />} />
         <Route path="/requests/new" element={<TourRequestCreate />} />
+        <Route path="/requests/:requestId/edit" element={<TourRequestCreate />} />
         <Route path="/provider/:providerId" element={<ProviderProfilePage />} />
         <Route path="/messages" element={<MessagesPage />} />
         <Route path="/saved" element={<div>Saved - Coming Soon</div>} />

@@ -10,7 +10,7 @@ const connectDB = async () => {
 
     if (uri.startsWith('mongodb+srv://')) {
       dns.setServers(['8.8.8.8', '1.1.1.1']);
-      console.log('🔎 Using public DNS for MongoDB SRV lookup');
+      console.log('Using public DNS for MongoDB SRV lookup');
     }
 
     const conn = await mongoose.connect(uri, {
@@ -19,9 +19,9 @@ const connectDB = async () => {
       family: 4
     });
 
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error(`❌ MongoDB Connection Error: ${error.message}`);
+    console.error(`MongoDB Connection Error: ${error.message}`);
     if (process.env.MONGODB_URI) {
       console.error(`   MongoDB URI: ${process.env.MONGODB_URI.replace(/(mongodb\+srv:\/\/[^:]+):[^@]+@/, '$1:*****@')}`);
     }

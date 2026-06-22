@@ -19,7 +19,11 @@ import ServicesPage from './pages/ServicesPage'
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user, isAuthenticated } = useAuthStore()
+  const { user, isAuthenticated, isAuthReady } = useAuthStore()
+
+  if (!isAuthReady) {
+    return null
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />

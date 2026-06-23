@@ -44,7 +44,7 @@ router.post(
 );
 
 router.post('/google-auth', googleAuth);
-// Exchange authorization code (server-side) for tokens and authenticate
+// Exchange authorization code (server-side) for tokens and authenticate.
 router.post('/google-exchange', googleExchange);
 
 router.post(

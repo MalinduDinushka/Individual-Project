@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useAuthStore } from './store/authStore'
+import { useThemeStore } from './store/themeStore'
 
 // Pages
 import HomePage from './pages/HomePage'
@@ -38,10 +39,15 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
 function App() {
   const init = useAuthStore(state => state.init)
+  const initTheme = useThemeStore(state => state.init)
 
   useEffect(() => {
     init()
   }, [init])
+
+  useEffect(() => {
+    initTheme()
+  }, [initTheme])
 
   return (
     <Router>

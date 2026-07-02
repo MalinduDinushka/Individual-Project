@@ -7,6 +7,7 @@ import TourRequestCreate from './TourRequestCreate'
 import TourRequestsPage from './TourRequestsPage'
 import ProviderProfilePage from './ProviderProfilePage'
 import ProfilePage from '../ProfilePage'
+import TouristSettingsPage from './TouristSettingsPage'
 
 const TouristDashboard = () => {
   const navItems = [
@@ -15,7 +16,6 @@ const TouristDashboard = () => {
     { path: 'trips', label: 'My Trips', icon: 'map' },
     { path: 'requests', label: 'Requests', icon: 'inbox' },
     { path: 'messages', label: 'Messages', icon: 'message' },
-    { path: 'saved', label: 'Saved', icon: 'heart' },
     { path: 'settings', label: 'Settings', icon: 'settings' }
   ]
 
@@ -30,8 +30,7 @@ const TouristDashboard = () => {
         <Route path="/requests/:requestId/edit" element={<TourRequestCreate />} />
         <Route path="/provider/:providerId" element={<ProviderProfilePage />} />
         <Route path="/messages" element={<MessagesPage />} />
-        <Route path="/saved" element={<div>Saved - Coming Soon</div>} />
-        <Route path="/settings" element={<div>Settings - Coming Soon</div>} />
+        <Route path="/settings" element={<TouristSettingsPage />} />
       </Routes>
     </DashboardLayout>
   )

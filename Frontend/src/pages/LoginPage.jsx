@@ -8,7 +8,6 @@ import { authAPI } from '../api'
 import { useAuthStore } from '../store/authStore'
 
 const validateEmail = (value) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value.trim())
-const validatePassword = (value) => /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/.test(value)
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -20,22 +19,58 @@ const LoginPage = () => {
   })
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
+  const [touched, setTouched] = useState({})
+
+  const validateField = (name, value) => {
+    if (name === 'email') {
+      if (!value.trim()) return 'Email is required'
+      if (!validateEmail(value)) return 'Please enter a valid email address'
+      return ''
+    }
+
+    if (name === 'password') {
+      if (!value.trim()) return 'Password is required'
+      return ''
+    }
+
+    return ''
+  }
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
-    setErrors((current) => ({ ...current, [e.target.name]: '' }))
+    const { name, value } = e.target
+
+    setFormData((current) => ({
+      ...current,
+      [name]: value
+    }))
+
+    if (touched[name]) {
+      setErrors((current) => ({
+        ...current,
+        [name]: validateField(name, value)
+      }))
+    }
+  }
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target
+
+    setTouched((current) => ({ ...current, [name]: true }))
+    setErrors((current) => ({
+      ...current,
+      [name]: validateField(name, value)
+    }))
   }
 
   const validateForm = () => {
-    const nextErrors = {}
-    if (!validateEmail(formData.email)) nextErrors.email = 'Please enter a valid email address'
-    if (!formData.password) nextErrors.password = 'Password is required'
-    else if (!validatePassword(formData.password)) nextErrors.password = 'Password must be at least 8 characters with uppercase, lowercase, and a number'
+    const nextErrors = {
+      email: validateField('email', formData.email),
+      password: validateField('password', formData.password)
+    }
+
+    setTouched({ email: true, password: true })
     setErrors(nextErrors)
-    return Object.keys(nextErrors).length === 0
+    return !nextErrors.email && !nextErrors.password
   }
 
   const handleSubmit = async (e) => {
@@ -152,11 +187,13 @@ const LoginPage = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="you@example.com"
                   className={`input ${errors.email ? 'border-rose-500' : ''}`}
-                  required
+                  aria-invalid={Boolean(errors.email)}
+                  autoComplete="email"
                 />
-                {errors.email && <p className="mt-2 text-sm text-rose-600">{errors.email}</p>}
+                {touched.email && errors.email && <p className="mt-2 text-sm text-rose-600">{errors.email}</p>}
               </div>
 
               <div>
@@ -168,11 +205,13 @@ const LoginPage = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="••••••••"
                   className={`input ${errors.password ? 'border-rose-500' : ''}`}
-                  required
+                  aria-invalid={Boolean(errors.password)}
+                  autoComplete="current-password"
                 />
-                {errors.password && <p className="mt-2 text-sm text-rose-600">{errors.password}</p>}
+                {touched.password && errors.password && <p className="mt-2 text-sm text-rose-600">{errors.password}</p>}
               </div>
 
               <div className="text-right">

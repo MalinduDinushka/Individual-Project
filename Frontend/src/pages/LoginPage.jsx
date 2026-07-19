@@ -7,6 +7,9 @@ import Logo from '../components/Logo'
 import { authAPI } from '../api'
 import { useAuthStore } from '../store/authStore'
 
+const validateEmail = (value) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value.trim())
+const validatePassword = (value) => /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/.test(value)
+
 const LoginPage = () => {
   const navigate = useNavigate()
   const setAuth = useAuthStore(state => state.setAuth)
@@ -16,16 +19,32 @@ const LoginPage = () => {
     password: ''
   })
   const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState({})
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     })
+    setErrors((current) => ({ ...current, [e.target.name]: '' }))
+  }
+
+  const validateForm = () => {
+    const nextErrors = {}
+    if (!validateEmail(formData.email)) nextErrors.email = 'Please enter a valid email address'
+    if (!formData.password) nextErrors.password = 'Password is required'
+    else if (!validatePassword(formData.password)) nextErrors.password = 'Password must be at least 8 characters with uppercase, lowercase, and a number'
+    setErrors(nextErrors)
+    return Object.keys(nextErrors).length === 0
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!validateForm()) {
+      toast.error('Please fix the highlighted fields')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -134,9 +153,10 @@ const LoginPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="you@example.com"
-                  className="input"
+                  className={`input ${errors.email ? 'border-rose-500' : ''}`}
                   required
                 />
+                {errors.email && <p className="mt-2 text-sm text-rose-600">{errors.email}</p>}
               </div>
 
               <div>
@@ -149,9 +169,10 @@ const LoginPage = () => {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="input"
+                  className={`input ${errors.password ? 'border-rose-500' : ''}`}
                   required
                 />
+                {errors.password && <p className="mt-2 text-sm text-rose-600">{errors.password}</p>}
               </div>
 
               <div className="text-right">

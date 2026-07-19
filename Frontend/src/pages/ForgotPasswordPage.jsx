@@ -5,13 +5,22 @@ import { FaEnvelope } from 'react-icons/fa'
 import Logo from '../components/Logo'
 import { authAPI } from '../api'
 
+const validateEmail = (value) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value.trim())
+
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
+  const [emailError, setEmailError] = useState('')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email address')
+      toast.error('Please enter a valid email address')
+      return
+    }
+    setEmailError('')
     setLoading(true)
 
     try {
@@ -53,11 +62,15 @@ const ForgotPasswordPage = () => {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value)
+                      if (emailError) setEmailError('')
+                    }}
                     placeholder="you@example.com"
-                    className="input"
+                    className={`input ${emailError ? 'border-rose-500' : ''}`}
                     required
                   />
+                  {emailError && <p className="mt-2 text-sm text-rose-600">{emailError}</p>}
                 </div>
 
                 <button

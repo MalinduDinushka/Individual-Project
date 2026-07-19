@@ -3,6 +3,14 @@ import toast from 'react-hot-toast'
 import { authAPI } from '../api'
 import { useAuthStore } from '../store/authStore'
 
+const validateEmail = (value) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value.trim())
+const validateName = (value) => /^(?=.*\S).{2,80}$/.test(value.trim())
+const validatePhone = (value) => {
+  const trimmed = value.trim()
+  if (!trimmed) return true
+  return /^(\+94|0)?[1-9][0-9]{8,9}$/.test(trimmed)
+}
+
 const buildGoogleMapsEmbedUrl = (location) => {
   const query = String(location || '').trim()
   if (!query) return ''
@@ -173,6 +181,18 @@ const ProfilePage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const nextErrors = []
+    if (!validateName(form.name)) nextErrors.push({ field: 'name', message: 'Name must be at least 2 characters long' })
+    if (!validatePhone(form.phone)) nextErrors.push({ field: 'phone', message: 'Please enter a valid phone number' })
+    if (!form.gender) nextErrors.push({ field: 'gender', message: 'Please select your gender' })
+    if (isProvider && !form.businessInfo.businessName) nextErrors.push({ field: 'businessInfo.businessName', message: 'Business name is required' })
+
+    if (nextErrors.length > 0) {
+      setValidationErrors(nextErrors)
+      toast.error('Please fix the highlighted profile errors')
+      return
+    }
+
     try {
       setSaving(true)
       setValidationErrors([])
@@ -345,15 +365,15 @@ const ProfilePage = () => {
                 <div className="grid gap-5 md:grid-cols-2">
                   <div>
                     <label className="block text-sm font-medium text-slate-700">Full name</label>
-                    <input name="name" value={form.name} onChange={handleChange} className="input w-full mt-1 border-slate-200 bg-slate-50 text-slate-900" />
+                    <input name="name" value={form.name} onChange={handleChange} className={`input w-full mt-1 border-slate-200 bg-slate-50 text-slate-900 ${validationErrors.some((err) => err.field === 'name') ? 'border-rose-500' : ''}`} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700">Phone</label>
-                    <input name="phone" value={form.phone} onChange={handleChange} className="input w-full mt-1 border-slate-200 bg-slate-50 text-slate-900" />
+                    <input name="phone" value={form.phone} onChange={handleChange} className={`input w-full mt-1 border-slate-200 bg-slate-50 text-slate-900 ${validationErrors.some((err) => err.field === 'phone') ? 'border-rose-500' : ''}`} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700">Gender</label>
-                    <select name="gender" value={form.gender || ''} onChange={handleChange} className="input w-full mt-1 border-slate-200 bg-slate-50 text-slate-900">
+                    <select name="gender" value={form.gender || ''} onChange={handleChange} className={`input w-full mt-1 border-slate-200 bg-slate-50 text-slate-900 ${validationErrors.some((err) => err.field === 'gender') ? 'border-rose-500' : ''}`}>
                       <option value="">Select gender</option>
                       <option value="male">Male</option>
                       <option value="female">Female</option>
@@ -395,7 +415,7 @@ const ProfilePage = () => {
                     <div className="grid gap-5 md:grid-cols-2">
                       <div>
                         <label className="block text-sm font-medium text-slate-700">Business name</label>
-                        <input name="businessInfo.businessName" value={form.businessInfo.businessName} onChange={handleChange} className="input w-full mt-1 border-slate-200 bg-white text-slate-900" />
+                        <input name="businessInfo.businessName" value={form.businessInfo.businessName} onChange={handleChange} className={`input w-full mt-1 border-slate-200 bg-white text-slate-900 ${validationErrors.some((err) => err.field === 'businessInfo.businessName') ? 'border-rose-500' : ''}`} />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700">Service type</label>

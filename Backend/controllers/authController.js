@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const { createNotification } = require('../utils/notificationService');
 const { getIo } = require('../socket');
+const { validateEmail, validateName, validatePhone, validateProfileUpdatePayload, validateRegistrationPayload } = require('../utils/validation');
 
 const parseTravelPackages = (travelPackages) => {
   if (!travelPackages) return undefined
@@ -179,6 +180,15 @@ exports.register = async (req, res) => {
 
     const { name, email, password, role, phone, gender, nic, passport, nationality, businessInfo, languages, photos, travelPackages } = req.body;
 
+    const registrationValidation = validateRegistrationPayload(req.body, role);
+    if (!registrationValidation.isValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: registrationValidation.errors
+      });
+    }
+
     // Check if user already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -306,6 +316,10 @@ exports.login = async (req, res) => {
     }
 
     const { email, password } = req.body;
+
+    if (!validateEmail(email)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid email address' });
+    }
 
     // Find user and include password for verification
     const user = await User.findOne({ email }).select('+password');
@@ -553,6 +567,10 @@ exports.googleExchange = async (req, res) => {
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+
+    if (!validateEmail(email)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid email address' });
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -1001,6 +1019,15 @@ exports.updateProfile = async (req, res) => {
       console.warn('Failed to stringify update-profile payload for logging', logErr);
     }
     const fieldsToUpdate = {};
+
+    const profileValidation = validateProfileUpdatePayload(req.body, req.user.role);
+    if (!profileValidation.isValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: profileValidation.errors
+      });
+    }
 
     if (req.body.name !== undefined) {
       fieldsToUpdate.name = req.body.name;

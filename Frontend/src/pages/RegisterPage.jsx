@@ -136,6 +136,9 @@ const formatValidationField = (field) => {
 }
 
   const NIC_PATTERN = /^([0-9]{9}[vVxX]|[0-9]{12})$/
+const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+const PASSWORD_PATTERN = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/
+const PHONE_PATTERN = /^(\+94|0)?[1-9][0-9]{8,9}$/
 
 const RegisterPage = () => {
   const navigate = useNavigate()
@@ -329,6 +332,68 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setValidationErrors([])
+
+    const validationErrors = []
+
+    if (!formData.name || formData.name.trim().length < 2) {
+      validationErrors.push({ field: 'name', message: 'Name must be at least 2 characters long' })
+    }
+
+    if (!EMAIL_PATTERN.test(String(formData.email || '').trim())) {
+      validationErrors.push({ field: 'email', message: 'Please enter a valid email address' })
+    }
+
+    if (!PASSWORD_PATTERN.test(String(formData.password || ''))) {
+      validationErrors.push({ field: 'password', message: 'Password must be at least 8 characters and include uppercase, lowercase, and a number' })
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      validationErrors.push({ field: 'confirmPassword', message: 'Passwords do not match' })
+    }
+
+    if (formData.phone && !PHONE_PATTERN.test(String(formData.phone).trim())) {
+      validationErrors.push({ field: 'phone', message: 'Please enter a valid phone number' })
+    }
+
+    if (!formData.gender) {
+      validationErrors.push({ field: 'gender', message: 'Please select your gender' })
+    }
+
+    if (activeTab === 'tourist' && !formData.nationality) {
+      validationErrors.push({ field: 'nationality', message: 'Please select your nationality' })
+    }
+
+    if (activeTab === 'tourist' && formData.nationality === 'local') {
+      const nicValue = String(formData.nic || '').trim()
+      if (!NIC_PATTERN.test(nicValue)) {
+        validationErrors.push({ field: 'nic', message: 'Use a valid NIC format: 9 digits + V/X, or 12 digits.' })
+      }
+    }
+
+    if (activeTab === 'tourist' && formData.nationality === 'foreign') {
+      if (!String(formData.passport || '').trim()) {
+        validationErrors.push({ field: 'passport', message: 'Passport is required for foreign tourists' })
+      }
+    }
+
+    if (activeTab === 'provider') {
+      const nicValue = String(formData.nic || '').trim()
+      if (!NIC_PATTERN.test(nicValue)) {
+        validationErrors.push({ field: 'nic', message: 'Use a valid NIC format: 9 digits + V/X, or 12 digits.' })
+      }
+      if (!formData.businessInfo.businessName?.trim()) {
+        validationErrors.push({ field: 'businessInfo.businessName', message: 'Business name is required' })
+      }
+      if (!formData.businessInfo.serviceTypes.length) {
+        validationErrors.push({ field: 'businessInfo.serviceTypes', message: 'Select at least one service type' })
+      }
+    }
+
+    if (validationErrors.length > 0) {
+      setValidationErrors(validationErrors)
+      toast.error('Fix the highlighted registration error')
+      return
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setValidationErrors([{ field: 'confirmPassword', message: 'Passwords do not match' }])
@@ -527,7 +592,7 @@ const RegisterPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="you@example.com"
-                  className="input"
+                  className={`input ${validationErrors.some((error) => error.field === 'email') ? 'border-rose-500' : ''}`}
                   required
                 />
               </div>
@@ -542,7 +607,7 @@ const RegisterPage = () => {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="input"
+                  className={`input ${validationErrors.some((error) => error.field === 'password') ? 'border-rose-500' : ''}`}
                   required
                 />
               </div>
@@ -557,7 +622,7 @@ const RegisterPage = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="input"
+                  className={`input ${validationErrors.some((error) => error.field === 'confirmPassword') ? 'border-rose-500' : ''}`}
                   required
                 />
               </div>
@@ -572,7 +637,7 @@ const RegisterPage = () => {
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="+94 77 123 4567"
-                  className="input"
+                  className={`input ${validationErrors.some((error) => error.field === 'phone') ? 'border-rose-500' : ''}`}
                 />
               </div>
 
@@ -629,7 +694,7 @@ const RegisterPage = () => {
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    className="input"
+                    className={`input ${validationErrors.some((error) => error.field === 'gender') ? 'border-rose-500' : ''}`}
                     required
                   >
                     <option value="">Select gender</option>
@@ -714,7 +779,7 @@ const RegisterPage = () => {
                       value={formData.businessInfo.businessName}
                       onChange={handleChange}
                       placeholder="Your Business Name"
-                      className="input"
+                      className={`input ${validationErrors.some((error) => error.field === 'businessInfo.businessName') ? 'border-rose-500' : ''}`}
                       required
                     />
                   </div>

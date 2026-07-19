@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
+const { validateEmail, validatePassword } = require('../utils/validation');
 const {
   register,
   login,
@@ -26,9 +27,9 @@ const { uploadAvatar } = require('../controllers/authController');
 router.post(
   '/register',
   [
-    body('name').notEmpty().withMessage('Name is required'),
-    body('email').isEmail().withMessage('Valid email is required'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body('name').trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters long'),
+    body('email').custom((value) => validateEmail(value)).withMessage('Please enter a valid email address'),
+    body('password').custom((value) => validatePassword(value)).withMessage('Password must be at least 8 characters and include uppercase, lowercase, and a number'),
     body('role').isIn(['tourist', 'provider']).withMessage('Invalid role')
   ],
   register
@@ -37,7 +38,7 @@ router.post(
 router.post(
   '/login',
   [
-    body('email').isEmail().withMessage('Valid email is required'),
+    body('email').custom((value) => validateEmail(value)).withMessage('Please enter a valid email address'),
     body('password').notEmpty().withMessage('Password is required')
   ],
   login
@@ -49,13 +50,13 @@ router.post('/google-exchange', googleExchange);
 
 router.post(
   '/forgot-password',
-  [body('email').isEmail().withMessage('Valid email is required')],
+  [body('email').custom((value) => validateEmail(value)).withMessage('Please enter a valid email address')],
   forgotPassword
 );
 
 router.put(
   '/reset-password/:resetToken',
-  [body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')],
+  [body('password').custom((value) => validatePassword(value)).withMessage('Password must be at least 8 characters and include uppercase, lowercase, and a number')],
   resetPassword
 );
 

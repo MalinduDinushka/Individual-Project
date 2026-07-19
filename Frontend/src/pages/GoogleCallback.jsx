@@ -23,7 +23,7 @@ const GoogleCallback = () => {
         // Use the current full callback path as redirectUri so it matches Google console
         const redirectUri = window.location.origin + window.location.pathname
 
-        // Extract role from state if provided
+        // Extract role from state if it is provided
         let role = 'tourist'
         try {
           const state = params.get('state')

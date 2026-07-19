@@ -5,6 +5,7 @@ import AdminDashboardHome from './AdminDashboardHome'
 import AdminUsersPage from './AdminUsersPage'
 import AdminSOSPage from './AdminSOSPage'
 import AdminVerificationsPage from '../AdminVerificationsPage'
+import AdminReportsPage from './AdminReportsPage'
 import { adminAPI } from '../../api'
 import { useAuthStore } from '../../store/authStore'
 import { connectSocket } from '../../utils/socket'
@@ -65,7 +66,7 @@ const AdminDashboard = () => {
         <Route path="/users" element={<AdminUsersPage />} />
         <Route path="/verifications" element={<AdminVerificationsPage />} />
         <Route path="/sos" element={<AdminSOSPage />} />
-        <Route path="/reports" element={<div>Reports - Coming Soon</div>} />
+        <Route path="/reports" element={<AdminReportsPage />} />
       </Routes>
     </DashboardLayout>
   )

@@ -7,6 +7,9 @@ import MessagesPage from '../MessagesPage'
 import ProviderRequestsPage from './ProviderRequestsPage'
 import ProfilePage from '../ProfilePage'
 import ProviderPackagesPage from './ProviderPackagesPage'
+import ProviderServicesPage from './ProviderServicesPage'
+import ProviderEarningsPage from './ProviderEarningsPage'
+import ProviderSettingsPage from './ProviderSettingsPage'
 
 const ProviderDashboard = () => {
   const navItems = [
@@ -26,13 +29,13 @@ const ProviderDashboard = () => {
       <Routes>
         <Route path="/" element={<ProviderDashboardHome />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/services" element={<div>My Services - Coming Soon</div>} />
+        <Route path="/services" element={<ProviderServicesPage />} />
         <Route path="/packages" element={<ProviderPackagesPage />} />
         <Route path="/requests" element={<ProviderRequestsPage />} />
         <Route path="/messages" element={<MessagesPage />} />
         <Route path="/bookings" element={<React.Suspense fallback={<div>Loading...</div>}><ProviderBookings /></React.Suspense>} />
-        <Route path="/earnings" element={<div>Earnings - Coming Soon</div>} />
-        <Route path="/settings" element={<div>Settings - Coming Soon</div>} />
+        <Route path="/earnings" element={<ProviderEarningsPage />} />
+        <Route path="/settings" element={<ProviderSettingsPage />} />
       </Routes>
     </DashboardLayout>
   )

@@ -166,6 +166,7 @@ const RegisterPage = () => {
   })
   const [loading, setLoading] = useState(false)
   const [validationErrors, setValidationErrors] = useState([])
+  const [touchedFields, setTouchedFields] = useState({})
   const [uploadingPhotos, setUploadingPhotos] = useState(false)
   const [documentFile, setDocumentFile] = useState(null)
   const [documentFileName, setDocumentFileName] = useState('')
@@ -180,9 +181,22 @@ const RegisterPage = () => {
     other: []
   })
 
+  const getFieldError = (name, value) => {
+    if (name === 'email') {
+      const trimmedValue = String(value || '').trim()
+      if (!trimmedValue) return 'Email is required'
+      if (!EMAIL_PATTERN.test(trimmedValue)) return 'Please enter a valid email address'
+      return ''
+    }
+
+    return ''
+  }
+
   const handleChange = (e) => {
     const { name, value } = e.target
-    if (validationErrors.length > 0) setValidationErrors([])
+    if (validationErrors.length > 0) {
+      setValidationErrors((current) => current.filter((error) => error.field !== name))
+    }
     
     if (name.startsWith('business')) {
       const fieldName = name.replace('business.', '')
@@ -199,6 +213,11 @@ const RegisterPage = () => {
         [name]: value
       })
     }
+  }
+
+  const handleBlur = (e) => {
+    const { name } = e.target
+    setTouchedFields((current) => ({ ...current, [name]: true }))
   }
 
   const handlePhotoSelect = (e, bucketKey = 'other') => {
@@ -332,6 +351,7 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setValidationErrors([])
+    setTouchedFields((current) => ({ ...current, email: true }))
 
     const validationErrors = []
 
@@ -591,10 +611,15 @@ const RegisterPage = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="you@example.com"
                   className={`input ${validationErrors.some((error) => error.field === 'email') ? 'border-rose-500' : ''}`}
+                  aria-invalid={Boolean(validationErrors.some((error) => error.field === 'email') || (touchedFields.email && getFieldError('email', formData.email)))}
                   required
                 />
+                {touchedFields.email && getFieldError('email', formData.email) && (
+                  <p className="mt-2 text-sm text-rose-600">{getFieldError('email', formData.email)}</p>
+                )}
               </div>
 
               <div>

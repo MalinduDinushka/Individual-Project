@@ -19,6 +19,12 @@ test('requires stronger passwords', () => {
   assert.equal(validatePassword('StrongPass1'), true);
 });
 
+test('rejects empty or invalid email values', () => {
+  assert.equal(validateEmail(''), false);
+  assert.equal(validateEmail('   '), false);
+  assert.equal(validateEmail('invalid-email'), false);
+});
+
 test('validates registration payload fields', () => {
   const result = validateRegistrationPayload({
     name: 'A',
